@@ -16,12 +16,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "composite": true,
-    "types": ["vite/client"],
-    "baseUrl": "src",
-    "paths": {
-      "@components/*": ["components/*"],
-      "@assets/*": ["assets/*"]
-    }
+    "baseUrl": "."
   },
   "include": ["src/**/*", "*.ts", "*.tsx", "vite.config.ts"],
   "exclude": ["node_modules"]

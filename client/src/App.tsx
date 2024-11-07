@@ -1,30 +1,51 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { io, Socket } from 'socket.io-client';
+
+let socket: Socket;
 
 const App = () => {
-  const [count, setCount] = useState(0);
+  const [content, setContent] = useState('');
+
+  useEffect(() => {
+    socket = io('http://localhost:3000');
+
+    socket.on('connect', () => {
+      console.log('서버에 연결되었습니다.');
+    });
+
+    socket.on('document', (data) => {
+      // 서버로부터 초기 문서 상태 수신
+      setContent(data);
+    });
+
+    socket.on('update', (data) => {
+      // 다른 클라이언트로부터 변경 사항 수신
+      setContent(data.content);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    // 서버로 변경 사항 전송
+    socket.emit('update', { content: newContent });
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
-    </>
+    <div>
+      <h1>실시간 편집기</h1>
+      <textarea
+        value={content}
+        onChange={handleChange}
+        rows={10}
+        cols={50}
+        placeholder="여기에 입력하세요..."
+      />
+    </div>
   );
 };
 
