@@ -23,6 +23,7 @@ export class EventsService {
       { content, updatedAt: new Date() },
       { new: true, upsert: true },
     );
+    console.log(doc);
     return doc;
   }
 }
