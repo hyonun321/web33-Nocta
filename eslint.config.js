@@ -84,13 +84,13 @@ const config = [
   },
   {
     ignores: [
-      "node_modules/",
+      "**/node_modules/",
       "**/dist/",
-      "build/",
-      "coverage/",
-      "*.config.js",
-      "src/**/*.test.js",
-      "public/*",
+      "**/build/",
+      "**/coverage/",
+      "**/*.config.js",
+      "**/src/**/*.test.js",
+      "**/public/*",
     ],
   },
   // 설정 파일에 대한 특별 규칙
