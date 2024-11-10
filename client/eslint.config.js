@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import rootConfig from "../eslint.config.js";
 import panda from "@pandacss/eslint-plugin";
+import pandabox from "@pandabox/prettier-plugin";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,6 +22,7 @@ export default [
       "react-hooks": reactHooks,
       "jsx-a11y": jsxA11y,
       "@pandacss": panda,
+      "@pandabox": pandabox,
     },
     languageOptions: {
       parserOptions: {
