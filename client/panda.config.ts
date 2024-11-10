@@ -1,20 +1,30 @@
 import { defineConfig } from "@pandacss/dev";
+import { radii } from "@styles/tokens/radii";
+import { colors } from "@styles/tokens/color";
+import { shadows } from "@styles/tokens/shadow";
+import { spacing } from "@styles/tokens/spacing";
+import { textStyles } from "@styles/typography";
+import { globalStyles } from "@styles/global";
+import { glassContainerRecipe } from "@styles/recipes/glassContainerRecipe";
 
 export default defineConfig({
-  // Whether to use css reset
   preflight: true,
-
-  // Where to look for your css declarations
   include: ["./src/**/*.{js,jsx,ts,tsx}", "./pages/**/*.{js,jsx,ts,tsx}"],
-
-  // Files to exclude
   exclude: [],
-
-  // Useful for theme customization
+  globalCss: globalStyles,
   theme: {
-    extend: {},
+    extend: {
+      tokens: {
+        colors,
+        radii,
+        shadows,
+        spacing,
+      },
+      recipes: {
+        glassContainer: glassContainerRecipe,
+      },
+      textStyles,
+    },
   },
-
-  // The output directory for your css system
   outdir: "styled-system",
 });
