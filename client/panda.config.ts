@@ -6,7 +6,6 @@ import { spacing } from "@styles/tokens/spacing";
 import { textStyles } from "@styles/typography";
 import { globalStyles } from "@styles/global";
 import { glassContainerRecipe } from "@styles/recipes/glassContainerRecipe";
-import { iconRecipe } from "@styles/recipes/iconRecipe";
 
 export default defineConfig({
   preflight: true,
@@ -23,7 +22,6 @@ export default defineConfig({
       },
       recipes: {
         glassContainer: glassContainerRecipe,
-        icon: iconRecipe,
       },
       textStyles,
     },
