@@ -4,6 +4,7 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import rootConfig from "../eslint.config.js";
+import panda from "@pandacss/eslint-plugin";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,10 +15,12 @@ export default [
 
   {
     files: ["src/**/*.{ts,tsx}"],
+    ignores: ["styled-system"],
     plugins: {
       react,
       "react-hooks": reactHooks,
       "jsx-a11y": jsxA11y,
+      "@pandacss": panda,
     },
     languageOptions: {
       parserOptions: {
@@ -111,6 +114,10 @@ export default [
           },
         },
       ],
+
+      ...panda.configs.recommended.rules,
+      "@pandacss/no-config-function-in-source": "off",
+      "@pandacss/prefer-longhand-properties": "error",
     },
     settings: {
       "import/resolver": {
