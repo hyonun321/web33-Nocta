@@ -24,10 +24,12 @@ jobs:
       - name: "Check Approvals"
         id: check
         uses: actions/github-script@v6
+        env:
+          PR_RESULT: ${{ steps.pr.outputs.result }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const pr = JSON.parse(`${{ steps.pr.outputs.result }}`);
+            const pr = JSON.parse(process.env.PR_RESULT);
             const reviews = await github.rest.pulls.listReviews({
               owner: context.repo.owner,
               repo: context.repo.repo,
