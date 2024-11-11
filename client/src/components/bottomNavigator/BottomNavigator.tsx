@@ -1,5 +1,5 @@
 import { IconButton } from "@components/button/IconButton";
-import { bottomNavigatorContainer } from "./BottonNavigator.style";
+import { bottomNavigatorContainer } from "./BottomNavigator.style";
 
 interface NavItem {
   id: number;

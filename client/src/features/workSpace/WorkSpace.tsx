@@ -1,4 +1,4 @@
-import { BottomNavigator } from "@components/bottomNavigator/BottonNavigator";
+import { BottomNavigator } from "@components/bottomNavigator/BottomNavigator";
 import { Sidebar } from "@components/sidebar/Sidebar";
 import { Page } from "@features/page/Page";
 import { container, content } from "./WorkSpace.style";
