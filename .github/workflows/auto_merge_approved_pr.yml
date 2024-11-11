@@ -20,14 +20,14 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
             });
-            return JSON.stringify(pr);
+            core.setOutput('result', JSON.stringify(pr));
       - name: "Check Approvals"
         id: check
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const pr = JSON.parse(steps.pr.outputs.result);
+            const pr = JSON.parse(`${{ steps.pr.outputs.result }}`);
             const reviews = await github.rest.pulls.listReviews({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -36,7 +36,7 @@ jobs:
             const approvals = reviews.data.filter(review => review.state === 'APPROVED');
             core.setOutput('result', approvals.length >= 2);
       - name: "Merge PR"
-        if: steps.check.outputs.result
+        if: ${{ steps.check.outputs.result == 'true' }}
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
