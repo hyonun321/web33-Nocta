@@ -3,5 +3,10 @@
   "printWidth": 100,
   "tabWidth": 2,
   "jsxSingleQuote": false,
-  "singleQuote": false
+  "singleQuote": false,
+
+  "plugins": ["@pandabox/prettier-plugin"],
+  "pandaFirstProps": ["as", "className", "layerStyle", "textStyle"],
+  "pandaStylePropsFirst": true,
+  "pandaSortOtherProps": true
 }

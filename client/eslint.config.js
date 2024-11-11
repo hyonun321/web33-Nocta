@@ -4,6 +4,8 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import rootConfig from "../eslint.config.js";
+import panda from "@pandacss/eslint-plugin";
+import pandabox from "@pandabox/prettier-plugin";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,10 +16,13 @@ export default [
 
   {
     files: ["src/**/*.{ts,tsx}"],
+    ignores: ["styled-system"],
     plugins: {
       react,
       "react-hooks": reactHooks,
       "jsx-a11y": jsxA11y,
+      "@pandacss": panda,
+      "@pandabox": pandabox,
     },
     languageOptions: {
       parserOptions: {
@@ -70,17 +75,54 @@ export default [
       "jsx-a11y/click-events-have-key-events": "warn",
       "jsx-a11y/no-static-element-interactions": "warn",
       "jsx-a11y/label-has-associated-control": "warn",
+
+      // import 순서
+      "import/order": [
+        "error",
+        {
+          groups: [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "index",
+            "object",
+            "type",
+          ],
+          pathGroups: [
+            {
+              pattern: "@/**",
+              group: "internal",
+            },
+          ],
+          alphabetize: {
+            order: "asc",
+          },
+        },
+      ],
+
+      ...panda.configs.recommended.rules,
+      "@pandacss/no-config-function-in-source": "off",
+      "@pandacss/prefer-longhand-properties": "error",
     },
     settings: {
       "import/resolver": {
         typescript: {
           alwaysTryTypes: true,
-          project: resolve(__dirname, "./tsconfig.json"),
+          project: "./tsconfig.json",
         },
       },
       react: {
         version: "detect",
       },
+      node: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
+      },
+      "import/parsers": {
+        "@typescript-eslint/parser": [".ts", ".tsx"],
+      },
+      "import/internal-regex": "^@/",
     },
   },
 ];

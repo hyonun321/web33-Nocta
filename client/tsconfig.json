@@ -17,12 +17,15 @@
     "noFallthroughCasesInSwitch": true,
     "composite": true,
     "types": ["vite/client"],
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
-      "@components/*": ["components/*"],
-      "@assets/*": ["assets/*"]
+      "@styled-system/*": ["styled-system/*"],
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"],
+      "@features/*": ["src/features/*"],
+      "@styles/*": ["src/styles/*"]
     }
   },
-  "include": ["src/**/*", "*.ts", "*.tsx", "vite.config.ts"],
+  "include": ["src", "*.ts", "*.tsx", "vite.config.ts", "styled-system"],
   "exclude": ["node_modules"]
 }
