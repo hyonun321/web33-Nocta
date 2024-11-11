@@ -91,6 +91,7 @@ const config = [
       "**/*.config.js",
       "**/src/**/*.test.js",
       "**/public/*",
+      "client/styled-system/",
     ],
   },
   // 설정 파일에 대한 특별 규칙
