@@ -110,7 +110,7 @@ export default [
       "import/resolver": {
         typescript: {
           alwaysTryTypes: true,
-          project: resolve(__dirname, "./tsconfig.json"),
+          project: "./tsconfig.json",
         },
       },
       react: {
@@ -119,10 +119,10 @@ export default [
       node: {
         extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
+      "import/parsers": {
+        "@typescript-eslint/parser": [".ts", ".tsx"],
+      },
+      "import/internal-regex": "^@/",
     },
-    "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".tsx"],
-    },
-    "import/internal-regex": "^@/",
   },
 ];
