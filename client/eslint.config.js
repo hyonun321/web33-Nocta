@@ -37,21 +37,6 @@ export default [
         navigator: true,
       },
     },
-    settings: {
-      "import/resolver": {
-        typescript: {
-          alwaysTryTypes: true,
-          project: "./tsconfig.json",
-        },
-        node: {
-          extensions: [".js", ".jsx", ".ts", ".tsx"],
-        },
-      },
-      "import/parsers": {
-        "@typescript-eslint/parser": [".ts", ".tsx"],
-      },
-      "import/internal-regex": "^@/",
-    },
     rules: {
       // Airbnb React 규칙
       "react/boolean-prop-naming": ["error", { rule: "^(is|has)[A-Z]([A-Za-z0-9]?)+" }],
@@ -131,6 +116,13 @@ export default [
       react: {
         version: "detect",
       },
+      node: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
+      },
     },
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"],
+    },
+    "import/internal-regex": "^@/",
   },
 ];

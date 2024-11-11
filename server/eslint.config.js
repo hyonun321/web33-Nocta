@@ -1,6 +1,6 @@
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import rootConfig from '../eslint.config.js';
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+import rootConfig from "../eslint.config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,10 +10,10 @@ export default [
   ...rootConfig,
 
   {
-    files: ['src/**/*.ts', 'test/**/*.ts'],
+    files: ["src/**/*.ts", "test/**/*.ts"],
     languageOptions: {
       parserOptions: {
-        project: resolve(__dirname, './tsconfig.json'),
+        project: resolve(__dirname, "./tsconfig.json"),
       },
       globals: {
         // Test globals
@@ -34,11 +34,11 @@ export default [
       },
     },
     rules: {
-      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
-      '@typescript-eslint/interface-name-prefix': 'off',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      "no-console": ["warn", { allow: ["warn", "error", "info"] }],
+      "@typescript-eslint/interface-name-prefix": "off",
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
     },
   },
 ];
