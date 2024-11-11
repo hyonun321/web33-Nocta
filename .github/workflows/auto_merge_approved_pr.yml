@@ -12,9 +12,10 @@ jobs:
         id: pr
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: string
           script: |
-            const { data: pr } = await github.pulls.get({
+            const { data: pr } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
@@ -24,21 +25,23 @@ jobs:
         id: check
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const pr = JSON.parse(steps.pr.outputs.result);
-            const reviews = await github.pulls.listReviews({
+            const reviews = await github.rest.pulls.listReviews({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: pr.number,
             });
             const approvals = reviews.data.filter(review => review.state === 'APPROVED');
-            return approvals.length >= 2;
+            core.setOutput('result', approvals.length >= 2);
       - name: "Merge PR"
-        if: steps.check.outputs.result == 'true'
+        if: steps.check.outputs.result
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            await github.pulls.merge({
+            await github.rest.pulls.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
