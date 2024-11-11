@@ -1,4 +1,3 @@
-import { cx } from "@styled-system/css";
 import { pageControlContainer, pageControlButton } from "./PageControlButton.style";
 
 interface PageControlButtonProps {
