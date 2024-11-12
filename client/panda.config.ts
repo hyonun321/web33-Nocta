@@ -6,6 +6,7 @@ import { spacing } from "@styles/tokens/spacing";
 import { textStyles } from "@styles/typography";
 import { globalStyles } from "@styles/global";
 import { glassContainerRecipe } from "@styles/recipes/glassContainerRecipe";
+import { sizes } from "@styles/tokens/sizes";
 
 export default defineConfig({
   preflight: true,
@@ -15,6 +16,7 @@ export default defineConfig({
   theme: {
     extend: {
       tokens: {
+        sizes,
         colors,
         radii,
         shadows,
