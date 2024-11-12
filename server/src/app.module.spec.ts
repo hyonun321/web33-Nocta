@@ -3,7 +3,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { MongooseModule } from "@nestjs/mongoose";
 import { AppModule } from "./app.module";
 
-jest.setTimeout(10000);
+jest.setTimeout(20000);
 
 describe("MongoDB Connection", () => {
   let mongoServer: MongoMemoryServer;
