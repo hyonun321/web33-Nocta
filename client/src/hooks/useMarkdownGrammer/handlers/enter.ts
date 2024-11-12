@@ -138,20 +138,30 @@ export const useEnterKeyHandler = ({
           }));
         }
       } else {
-        // 일반 블록은 항상 p 태그로 새 블록 생성
-        currentNode.content = beforeText;
-        const newNode = editorList.createNode("p", afterText, currentNode, currentNode.nextNode);
+        // 현재 텍스트의 길이가 0이면 일반 블록으로 변경
+        if (content.length === 0) {
+          currentNode.type = "p";
+          currentNode.content = "";
+          setEditorState((prev) => ({
+            ...prev,
+            currentNode,
+          }));
+        } else {
+          // 일반 블록은 항상 p 태그로 새 블록 생성
+          currentNode.content = beforeText;
+          const newNode = editorList.createNode("p", afterText, currentNode, currentNode.nextNode);
 
-        // 연결 관계 설정
-        if (currentNode.nextNode) {
-          currentNode.nextNode.prevNode = newNode;
+          // 연결 관계 설정
+          if (currentNode.nextNode) {
+            currentNode.nextNode.prevNode = newNode;
+          }
+          currentNode.nextNode = newNode;
+
+          setEditorState((prev) => ({
+            ...prev,
+            currentNode: newNode,
+          }));
         }
-        currentNode.nextNode = newNode;
-
-        setEditorState((prev) => ({
-          ...prev,
-          currentNode: newNode,
-        }));
       }
     },
     [editorState, editorList, setEditorState],
