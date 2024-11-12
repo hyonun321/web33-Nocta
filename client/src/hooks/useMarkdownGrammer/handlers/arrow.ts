@@ -14,7 +14,7 @@ export const useArrowKeyHandler = ({
       if (!currentNode) return;
 
       let targetNode: EditorNode | null = null;
-      
+
       switch (e.key) {
         case "ArrowUp":
           if (currentNode.parentNode?.type === "checkbox") {
@@ -46,7 +46,7 @@ export const useArrowKeyHandler = ({
             targetNode = currentNode.prevNode;
           }
           break;
-      
+
         case "ArrowDown":
           if (currentNode.parentNode?.type === "checkbox") {
             if (currentNode.parentNode.nextNode) {
@@ -78,7 +78,7 @@ export const useArrowKeyHandler = ({
           }
           break;
       }
-      
+
       /*
       switch (e.key) {
         case "ArrowUp":
