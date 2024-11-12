@@ -30,6 +30,7 @@
       "@noctaCrdt/*": ["../@noctaCrdt/dist/*"]
     }
   },
+  "references": [{ "path": "../@noctaCrdt" }],
   "include": ["src", "*.ts", "*.tsx", "vite.config.ts", "styled-system"],
   "exclude": ["node_modules"]
 }
