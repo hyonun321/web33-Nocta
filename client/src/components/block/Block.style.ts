@@ -1,7 +1,7 @@
-import { css, cx } from "@styled-system/css";
+import { css, cva } from "@styled-system/css";
 
-// 기본 블록 스타일 정의
-const baseBlockStyle = css({
+// 기본 블록 스타일
+const baseBlockStyle = {
   textStyle: "display-medium16",
   outline: "none",
   borderRadius: "radii.xs",
@@ -9,82 +9,83 @@ const baseBlockStyle = css({
   minHeight: "spacing.lg",
   margin: "spacing.sm 0",
   padding: "spacing.sm",
-  color: "gray.700",
+  color: "gray.900",
   backgroundColor: "transparent",
+  '&:empty::before': {
+    content: 'attr(data-placeholder)',  // data-placeholder 속성의 값을 표시
+    color: 'gray.300',
+    position: 'absolute',
+    pointerEvents: 'none'  // 텍스트 선택이나 클릭 방지
+  }
+};
+
+// 블록 타입별 스타일 variants
+export const blockContainerStyle = cva({
+  base: baseBlockStyle,
+  variants: {
+    type: {
+      p: {
+        textStyle: "display-medium16",
+        fontWeight: "bold",
+      },
+      h1: {
+        textStyle: "display-medium24",
+        fontWeight: "bold",
+      },
+      h2: {
+        textStyle: "display-medium20",
+        fontWeight: "bold",
+      },
+      h3: {
+        textStyle: "display-medium16",
+        fontWeight: "bold",
+      },
+      ul: {
+        display: "block",
+        listStyleType: "disc",
+        listStylePosition: "inside",
+      },
+      ol: {
+        display: "block",
+        listStyleType: "decimal",
+        listStylePosition: "inside",
+      },
+      li: {
+        textStyle: "display-medium16",
+        display: "list-item",
+        outline: "none",
+        margin: "0",
+        padding: "0 0 0 spacing.md",
+      },
+      blockquote: {
+        borderLeft: "4px solid token(colors.gray.300)",
+        paddingLeft: "spacing.md",
+        color: "gray.500",
+        fontStyle: "italic",
+      },
+      input: {},
+    },
+    isActive: {
+      true: {
+        opacity: 0.9,
+      },
+      false: {
+        backgroundColor: "transparent",
+      },
+    },
+  },
+  defaultVariants: {
+    type: "p",
+    isActive: false,
+  },
 });
 
-// 각 블록 타입별 스타일 정의
-export const blockContainer = {
-  base: baseBlockStyle,
-
-  paragraph: baseBlockStyle,
-
-  heading1: cx(
-    baseBlockStyle,
-    css({
-      textStyle: "display-medium24",
-      color: "gray.900",
-      fontWeight: "bold",
-    }),
-  ),
-
-  heading2: cx(
-    baseBlockStyle,
-    css({
-      textStyle: "display-medium20",
-      color: "gray.900",
-      fontWeight: "bold",
-    }),
-  ),
-
-  heading3: cx(
-    baseBlockStyle,
-    css({
-      textStyle: "display-medium16",
-      color: "gray.900",
-      fontWeight: "bold",
-    }),
-  ),
-
-  unorderedList: cx(
-    baseBlockStyle,
-    css({
-      display: "block",
-      listStyleType: "disc",
-      listStylePosition: "inside",
-    }),
-  ),
-
-  orderedList: cx(
-    baseBlockStyle,
-    css({
-      display: "block",
-      listStyleType: "decimal",
-      listStylePosition: "inside",
-    }),
-  ),
-
-  listItem: css({
-    textStyle: "display-medium16",
-    display: "list-item", // 리스트 아이템으로 표시되도록 설정
-    outline: "none",
-    margin: "0",
-    padding: "0 0 0 spacing.md",
-    color: "gray.700",
-  }),
-
-  input: css({
-    textStyle: "display-medium16",
-    margin: "spacing.sm 0",
-  }),
-
-  blockquote: cx(
-    baseBlockStyle,
-    css({
-      borderLeft: "4px solid token(colors.gray.300)",
-      paddingLeft: "spacing.md",
-      color: "gray.500",
-      fontStyle: "italic",
-    }),
-  ),
-};
+// 리스트 아이템은 별도로 정의 (특수한 스타일링 때문)
+export const listItemStyle = css({
+  textStyle: "display-medium16",
+  display: "list-item",
+  outline: "none",
+  margin: "0",
+  padding: "0 0 0 spacing.md",
+  color: "gray.700",
+});

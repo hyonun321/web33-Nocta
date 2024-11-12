@@ -1,7 +1,6 @@
 import React, { memo } from "react";
-import { cx } from "@styled-system/css";
 import { EditorNode } from "../../types/markdown";
-import { blockContainer } from "./Block.style";
+import { blockContainerStyle, listItemStyle } from "./Block.style";
 
 interface BlockProps {
   node: EditorNode;
@@ -31,35 +30,29 @@ export const Block: React.FC<BlockProps> = memo(
       onClick(node.id);
     };
 
-    // node.type에 따른 스타일 선택
-    const getBlockStyle = (type: string) => {
+    const getPlaceholder = (type: string) => {
       switch (type) {
         case "p":
-          return blockContainer.paragraph;
+          return "텍스트를 입력하세요 ...";
         case "h1":
-          return blockContainer.heading1;
+          return "제목 1";
         case "h2":
-          return blockContainer.heading2;
+          return "제목 2";
         case "h3":
-          return blockContainer.heading3;
-        case "ul":
-          return blockContainer.unorderedList;
-        case "ol":
-          return blockContainer.orderedList;
+          return "제목 3";
         case "li":
-          return blockContainer.listItem;
+          return "리스트 항목";
         case "blockquote":
-          return blockContainer.blockquote;
-        case "input":
-          return blockContainer.input;
+          return "인용구를 입력하세요";
         default:
-          return blockContainer.base;
+          return "텍스트를 입력하세요";
       }
     };
 
     const commonProps = {
       "data-node-id": node.id,
       "data-depth": node.depth,
+      "data-placeholder": getPlaceholder(node.type),
       onKeyDown,
       onInput,
       onCompositionStart,
@@ -69,7 +62,10 @@ export const Block: React.FC<BlockProps> = memo(
       contentEditable: true,
       suppressContentEditableWarning: true,
       dangerouslySetInnerHTML: { __html: node.content },
-      className: cx(getBlockStyle(node.type)),
+      className: blockContainerStyle({ 
+        type: node.type,
+        isActive,
+      }),
     };
 
     return React.createElement(node.type, commonProps);
