@@ -1,30 +1,35 @@
+import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
+import { Page } from "src/types/page";
+import { animation } from "./BottomNavigator.animation";
 import { bottomNavigatorContainer } from "./BottomNavigator.style";
 
-interface NavItem {
-  id: number;
-  icon: string;
+interface BottomNavigatorProps {
+  pages: Page[];
+  handlePageSelect: (pageId: number) => void;
 }
 
-export const BottomNavigator = () => {
-  const items: NavItem[] = [
-    {
-      id: 1,
-      icon: "🏠",
-    },
-    {
-      id: 2,
-      icon: "🔍",
-    },
-    {
-      id: 3,
-      icon: "📚",
-    },
-  ];
-
+export const BottomNavigator = ({ pages, handlePageSelect }: BottomNavigatorProps) => {
   return (
     <div className={bottomNavigatorContainer}>
-      {items?.map(({ id, icon }) => <IconButton icon={icon} key={id} size="md" />)}
+      {pages.map((page) => (
+        <motion.div
+          key={page.id}
+          initial={animation.initial}
+          animate={animation.animate(page.isActive)}
+          transition={animation.transition}
+          whileHover={animation.whileHover}
+        >
+          <IconButton
+            key={page.id}
+            icon={page.icon}
+            size="md"
+            onClick={() => {
+              handlePageSelect(page.id);
+            }}
+          />
+        </motion.div>
+      ))}
     </div>
   );
 };
