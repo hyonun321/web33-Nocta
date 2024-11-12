@@ -21,3 +21,12 @@ export interface CursorPosition {
   clientId: number;
   position: number;
 }
+
+export interface SerializedProps {
+  clock: number;
+  client: number;
+  textLinkedList: {
+    head: NodeId | null;
+    nodeMap: { [key: string]: Node };
+  };
+}
