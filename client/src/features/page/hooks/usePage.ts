@@ -1,6 +1,6 @@
+import { PAGE, SIDE_BAR } from "@constants/size";
+import { SPACING } from "@constants/spacing";
 import { useState } from "react";
-import { PAGE, SIDE_BAR } from "src/constants/size";
-import { SPACING } from "src/constants/spacing";
 import { Position, Size } from "src/types/page";
 
 const PADDING = SPACING.MEDIUM * 2;
