@@ -11,6 +11,9 @@ importers:
       '@eslint/js':
         specifier: ^9.14.0
         version: 9.14.0
+      '@noctaCrdt':
+        specifier: workspace:*
+        version: link:@noctaCrdt
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.18.0
         version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.3.3))(eslint@8.57.1)(typescript@5.3.3)
@@ -53,6 +56,8 @@ importers:
       typescript:
         specifier: ~5.3.3
         version: 5.3.3
+
+  '@noctaCrdt': {}
 
   client:
     dependencies:
