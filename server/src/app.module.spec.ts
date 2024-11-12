@@ -1,9 +1,9 @@
-jest.setTimeout(10000);
-
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { Test, TestingModule } from "@nestjs/testing";
 import { MongooseModule } from "@nestjs/mongoose";
 import { AppModule } from "./app.module";
+
+jest.setTimeout(10000);
 
 describe("MongoDB Connection", () => {
   let mongoServer: MongoMemoryServer;
