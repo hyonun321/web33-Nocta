@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { EditorNode } from "../../types/markdown";
-import { blockContainerStyle, listItemStyle } from "./Block.style";
+import { blockContainerStyle } from "./Block.style";
 
 interface BlockProps {
   node: EditorNode;
@@ -62,7 +62,7 @@ export const Block: React.FC<BlockProps> = memo(
       contentEditable: true,
       suppressContentEditableWarning: true,
       dangerouslySetInnerHTML: { __html: node.content },
-      className: blockContainerStyle({ 
+      className: blockContainerStyle({
         type: node.type,
         isActive,
       }),

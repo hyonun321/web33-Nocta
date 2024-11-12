@@ -1,4 +1,4 @@
-import { css, cva } from "@styled-system/css";
+import { cva } from "@styled-system/css";
 
 // 기본 블록 스타일
 const baseBlockStyle = {
@@ -11,12 +11,12 @@ const baseBlockStyle = {
   padding: "spacing.sm",
   color: "gray.900",
   backgroundColor: "transparent",
-  '&:empty::before': {
-    content: 'attr(data-placeholder)',  // data-placeholder 속성의 값을 표시
-    color: 'gray.300',
-    position: 'absolute',
-    pointerEvents: 'none'  // 텍스트 선택이나 클릭 방지
-  }
+  "&:empty::before": {
+    content: "attr(data-placeholder)", // data-placeholder 속성의 값을 표시
+    color: "gray.300",
+    position: "absolute",
+    pointerEvents: "none", // 텍스트 선택이나 클릭 방지
+  },
 };
 
 // 블록 타입별 스타일 variants
@@ -78,14 +78,4 @@ export const blockContainerStyle = cva({
     type: "p",
     isActive: false,
   },
-});
-
-// 리스트 아이템은 별도로 정의 (특수한 스타일링 때문)
-export const listItemStyle = css({
-  textStyle: "display-medium16",
-  display: "list-item",
-  outline: "none",
-  margin: "0",
-  padding: "0 0 0 spacing.md",
-  color: "gray.700",
 });
