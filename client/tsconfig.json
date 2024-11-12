@@ -24,6 +24,8 @@
       "@assets/*": ["src/assets/*"],
       "@features/*": ["src/features/*"],
       "@styles/*": ["src/styles/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@utils/*": ["src/utils/*"],
       "@noctaCrdt": ["../@noctaCrdt/dist"],
       "@noctaCrdt/*": ["../@noctaCrdt/dist/*"]
     }
