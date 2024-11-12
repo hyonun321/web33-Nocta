@@ -1,3 +1,5 @@
+jest.setTimeout(10000);
+
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { Test, TestingModule } from "@nestjs/testing";
 import { MongooseModule } from "@nestjs/mongoose";
