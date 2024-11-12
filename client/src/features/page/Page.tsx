@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Editor } from "@features/editor/Editor";
-import { pageContainer, pageHeader, pageTitle } from "./Page.style";
+import { pageContainer, pageHeader } from "./Page.style";
 import { PageControlButton } from "./components/PageControlButton/PageControlButton";
 import { PageTitle } from "./components/PageTitle/PageTitle";
 

@@ -1,11 +1,11 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { EditorState } from "../../types/markdown";
 import { Block } from "@components/block/Block";
-import { useCaretManager } from "../../hooks/useCaretManager";
-import { LinkedListBlock } from "../../utils/linkedLIstBlock";
-import { checkMarkdownPattern } from "../../utils/markdownPatterns";
-import { useKeyboardHandlers } from "../../hooks/useMarkdownGrammer";
-import { editorContainer, editorTitleContainer } from "./Editor.style";
+import { useCaretManager } from "@hooks/useCaretManager";
+import { useKeyboardHandlers } from "@hooks/useMarkdownGrammer";
+import { LinkedListBlock } from "@utils/linkedLIstBlock";
+import { checkMarkdownPattern } from "@utils/markdownPatterns";
+import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
@@ -131,12 +131,15 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
 
   return (
     <div className={editorContainer}>
-      <input
-        type="text"
-        placeholder="제목을 입력하세요..."
-        onChange={handleTitleChange}
-        className={editorTitleContainer}
-      />
+      <div className={editorTitleContainer}>
+        <input
+          type="text"
+          placeholder="제목을 입력하세요..."
+          onChange={handleTitleChange}
+          className={editorTitle}
+        />
+      </div>
+      
       {renderNodes()}
     </div>
   );
