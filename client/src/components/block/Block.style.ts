@@ -8,6 +8,7 @@ const baseBlockStyle = css({
   padding: 'spacing.sm',
   borderRadius: 'radii.xs',
   backgroundColor: 'transparent',
+  color: 'gray.700',
   outline: 'none',
   textStyle: 'display-medium16',
 });
@@ -23,6 +24,7 @@ export const blockContainer = {
     css({
       textStyle: 'display-medium24',
       fontWeight: 'bold',
+      color: 'gray.900',
     })
   ),
   
@@ -31,6 +33,7 @@ export const blockContainer = {
     css({
       textStyle: 'display-medium20',
       fontWeight: 'bold',
+      color: 'gray.900',
     })
   ),
   
@@ -39,6 +42,7 @@ export const blockContainer = {
     css({
       textStyle: 'display-medium16',
       fontWeight: 'bold',
+      color: 'gray.900',
     })
   ),
   
@@ -46,6 +50,8 @@ export const blockContainer = {
     baseBlockStyle,
     css({
       listStyleType: 'disc',
+      listStylePosition: 'inside',
+      display: 'block',
     })
   ),
   
@@ -53,14 +59,18 @@ export const blockContainer = {
     baseBlockStyle,
     css({
       listStyleType: 'decimal',
+      listStylePosition: 'inside',
+      display: 'block',
     })
   ),
   
   listItem: css({
     margin: '0',
-    padding: '0',
+    padding: '0 0 0 spacing.md',
     outline: 'none',
     textStyle: 'display-medium16',
+    color: 'gray.700',
+    display: 'list-item', // 리스트 아이템으로 표시되도록 설정
   }),
   
   input: css({
@@ -74,7 +84,7 @@ export const blockContainer = {
       borderLeft: '4px solid token(colors.gray.300)',
       paddingLeft: 'spacing.md',
       fontStyle: 'italic',
-      color: 'gray.700',
+      color: 'gray.500',
     })
   ),
 };

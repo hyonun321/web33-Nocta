@@ -44,9 +44,23 @@ export const useSpaceKeyHandler = ({
             currentNode: listNode,
           }));
         } else {
+          const wasRoot = currentNode.prevNode === null;
+          const { prevNode, nextNode } = currentNode;
           // 기존 노드의 타입만 변경
           currentNode.type = newElement.type;
           currentNode.content = "";
+
+          if (wasRoot) {
+            
+            editorList.root = currentNode;
+          } else {
+            if (prevNode) {
+              prevNode.nextNode = currentNode;
+            }
+            if (nextNode) {
+              nextNode.prevNode = currentNode;
+            }
+          }
 
           setEditorState((prev) => ({ ...prev }));
         }
