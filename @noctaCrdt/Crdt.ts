@@ -1,6 +1,6 @@
 import { LinkedList } from "./LinkedList";
 import { NodeId, Node } from "./Node";
-import { RemoteInsertOperation, RemoteDeleteOperation } from "./Interfaces";
+import { RemoteInsertOperation, RemoteDeleteOperation, SerializedProps } from "./Interfaces";
 
 export class CRDT {
   clock: number;
@@ -116,7 +116,7 @@ export class CRDT {
    * CRDT의 상태를 직렬화 가능한 객체로 반환합니다.
    * @returns 직렬화 가능한 CRDT 상태
    */
-  serialize(): any {
+  serialize(): SerializedProps {
     return {
       clock: this.clock,
       client: this.client,
