@@ -15,12 +15,11 @@ jobs:
         uses: actions/checkout@v4
 
       # 2. Docker Compose로 서비스 빌드 및 재시작
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
       - name: Build and Deploy Docker Images
+        env:
+          NODE_ENV: production
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
         run: |
-          # docker-compose로 배포
           docker-compose up -d --build
 
       # 3. Clean up Old Images

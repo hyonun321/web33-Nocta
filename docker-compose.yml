@@ -6,7 +6,7 @@ services:
     volumes:
       - ./client/dist:/app/client/dist
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV}
     command: pnpm --filter client run build
 
   backend:
@@ -16,7 +16,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - NODE_ENV=${NODE_ENV}
 
   nginx:
     build:
