@@ -22,7 +22,9 @@ jobs:
               pull_number: pull_number,
             });
             const approvals = reviews.data.filter(review => review.state === 'APPROVED');
-            return approvals.length >= 2;
+            const approvalCount = approvals.length;
+            core.info(`PR #${pull_number} has ${approvalCount} approval(s).`);
+            return approvalCount >= 2;
       - name: "Merge PR"
         if: ${{ steps.check.outputs.result == 'true' }}
         uses: actions/github-script@v6
@@ -30,8 +32,46 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const pull_number = context.payload.pull_request.number;
-            await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pull_number,
-            });
+
+            // PR 정보 및 병합 가능 상태 확인
+            let pr;
+            for (let i = 0; i < 5; i++) { // 최대 5회 재시도
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pull_number,
+              });
+              pr = data;
+
+              if (pr.state !== 'open') {
+                core.info(`PR #${pull_number} is not open (state: ${pr.state}).`);
+                return;
+              }
+
+              if (pr.mergeable === true) {
+                break; // 병합 가능하면 루프 종료
+              } else if (pr.mergeable === false) {
+                core.info(`PR #${pull_number} cannot be merged due to conflicts or other issues.`);
+                return;
+              } else {
+                // mergeable이 null인 경우 (계산 중), 잠시 대기 후 재시도
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 2초 대기
+              }
+            }
+
+            if (pr.mergeable !== true) {
+              core.info(`PR #${pull_number} mergeable status is unknown after retries.`);
+              return;
+            }
+
+            // PR 병합 시도
+            try {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pull_number,
+              });
+              core.info(`PR #${pull_number} has been merged successfully.`);
+            } catch (error) {
+              core.info(`Failed to merge PR #${pull_number}: ${error.message}`);
+            }
