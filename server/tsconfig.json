@@ -1,4 +1,6 @@
 {
+  "extend": "../tsconfig.base.json",
+  "references": [{ "path": "../@noctaCrdt" }],
   "compilerOptions": {
     // 기본 설정
     "module": "commonjs",
@@ -18,7 +20,10 @@
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-
+    "paths": {
+      "@Nocta/crdt": ["../@noctaCrdt/dist"],
+      "@Nocta/crdt/*": ["../@noctaCrdt/dist/*"]
+    },
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
 
