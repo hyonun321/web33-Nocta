@@ -13,3 +13,17 @@ export const editorContainer = css({
   flexDirection: "column",
   gap: "spacing.sm",
 });
+
+export const editorTitleContainer = css({
+  width: 'full',
+  padding: 'spacing.sm',
+  marginBottom: 'spacing.md',
+  border: 'none',
+  outline: 'none',
+  textStyle: 'display-medium28',
+  color: 'gray.700',
+  backgroundColor: 'transparent',
+  '&::placeholder': {
+    color: 'gray.300'
+  }
+})

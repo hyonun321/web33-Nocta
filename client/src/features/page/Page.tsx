@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Editor } from "@features/editor/Editor";
 import { pageContainer, pageHeader, pageTitle } from "./Page.style";
-import { PageControlButton } from "./components/PageControlButton";
+import { PageControlButton } from "./components/PageControlButton/PageControlButton";
+import { PageTitle } from "./components/PageTitle/PageTitle";
 
 interface PageProps {
   x?: number;
@@ -8,6 +10,7 @@ interface PageProps {
 }
 
 export const Page = ({ x = 0, y = 0 }: PageProps) => {
+  const [title, setTitle] = useState("");
   const position = {
     left: `${x}px`,
     top: `${y}px`,
@@ -17,17 +20,21 @@ export const Page = ({ x = 0, y = 0 }: PageProps) => {
   const handlePageMaximize = () => {};
   const handlePageClose = () => {};
 
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle);
+  };
+
   return (
     <div className={pageContainer} style={position}>
       <div className={pageHeader}>
-        <p className={pageTitle}>title</p>
+        <PageTitle title={title} />
         <PageControlButton
           onPageClose={handlePageClose}
           onPageMaximize={handlePageMaximize}
           onPageMinimize={handlePageMinimize}
         />
       </div>
-      <Editor />
+      <Editor onTitleChange={handleTitleChange}/>
     </div>
   );
 };

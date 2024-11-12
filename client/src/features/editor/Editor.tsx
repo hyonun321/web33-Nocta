@@ -5,9 +5,13 @@ import { useCaretManager } from "../../hooks/useCaretManager";
 import { LinkedListBlock } from "../../utils/linkedLIstBlock";
 import { checkMarkdownPattern } from "../../utils/markdownPatterns";
 import { useKeyboardHandlers } from "../../hooks/useMarkdownGrammer";
-import { editorContainer } from "./Editor.style";
+import { editorContainer, editorTitleContainer } from "./Editor.style";
 
-export const Editor = () => {
+interface EditorProps {
+  onTitleChange: (title: string) => void;
+}
+
+export const Editor = ({ onTitleChange }: EditorProps) => {
   const [editorList] = useState(() => new LinkedListBlock());
   const [editorState, setEditorState] = useState<EditorState>(() => ({
     rootNode: editorList.root,
@@ -54,6 +58,10 @@ export const Editor = () => {
       editorState.currentNode.content = newContent;
     }
   }, [editorState.currentNode, isComposing]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onTitleChange(e.target.value);
+  };
 
   useEffect(() => {
     if (editorState.currentNode) {
@@ -123,6 +131,12 @@ export const Editor = () => {
 
   return (
     <div className={editorContainer}>
+      <input
+        type="text"
+        placeholder="제목을 입력하세요..."
+        onChange={handleTitleChange}
+        className={editorTitleContainer}
+      />
       {renderNodes()}
     </div>
   );
