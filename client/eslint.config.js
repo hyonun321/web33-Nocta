@@ -57,7 +57,7 @@ export default [
       "react/jsx-indent": ["error", 2],
       "react/jsx-key": "error",
       "react/jsx-max-props-per-line": ["error", { maximum: 1, when: "multiline" }],
-      "react/jsx-no-bind": "warn",
+      "react/jsx-no-bind": "off",
       "react/jsx-no-duplicate-props": "error",
       "react/jsx-pascal-case": "error",
 
