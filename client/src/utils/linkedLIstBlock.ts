@@ -118,4 +118,3 @@ export class LinkedListBlock {
     return result;
   }
 }
-

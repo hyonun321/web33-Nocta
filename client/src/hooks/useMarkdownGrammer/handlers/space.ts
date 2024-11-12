@@ -51,7 +51,6 @@ export const useSpaceKeyHandler = ({
           currentNode.content = "";
 
           if (wasRoot) {
-            
             editorList.root = currentNode;
           } else {
             if (prevNode) {

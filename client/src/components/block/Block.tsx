@@ -33,17 +33,27 @@ export const Block: React.FC<BlockProps> = memo(
 
     // node.type에 따른 스타일 선택
     const getBlockStyle = (type: string) => {
-      switch(type) {
-        case 'p': return blockContainer.paragraph;
-        case 'h1': return blockContainer.heading1;
-        case 'h2': return blockContainer.heading2;
-        case 'h3': return blockContainer.heading3;
-        case 'ul': return blockContainer.unorderedList;
-        case 'ol': return blockContainer.orderedList;
-        case 'li': return blockContainer.listItem;
-        case 'blockquote': return blockContainer.blockquote;
-        case 'input': return blockContainer.input;
-        default: return blockContainer.base;
+      switch (type) {
+        case "p":
+          return blockContainer.paragraph;
+        case "h1":
+          return blockContainer.heading1;
+        case "h2":
+          return blockContainer.heading2;
+        case "h3":
+          return blockContainer.heading3;
+        case "ul":
+          return blockContainer.unorderedList;
+        case "ol":
+          return blockContainer.orderedList;
+        case "li":
+          return blockContainer.listItem;
+        case "blockquote":
+          return blockContainer.blockquote;
+        case "input":
+          return blockContainer.input;
+        default:
+          return blockContainer.base;
       }
     };
 
@@ -59,9 +69,7 @@ export const Block: React.FC<BlockProps> = memo(
       contentEditable: true,
       suppressContentEditableWarning: true,
       dangerouslySetInnerHTML: { __html: node.content },
-      className: cx(
-        getBlockStyle(node.type),
-      ),
+      className: cx(getBlockStyle(node.type)),
     };
 
     return React.createElement(node.type, commonProps);

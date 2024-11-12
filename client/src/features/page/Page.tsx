@@ -34,7 +34,7 @@ export const Page = ({ x = 0, y = 0 }: PageProps) => {
           onPageMinimize={handlePageMinimize}
         />
       </div>
-      <Editor onTitleChange={handleTitleChange}/>
+      <Editor onTitleChange={handleTitleChange} />
     </div>
   );
 };

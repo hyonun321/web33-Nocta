@@ -9,22 +9,21 @@ export const editorContainer = css({
   _focus: {
     outline: "none",
   },
-
 });
 
 export const editorTitleContainer = css({
-  width: 'full',
-  padding: 'spacing.sm',
-  marginBottom: '30px',
-})
+  width: "full",
+  marginBottom: "30px",
+  padding: "spacing.sm",
+});
 
 export const editorTitle = css({
-  width: 'full',
-  border: 'none',
-  outline: 'none',
-  textStyle: 'display-medium28',
-  color: 'gray.700',
-  '&::placeholder': {
-    color: 'gray.300'
-  }
+  textStyle: "display-medium28",
+  outline: "none",
+  border: "none",
+  width: "full",
+  color: "gray.700",
+  "&::placeholder": {
+    color: "gray.300",
+  },
 });

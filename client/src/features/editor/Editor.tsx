@@ -91,9 +91,7 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
         }
 
         return (
-          <node.type 
-            key={node.id} 
-          >
+          <node.type key={node.id}>
             {children.map((liNode) => (
               <Block
                 key={liNode.id}
@@ -139,7 +137,7 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
           className={editorTitle}
         />
       </div>
-      
+
       {renderNodes()}
     </div>
   );

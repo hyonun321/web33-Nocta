@@ -41,7 +41,6 @@ export const useKeyboardHandlers = (props: KeyHandlerProps) => {
   return { handleKeyDown };
 };
 
-
 /*
 const useTabKeyHandler = ({ editorState, editorList, setEditorState }: KeyHandlerProps) => {
   return useCallback(

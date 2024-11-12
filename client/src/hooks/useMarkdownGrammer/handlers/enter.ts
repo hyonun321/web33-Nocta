@@ -2,7 +2,11 @@ import { useCallback } from "react";
 import { EditorNode } from "../../../types/markdown";
 import { KeyHandlerProps } from "./handlerProps";
 
-export const useEnterKeyHandler = ({ editorState, editorList, setEditorState }: KeyHandlerProps) => {
+export const useEnterKeyHandler = ({
+  editorState,
+  editorList,
+  setEditorState,
+}: KeyHandlerProps) => {
   return useCallback(
     (e: React.KeyboardEvent) => {
       e.preventDefault();
