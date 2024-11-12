@@ -6,6 +6,7 @@ interface usePagesManageProps {
   addPage: () => void;
   selectPage: (pageId: number, isSidebar?: boolean) => void;
   closePage: (pageId: number) => void;
+  updatePageTitle: (pageId: number, newTitle: string) => void;
 }
 
 const INIT_ICON = "📄";
@@ -55,10 +56,17 @@ export const usePagesManage = (): usePagesManageProps => {
     );
   };
 
+  const updatePageTitle = (pageId: number, newTitle: string) => {
+    setPages((prevPages) =>
+      prevPages.map((page) => (page.id === pageId ? { ...page, title: newTitle } : page)),
+    );
+  };
+
   return {
     pages,
     addPage,
     selectPage,
     closePage,
+    updatePageTitle,
   };
 };

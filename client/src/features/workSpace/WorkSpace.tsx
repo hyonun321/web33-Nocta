@@ -5,7 +5,7 @@ import { container, content } from "./WorkSpace.style";
 import { usePagesManage } from "./hooks/usePagesManage";
 
 export const WorkSpace = () => {
-  const { pages, addPage, selectPage, closePage } = usePagesManage();
+  const { pages, addPage, selectPage, closePage, updatePageTitle } = usePagesManage();
   const visiblePages = pages.filter((a) => a.isVisible);
 
   return (
@@ -13,7 +13,13 @@ export const WorkSpace = () => {
       <Sidebar pages={pages} handlePageAdd={addPage} handlePageSelect={selectPage} />
       <div className={content}>
         {visiblePages.map((page) => (
-          <Page key={page.id} {...page} handlePageSelect={selectPage} handlePageClose={closePage} />
+          <Page
+            key={page.id}
+            {...page}
+            handlePageSelect={selectPage}
+            handlePageClose={closePage}
+            handleTitleChange={updatePageTitle}
+          />
         ))}
       </div>
       <BottomNavigator pages={visiblePages} handlePageSelect={selectPage} />
