@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { KeyHandlerProps } from "./handlers/handlerProps";
-import { useSpaceKeyHandler } from "./handlers/space";
+import { useArrowKeyHandler } from "./handlers/arrow";
 import { useBackspaceKeyHandler } from "./handlers/backSpace";
 import { useEnterKeyHandler } from "./handlers/enter";
-import { useArrowKeyHandler } from "./handlers/arrow";
+import { KeyHandlerProps } from "./handlers/handlerProps";
+import { useSpaceKeyHandler } from "./handlers/space";
 
 export const useKeyboardHandlers = (props: KeyHandlerProps) => {
   const handleEnter = useEnterKeyHandler(props);
