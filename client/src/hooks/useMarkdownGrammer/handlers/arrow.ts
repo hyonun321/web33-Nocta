@@ -1,7 +1,7 @@
 import { useCallback } from "react";
+import { handleKeyNavigation } from "@utils/blockNavigationUtils";
 import { EditorNode } from "../../../types/markdown";
 import { KeyHandlerProps } from "./handlerProps";
-import { handleKeyNavigation } from "@utils/blockNavigationUtils";
 
 export const useArrowKeyHandler = ({
   editorState,
@@ -19,10 +19,10 @@ export const useArrowKeyHandler = ({
         case "ArrowUp":
         case "ArrowDown": {
           e.preventDefault();
-          
+
           const direction = e.key === "ArrowUp" ? "prev" : "next";
           targetNode = handleKeyNavigation(currentNode, direction);
-          
+
           break;
         }
       }

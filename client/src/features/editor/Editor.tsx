@@ -1,10 +1,10 @@
 import { useRef, useState, useCallback, useEffect } from "react";
-import { EditorState } from "../../types/markdown";
 import { Block } from "@components/block/Block";
 import { useCaretManager } from "@hooks/useCaretManager";
 import { useKeyboardHandlers } from "@hooks/useMarkdownGrammer";
 import { LinkedListBlock } from "@utils/linkedLIstBlock";
 import { checkMarkdownPattern } from "@utils/markdownPatterns";
+import { EditorState } from "../../types/markdown";
 import {
   editorContainer,
   editorTitleContainer,
