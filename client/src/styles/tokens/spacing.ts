@@ -1,5 +1,7 @@
+import { SPACING } from "src/constants/spacing";
+
 export const spacing = {
-  sm: { value: "16px" },
-  md: { value: "20px" },
-  lg: { value: "24px" },
+  sm: { value: `${SPACING.SMALL}px` },
+  md: { value: `${SPACING.MEDIUM}px` },
+  lg: { value: `${SPACING.LARGE}px` },
 };
