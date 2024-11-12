@@ -1,4 +1,4 @@
-import WorkSpace from "@features/workSpace/WorkSpace";
+import { WorkSpace } from "@features/workSpace/WorkSpace";
 
 const App = () => {
   // TODO 라우터, react query 설정
