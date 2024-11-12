@@ -23,7 +23,8 @@
       "@components/*": ["src/components/*"],
       "@assets/*": ["src/assets/*"],
       "@features/*": ["src/features/*"],
-      "@styles/*": ["src/styles/*"]
+      "@styles/*": ["src/styles/*"],
+      "@constants/*": ["src/constants/*"]
     }
   },
   "include": ["src", "*.ts", "*.tsx", "vite.config.ts", "styled-system"],
