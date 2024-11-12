@@ -2,21 +2,21 @@ import { BottomNavigator } from "@components/bottomNavigator/BottomNavigator";
 import { Sidebar } from "@components/sidebar/Sidebar";
 import { Page } from "@features/page/Page";
 import { container, content } from "./WorkSpace.style";
+import { usePagesManage } from "./hooks/usePagesManage";
 
-const WorkSpace = () => {
-  // TODO 여러개의 Page 관리
+export const WorkSpace = () => {
+  const { pages, addPage, selectPage, closePage } = usePagesManage();
+  const visiblePages = pages.filter((a) => a.isVisible);
 
   return (
     <div className={container}>
-      <Sidebar />
+      <Sidebar pages={pages} handlePageAdd={addPage} handlePageSelect={selectPage} />
       <div className={content}>
-        <Page x={0} y={100} />
-        <Page x={800} y={10} />
-        <Page x={400} y={300} />
+        {visiblePages.map((page) => (
+          <Page key={page.id} {...page} handlePageSelect={selectPage} handlePageClose={closePage} />
+        ))}
       </div>
-      <BottomNavigator />
+      <BottomNavigator pages={visiblePages} handlePageSelect={selectPage} />
     </div>
   );
 };
-
-export default WorkSpace;
