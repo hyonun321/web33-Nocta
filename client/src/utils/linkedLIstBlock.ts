@@ -49,6 +49,23 @@ export class LinkedListBlock {
 
   // 노드 삭제
   removeNode(node: EditorNode): void {
+    // 부모-자식 관계 정리
+    if (node.parentNode) {
+      if (node.parentNode.firstChild === node) {
+        node.parentNode.firstChild = node.nextSibling;
+      }
+      node.parentNode = null;
+    }
+
+    // 형제 관계 정리
+    if (node.prevSibling) {
+      node.prevSibling.nextSibling = node.nextSibling;
+    }
+    if (node.nextSibling) {
+      node.nextSibling.prevSibling = node.prevSibling;
+    }
+
+    // 수평 관계 정리
     if (node.prevNode) {
       node.prevNode.nextNode = node.nextNode;
     }
@@ -56,11 +73,23 @@ export class LinkedListBlock {
       node.nextNode.prevNode = node.prevNode;
     }
 
+    // firstChild가 있는 경우 관계 정리
+    if (node.firstChild) {
+      node.firstChild.parentNode = null;
+      node.firstChild = null;
+    }
+
     // root 노드인 경우 업데이트
     if (node === this.root) {
       this.root = node.nextNode;
     }
 
+    // 현재 노드인 경우 업데이트
+    if (node === this.current) {
+      this.current = node.prevNode || node.nextNode;
+    }
+
+    // 노드의 모든 참조 제거
     Object.keys(node).forEach((key) => {
       delete (node as any)[key];
     });
@@ -77,6 +106,9 @@ export class LinkedListBlock {
           if (child.id === id) return child;
           child = child.nextSibling;
         }
+      }
+      if (node.type === "checkbox") {
+        return node.firstChild;
       }
       return find(node.nextNode);
     };

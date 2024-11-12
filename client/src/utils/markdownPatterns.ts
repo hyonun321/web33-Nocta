@@ -32,9 +32,11 @@ const MARKDOWN_PATTERNS: Record<string, MarkdownPattern> = {
     createElement: () => ({ type: "blockquote" }),
   },
   checkbox: {
-    regex: /^>$/,
-    length: 1,
-    createElement: () => ({ type: "input" }),
+    regex: /^\[ ?\]$/, // "[ ]" 또는 "[]" 패턴 매칭
+    length: 3,
+    createElement: () => ({
+      type: "checkbox",
+    }),
   },
 };
 

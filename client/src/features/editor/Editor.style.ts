@@ -27,3 +27,24 @@ export const editorTitle = css({
     color: "gray.300",
   },
 });
+
+export const checkboxContainer = css({
+  display: "flex",
+  gap: "spacing.sm",
+  flexDirection: "row",
+  alignItems: "center",
+});
+
+export const checkbox = css({
+  border: "1px solid",
+  borderColor: "gray.300",
+  borderRadius: "4px",
+  width: "16px",
+  height: "16px",
+  margin: "0 8px 0 0",
+  cursor: "pointer",
+  "&:checked": {
+    borderColor: "blue.500",
+    backgroundColor: "blue.500",
+  },
+});

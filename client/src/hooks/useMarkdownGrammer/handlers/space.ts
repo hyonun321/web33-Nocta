@@ -17,8 +17,46 @@ export const useSpaceKeyHandler = ({
         e.preventDefault();
         const { currentNode } = editorState;
         if (!currentNode) return;
+        if (newElement.type === "checkbox") {
+          const { prevNode, nextNode } = currentNode;
+          const wasRoot = currentNode.prevNode === null;
 
-        if (newElement.type === "ul" || newElement.type === "ol") {
+          // checkbox-container 노드 생성
+          const containerNode = editorList.createNode(
+            "checkbox",
+            "",
+            prevNode,
+            nextNode,
+            currentNode.depth,
+          );
+
+          // content 노드 생성
+          const contentNode = editorList.createNode("p", "", null, null, currentNode.depth + 1);
+
+          // 노드 간 관계 설정
+          containerNode.firstChild = contentNode;
+          contentNode.parentNode = containerNode;
+
+          // checkbox 속성 설정
+          containerNode.attributes = {
+            checked: false,
+            ...newElement.attributes,
+          };
+
+          // root 노드 업데이트
+          if (wasRoot) {
+            editorList.root = containerNode;
+          } else {
+            if (prevNode) prevNode.nextNode = containerNode;
+            if (nextNode) nextNode.prevNode = containerNode;
+          }
+
+          setEditorState((prev) => ({
+            ...prev,
+            rootNode: wasRoot ? containerNode : prev.rootNode,
+            currentNode: contentNode,
+          }));
+        } else if (newElement.type === "ul" || newElement.type === "ol") {
           // 기존 노드의 위치 관계 저장
           const { prevNode, nextNode } = currentNode;
           const wasRoot = currentNode.prevNode === null;

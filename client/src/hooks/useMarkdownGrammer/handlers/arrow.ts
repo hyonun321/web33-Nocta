@@ -16,7 +16,15 @@ export const useArrowKeyHandler = ({
       let targetNode: EditorNode | null = null;
       switch (e.key) {
         case "ArrowUp":
-          if (currentNode.prevNode?.type === "ul" || currentNode.prevNode?.type === "ol") {
+          if (currentNode.parentNode?.type === "checkbox") {
+            if (currentNode.parentNode.prevNode) {
+              if (currentNode.parentNode.prevNode.type === "checkbox") {
+                targetNode = currentNode.parentNode.prevNode.firstChild;
+              } else {
+                targetNode = currentNode.parentNode.prevNode;
+              }
+            }
+          } else if (currentNode.prevNode?.type === "ul" || currentNode.prevNode?.type === "ol") {
             targetNode = editorList.getLastChild(currentNode.prevNode!);
           } else if (currentNode.type === "li") {
             if (currentNode.prevSibling?.id) {
@@ -31,7 +39,15 @@ export const useArrowKeyHandler = ({
           }
           break;
         case "ArrowDown":
-          if (currentNode.nextNode?.type === "ul" || currentNode.nextNode?.type === "ol") {
+          if (currentNode.parentNode?.type === "checkbox") {
+            if (currentNode.parentNode.nextNode) {
+              if (currentNode.parentNode.nextNode.type === "checkbox") {
+                targetNode = currentNode.parentNode.nextNode.firstChild;
+              } else {
+                targetNode = currentNode.parentNode.nextNode;
+              }
+            }
+          } else if (currentNode.nextNode?.type === "ul" || currentNode.nextNode?.type === "ol") {
             targetNode = currentNode.nextNode!.firstChild;
           } else if (currentNode.type === "li") {
             if (currentNode.nextSibling?.id) {

@@ -49,6 +49,8 @@ export const Block: React.FC<BlockProps> = memo(
       }
     };
 
+    const nodeType = node.type === "checkbox" ? "p" : node.type;
+
     const commonProps = {
       "data-node-id": node.id,
       "data-depth": node.depth,
@@ -68,7 +70,7 @@ export const Block: React.FC<BlockProps> = memo(
       }),
     };
 
-    return React.createElement(node.type, commonProps);
+    return React.createElement(nodeType, commonProps);
   },
 );
 

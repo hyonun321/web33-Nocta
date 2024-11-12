@@ -12,9 +12,60 @@ export const useBackspaceKeyHandler = ({
       const { currentNode } = editorState;
       if (!currentNode || currentNode.content.length > 0) return;
       if (currentNode === editorState.rootNode && currentNode.type === "p") return;
-
       e.preventDefault();
-      if (currentNode.type === "li") {
+      if (currentNode.parentNode?.type === "checkbox") {
+        const { parentNode } = currentNode;
+        const wasRoot = parentNode === editorState.rootNode;
+
+        let focusNode;
+        if (parentNode.prevNode?.type === "checkbox") {
+          // undefined가 될 수 있는 상황 체크
+          const prevFirstChild = parentNode.prevNode.firstChild;
+          if (!prevFirstChild) return;
+          focusNode = prevFirstChild;
+        } else {
+          focusNode = editorList.createNode("p", "", parentNode.prevNode, parentNode.nextNode);
+
+          // 포인터 관계 설정
+          if (parentNode.prevNode) {
+            parentNode.prevNode.nextNode = focusNode;
+          }
+          if (parentNode.nextNode) {
+            parentNode.nextNode.prevNode = focusNode;
+          }
+
+          if (wasRoot) {
+            editorList.root = focusNode;
+          }
+        }
+
+        // 관계 정리 순서 변경
+        // 1. 기존 연결 관계 정리
+        if (parentNode.nextNode) {
+          parentNode.nextNode.prevNode = parentNode.prevNode;
+        }
+        if (parentNode.prevNode) {
+          parentNode.prevNode.nextNode = parentNode.nextNode;
+        }
+
+        // 2. 부모-자식 관계 정리
+        currentNode.parentNode = null;
+        parentNode.firstChild = null;
+
+        // 3. 마지막으로 현재 노드의 관계 정리
+        parentNode.prevNode = null;
+        parentNode.nextNode = null;
+
+        // 노드 제거
+        editorList.removeNode(currentNode);
+        editorList.removeNode(parentNode);
+
+        setEditorState((prev) => ({
+          ...prev,
+          rootNode: wasRoot ? focusNode : prev.rootNode,
+          currentNode: focusNode,
+        }));
+      } else if (currentNode.type === "li") {
         const { parentNode } = currentNode;
         if (!parentNode) return;
 
@@ -142,11 +193,23 @@ export const useBackspaceKeyHandler = ({
           setEditorState((prev) => ({ ...prev }));
         } else {
           let focusNode;
-          if (currentNode.prevNode?.type === "ul" || currentNode.prevNode?.type === "ol") {
+          if (currentNode.prevNode?.type === "checkbox") {
+            // 이전 노드가 체크박스면 그 체크박스의 content 노드로 포커스
+            focusNode = currentNode.prevNode.firstChild;
+          } else if (currentNode.prevNode?.type === "ul" || currentNode.prevNode?.type === "ol") {
             focusNode = editorList.getLastChild(currentNode.prevNode);
           } else {
             focusNode = currentNode.prevNode || currentNode.parentNode;
           }
+
+          // 현재 노드 제거 전에 연결 관계 정리
+          if (currentNode.prevNode) {
+            currentNode.prevNode.nextNode = currentNode.nextNode;
+          }
+          if (currentNode.nextNode) {
+            currentNode.nextNode.prevNode = currentNode.prevNode;
+          }
+
           editorList.removeNode(currentNode);
 
           if (focusNode === editorState.rootNode) {

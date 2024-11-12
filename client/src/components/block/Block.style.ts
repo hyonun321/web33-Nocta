@@ -43,19 +43,19 @@ export const blockContainerStyle = cva({
       ul: {
         display: "block",
         listStyleType: "disc",
-        listStylePosition: "inside",
+        listStylePosition: "outside",
       },
       ol: {
         display: "block",
         listStyleType: "decimal",
-        listStylePosition: "inside",
+        listStylePosition: "outside",
       },
       li: {
         textStyle: "display-medium16",
         display: "list-item",
         outline: "none",
         margin: "0",
-        padding: "0 0 0 spacing.md",
+        padding: "0 0 0 16px",
       },
       blockquote: {
         borderLeft: "4px solid token(colors.gray.300)",
@@ -63,7 +63,7 @@ export const blockContainerStyle = cva({
         color: "gray.500",
         fontStyle: "italic",
       },
-      input: {},
+      checkbox: {},
     },
     isActive: {
       true: {

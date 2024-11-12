@@ -20,7 +20,65 @@ export const useEnterKeyHandler = ({
       const beforeText = content.slice(0, caretPosition);
       const afterText = content.slice(caretPosition);
 
-      if (currentNode.type === "li") {
+      if (currentNode.parentNode?.type === "checkbox") {
+        const { parentNode } = currentNode;
+        if (content.length === 0) {
+          // 빈 체크박스에서 엔터 -> 일반 블록으로 전환
+          const newNode = editorList.createNode("p", "", parentNode.prevNode, parentNode.nextNode);
+
+          if (parentNode.prevNode) {
+            parentNode.prevNode.nextNode = newNode;
+          }
+          if (parentNode.nextNode) {
+            parentNode.nextNode.prevNode = newNode;
+          }
+
+          // root 노드 업데이트
+          if (parentNode === editorState.rootNode) {
+            editorList.root = newNode;
+          }
+
+          editorList.removeNode(currentNode);
+
+          setEditorState((prev) => ({
+            ...prev,
+            rootNode: parentNode === prev.rootNode ? newNode : prev.rootNode,
+            currentNode: newNode,
+          }));
+        } else {
+          // 텍스트가 있는 체크박스에서 엔터 -> 새로운 체크박스 블록 생성
+          currentNode.content = beforeText;
+
+          // 새로운 체크박스 컨테이너와 컨텐츠 생성
+          const newContainer = editorList.createNode(
+            "checkbox",
+            "",
+            parentNode,
+            parentNode.nextNode,
+          );
+          const newContent = editorList.createNode("p", afterText, null, null, currentNode.depth);
+
+          // 새 체크박스의 관계 설정
+          newContainer.firstChild = newContent;
+          newContent.parentNode = newContainer;
+
+          // 기존 노드들과의 연결 설정
+          if (parentNode.nextNode) {
+            parentNode.nextNode.prevNode = newContainer;
+          }
+          parentNode.nextNode = newContainer;
+
+          // 기본 체크박스 속성 설정
+          newContainer.attributes = {
+            checked: false,
+          };
+
+          setEditorState((prev) => ({
+            ...prev,
+            currentNode: newContent,
+          }));
+        }
+      } else if (currentNode.type === "li") {
         const { parentNode } = currentNode;
         if (!parentNode) return;
 
@@ -140,11 +198,18 @@ export const useEnterKeyHandler = ({
       } else {
         // 현재 텍스트의 길이가 0이면 일반 블록으로 변경
         if (content.length === 0) {
+          /*
           currentNode.type = "p";
           currentNode.content = "";
+          */
+          const newNode = editorList.createNode("p", "", currentNode, currentNode.nextNode);
+          if (currentNode.nextNode) {
+            currentNode.nextNode.prevNode = newNode;
+          }
+          currentNode.nextNode = newNode;
           setEditorState((prev) => ({
             ...prev,
-            currentNode,
+            currentNode: newNode,
           }));
         } else {
           // 일반 블록은 항상 p 태그로 새 블록 생성

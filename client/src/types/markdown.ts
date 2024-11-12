@@ -1,4 +1,4 @@
-export type ElementType = "p" | "h1" | "h2" | "h3" | "ul" | "ol" | "li" | "input" | "blockquote";
+export type ElementType = "p" | "h1" | "h2" | "h3" | "ul" | "ol" | "li" | "checkbox" | "blockquote";
 
 export interface ListProperties {
   index?: number;

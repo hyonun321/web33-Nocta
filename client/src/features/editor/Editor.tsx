@@ -5,7 +5,13 @@ import { useCaretManager } from "@hooks/useCaretManager";
 import { useKeyboardHandlers } from "@hooks/useMarkdownGrammer";
 import { LinkedListBlock } from "@utils/linkedLIstBlock";
 import { checkMarkdownPattern } from "@utils/markdownPatterns";
-import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
+import {
+  editorContainer,
+  editorTitleContainer,
+  editorTitle,
+  checkboxContainer,
+  checkbox,
+} from "./Editor.style";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
@@ -81,7 +87,7 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
   const renderNodes = () => {
     const nodes = editorList.traverseNodes();
     return nodes.map((node) => {
-      if (node.type === "li") return null;
+      if (node.type === "li") return;
       if (node.type === "ul" || node.type === "ol") {
         const children = [];
         let child = node.firstChild;
@@ -107,6 +113,34 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
               />
             ))}
           </node.type>
+        );
+      }
+
+      if (node.type === "checkbox") {
+        return (
+          <div key={node.id} className={checkboxContainer}>
+            <input
+              type="checkbox"
+              checked={node.attributes?.checked || false}
+              onChange={() => {}}
+              onClick={(e) => e.stopPropagation()}
+              className={checkbox}
+            />
+            {node.firstChild && (
+              <Block
+                key={node.firstChild.id}
+                node={node.firstChild}
+                isActive={node.firstChild === editorState.currentNode}
+                contentRef={node.firstChild === editorState.currentNode ? contentRef : undefined}
+                currentNodeId={editorState.currentNode?.id || ""}
+                onKeyDown={handleKeyDown}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
+                onInput={handleInput}
+                onClick={handleBlockClick}
+              />
+            )}
+          </div>
         );
       }
 
