@@ -1,6 +1,6 @@
 // server/src/app.controller.ts
-import { Controller, Get, Injectable } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, Injectable } from "@nestjs/common";
+import { AppService } from "./app.service";
 
 @Controller()
 export class AppController {

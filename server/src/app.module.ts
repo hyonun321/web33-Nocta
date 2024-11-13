@@ -1,9 +1,25 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { Module } from "@nestjs/common";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { MongooseModule } from "@nestjs/mongoose";
 
 @Module({
-  imports: [],
+  imports: [
+    // ConfigModule 설정
+    ConfigModule.forRoot({
+      isGlobal: true, // 전역 모듈로 설정
+      envFilePath: process.env.NODE_ENV === "production" ? undefined : ".env", // 배포 환경에서는 .env 파일 무시
+    }),
+    // MongooseModule 설정
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>("MONGODB_URI"), // 환경 변수에서 MongoDB URI 가져오기
+      }),
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
