@@ -1,24 +1,26 @@
+import { COLOR } from "src/constants/color";
+
 export const colors = {
   white: {
-    value: "#FFFFFF",
+    value: COLOR.WHITE,
   },
   gray: {
-    100: { value: "#C1D7F4" },
-    300: { value: "#99AFCA" },
-    500: { value: "#7388A2" },
-    700: { value: "#4E637C" },
-    900: { value: "#2B4158" },
+    100: { value: COLOR.GRAY_100 },
+    300: { value: COLOR.GRAY_300 },
+    500: { value: COLOR.GRAY_500 },
+    700: { value: COLOR.GRAY_700 },
+    900: { value: COLOR.GRAY_900 },
   },
   shadow: {
-    value: "#004585",
+    value: COLOR.SHADOW,
   },
   red: {
-    value: "#F24150",
+    value: COLOR.RED,
   },
   yellow: {
-    value: "#FEA642",
+    value: COLOR.YELLOW,
   },
   green: {
-    value: "#1BBF44",
+    value: COLOR.GREEN,
   },
 };

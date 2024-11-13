@@ -15,9 +15,9 @@ export const PageControlButton = ({
     <div className={pageControlContainer}>
       <button className={pageControlButton({ color: "yellow" })} onClick={onPageMinimize} />
 
-      <button className={pageControlButton({ color: "red" })} onClick={onPageMaximize} />
+      <button className={pageControlButton({ color: "red" })} onClick={onPageClose} />
 
-      <button className={pageControlButton({ color: "green" })} onClick={onPageClose} />
+      <button className={pageControlButton({ color: "green" })} onClick={onPageMaximize} />
     </div>
   );
 };

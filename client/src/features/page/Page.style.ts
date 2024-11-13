@@ -19,9 +19,21 @@ export const pageHeader = css({
   padding: "sm",
   boxShadow: "xs",
   backdropFilter: "blur(30px)",
+  "&:hover": {
+    cursor: "move",
+  },
 });
 
 export const pageTitle = css({
   textStyle: "display-medium24",
   color: "gray.500",
+});
+
+export const resizeHandle = css({
+  position: "absolute",
+  right: "-10px",
+  bottom: "-10px",
+  width: "32px",
+  height: "32px",
+  cursor: "se-resize",
 });

@@ -7,9 +7,9 @@ export const sidebarContainer = cx(
     display: "flex",
     gap: "lg",
     flexDirection: "column",
-    width: "300px",
-    height: "calc(100vh - 16px)",
-    marginBlock: "8px",
+    width: "sidebar.width",
+    height: "calc(100vh - 40px)",
+    marginBlock: "20px",
   }),
 );
 export const navWrapper = css({
@@ -17,4 +17,10 @@ export const navWrapper = css({
   gap: "md",
   flexDirection: "column",
   width: "100%",
+});
+
+export const plusIconBox = css({
+  display: "flex",
+  justifyContent: "start",
+  paddingInline: "md",
 });
