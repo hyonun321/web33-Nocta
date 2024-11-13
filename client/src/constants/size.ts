@@ -7,5 +7,6 @@ export const PAGE = {
 };
 
 export const SIDE_BAR = {
+  MIN_WIDTH: 40,
   WIDTH: 300,
 };

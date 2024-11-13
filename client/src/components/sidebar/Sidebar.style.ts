@@ -7,7 +7,6 @@ export const sidebarContainer = cx(
     display: "flex",
     gap: "lg",
     flexDirection: "column",
-    width: "sidebar.width",
     height: "calc(100vh - 40px)",
     marginBlock: "20px",
   }),
@@ -23,4 +22,14 @@ export const plusIconBox = css({
   display: "flex",
   justifyContent: "start",
   paddingInline: "md",
+});
+
+export const sidebarToggleButton = css({
+  zIndex: 10,
+  position: "absolute",
+  top: "4px",
+  right: "16px",
+  color: "gray.500",
+  fontSize: "24px",
+  cursor: "pointer",
 });
