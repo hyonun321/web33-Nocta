@@ -1,7 +1,7 @@
+import { useIsSidebarOpen, useSidebarActions } from "@src/stores/useSidebarStore";
+import { Page } from "@src/types/page";
 import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
-import { useIsSidebarOpen, useSidebarActions } from "src/stores/useSidebarStore";
-import { Page } from "src/types/page";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";

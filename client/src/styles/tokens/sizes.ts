@@ -1,4 +1,4 @@
-import { SIDE_BAR } from "src/constants/size";
+import { SIDE_BAR } from "@constants/size";
 
 export const sizes = {
   sidebar: {

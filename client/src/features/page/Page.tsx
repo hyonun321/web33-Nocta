@@ -1,7 +1,7 @@
+import { Page as PageType } from "@src/types/page";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Editor } from "@features/editor/Editor";
-import { Page as PageType } from "src/types/page";
 import { pageAnimation, resizeHandleAnimation } from "./Page.animation";
 import { pageContainer, pageHeader, resizeHandle } from "./Page.style";
 

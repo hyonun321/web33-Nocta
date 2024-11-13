@@ -17,7 +17,8 @@ export const useBackspaceKeyHandler = ({
         const { parentNode } = currentNode;
         const wasRoot = parentNode === editorState.rootNode;
 
-        let focusNode;
+        let focusNode: EditorNode;
+
         if (parentNode.prevNode?.type === "checkbox") {
           // undefined가 될 수 있는 상황 체크
           const prevFirstChild = parentNode.prevNode.firstChild;
@@ -192,14 +193,14 @@ export const useBackspaceKeyHandler = ({
           currentNode.type = "p";
           setEditorState((prev) => ({ ...prev }));
         } else {
-          let focusNode;
+          let focusNode: EditorNode;
           if (currentNode.prevNode?.type === "checkbox") {
             // 이전 노드가 체크박스면 그 체크박스의 content 노드로 포커스
-            focusNode = currentNode.prevNode.firstChild;
+            focusNode = currentNode.prevNode.firstChild as EditorNode;
           } else if (currentNode.prevNode?.type === "ul" || currentNode.prevNode?.type === "ol") {
-            focusNode = editorList.getLastChild(currentNode.prevNode);
+            focusNode = editorList.getLastChild(currentNode.prevNode) as EditorNode;
           } else {
-            focusNode = currentNode.prevNode || currentNode.parentNode;
+            focusNode = (currentNode.prevNode || currentNode.parentNode) as EditorNode;
           }
 
           // 현재 노드 제거 전에 연결 관계 정리
