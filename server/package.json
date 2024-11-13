@@ -22,7 +22,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@noctaCrdt": "workspace:*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.3.0",
     "@nestjs/core": "^10.0.0",
@@ -30,6 +29,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/platform-socket.io": "^10.4.7",
     "@nestjs/websockets": "^10.4.7",
+    "@noctaCrdt": "workspace:*",
     "mongodb-memory-server": "^10.1.2",
     "mongoose": "^8.8.0",
     "reflect-metadata": "^0.2.0",
@@ -40,6 +40,7 @@
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
+    "@shelf/jest-mongodb": "^4.3.2",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.2",
     "@types/node": "^20.3.1",
