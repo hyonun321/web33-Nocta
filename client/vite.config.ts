@@ -5,9 +5,5 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
-  resolve: {
-    alias: {
-      "@noctaCrdt": path.resolve(__dirname, "../@noctaCrdt"),
-    },
-  },
+  resolve: { alias: { "@noctaCrdt": path.resolve(__dirname, "../@noctaCrdt") } },
 });

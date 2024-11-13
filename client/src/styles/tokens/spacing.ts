@@ -1,4 +1,4 @@
-import { SPACING } from "src/constants/spacing";
+import { SPACING } from "@constants/spacing";
 
 export const spacing = {
   sm: { value: `${SPACING.SMALL}px` },
