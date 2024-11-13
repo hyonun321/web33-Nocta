@@ -1,5 +1,5 @@
+import { Page } from "@src/types/page";
 import { useState } from "react";
-import { Page } from "src/types/page";
 
 interface usePagesManageProps {
   pages: Page[];

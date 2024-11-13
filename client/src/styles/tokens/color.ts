@@ -1,4 +1,4 @@
-import { COLOR } from "src/constants/color";
+import { COLOR } from "@constants/color";
 
 export const colors = {
   white: {

@@ -1,12 +1,12 @@
 import { defineConfig } from "@pandacss/dev";
-import { radii } from "@styles/tokens/radii";
-import { colors } from "@styles/tokens/color";
-import { shadows } from "@styles/tokens/shadow";
-import { spacing } from "@styles/tokens/spacing";
-import { textStyles } from "@styles/typography";
-import { globalStyles } from "@styles/global";
-import { glassContainerRecipe } from "@styles/recipes/glassContainerRecipe";
-import { sizes } from "@styles/tokens/sizes";
+import { radii } from "./src/styles/tokens/radii";
+import { colors } from "./src/styles/tokens/color";
+import { shadows } from "./src/styles/tokens/shadow";
+import { spacing } from "./src/styles/tokens/spacing";
+import { sizes } from "./src/styles/tokens/sizes";
+import { textStyles } from "./src/styles/typography";
+import { globalStyles } from "./src/styles/global";
+import { glassContainerRecipe } from "./src/styles/recipes/glassContainerRecipe";
 
 export default defineConfig({
   preflight: true,

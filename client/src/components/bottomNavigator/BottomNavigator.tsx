@@ -1,6 +1,6 @@
+import { Page } from "@src/types/page";
 import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
-import { Page } from "src/types/page";
 import { animation } from "./BottomNavigator.animation";
 import { bottomNavigatorContainer } from "./BottomNavigator.style";
 
