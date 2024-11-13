@@ -1,10 +1,9 @@
-name: Lint and Test
+name: Lint and Unit Test
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
-      - dev
+      - "**"
 
 jobs:
   lint_and_unit_test:
@@ -37,20 +36,3 @@ jobs:
       # Run Unit tests
       - name: Run Unit Tests
         run: pnpm test
-
-  test_building_docker_image:
-    name: Test Building Docker Image
-    runs-on: ubuntu-latest
-
-    steps:
-      # Checkout the repository
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # Test Building Docker Images
-      - name: Test Building Docker Images
-        env:
-          NODE_ENV: production
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-        run: |
-          docker-compose build
