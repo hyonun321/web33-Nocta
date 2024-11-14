@@ -1,5 +1,5 @@
 {
-  "extend": "../tsconfig.base.json",
+  "extends": "../tsconfig.base.json",
   "references": [{ "path": "../@noctaCrdt" }],
   "compilerOptions": {
     // 기본 설정
@@ -31,9 +31,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": [
-    "src/**/*",
-    "test/**/*" // e2e 테스트 파일을 위해
-  ],
+  "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
 }
