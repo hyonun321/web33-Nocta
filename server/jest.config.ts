@@ -5,7 +5,12 @@ const config: Config = {
   rootDir: ".",
   testRegex: ".*\\.spec\\.ts$",
   transform: {
-    "^.+\\.(t|j)s$": "ts-jest",
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.json",
+      },
+    ],
   },
   collectCoverageFrom: ["**/*.(t|j)s"],
   coverageDirectory: "./coverage",
@@ -13,8 +18,10 @@ const config: Config = {
   preset: "@shelf/jest-mongodb",
   watchPathIgnorePatterns: ["globalConfig"],
   moduleNameMapper: {
-    "^@noctaCrdt/(.*)$": "<rootDir>/../@noctaCrdt/dist/$1",
+    "^@noctaCrdt$": "<rootDir>/../@noctaCrdt/dist/Crdt.js",
+    "^@noctaCrdt/(.*)$": "<rootDir>/../@noctaCrdt/dist/$1.js",
   },
+  transformIgnorePatterns: ["node_modules/(?!@noctaCrdt)"],
 };
 
 export default config;
