@@ -1,4 +1,6 @@
 import type { Config } from "jest";
+import { pathsToModuleNameMapper } from "ts-jest";
+import { compilerOptions } from "./tsconfig.json";
 
 const config: Config = {
   moduleFileExtensions: ["js", "json", "ts"],
@@ -24,6 +26,7 @@ const config: Config = {
     "^@noctaCrdt$": "<rootDir>/../@noctaCrdt/dist/Crdt.js",
     "^@noctaCrdt/(.*)$": "<rootDir>/../@noctaCrdt/dist/$1.js",
     "^nanoid$": require.resolve("nanoid"),
+    ...pathsToModuleNameMapper(compilerOptions.paths, { prefix: "<rootDir>/../" }),
   },
 };
 
