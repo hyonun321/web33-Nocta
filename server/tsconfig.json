@@ -2,7 +2,6 @@
   "extends": "../tsconfig.base.json",
   "references": [{ "path": "../@noctaCrdt" }],
   "compilerOptions": {
-    // 기본 설정
     "module": "ESNext",
     "declaration": true,
     "removeComments": true,
