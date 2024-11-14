@@ -1,18 +1,16 @@
-import { Page as PageInterface } from "@noctaCrdt/Interfaces";
-import { CRDT } from "./Crdt";
+import { EditorCRDT } from "./Crdt";
 
-export class Page implements PageInterface {
+export class Page {
   id: string;
   title: string;
   icon: string;
-  crdt: CRDT;
+  crdt: EditorCRDT;
 
-  constructor(editorCRDT: CRDT = new CRDT(0)) {
-    // 추후 수정
+  constructor(editorCRDT: EditorCRDT = new EditorCRDT(0)) {
+    // 추후 수정 직렬화, 역직렬화 메서드 추가
     this.id = "id";
     this.title = "title";
     this.icon = "icon";
     this.crdt = editorCRDT;
-    // 직렬화, 역직렬화 메서드 추가
   }
 }
