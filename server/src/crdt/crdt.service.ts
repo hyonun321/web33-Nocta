@@ -3,7 +3,7 @@ import { Injectable, OnModuleInit } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Doc, DocumentDocument } from "../schemas/document.schema";
 import { Model } from "mongoose";
-import { CRDT } from "@noctaCrdt/crdt";
+import { CRDT } from "@noctaCrdt";
 import { NodeId, Node } from "@noctaCrdt/Node";
 
 interface RemoteInsertOperation {
