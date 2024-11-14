@@ -30,6 +30,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "test/**/*", "schemas"],
   "exclude": ["node_modules", "dist"]
 }
