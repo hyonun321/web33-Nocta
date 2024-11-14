@@ -25,6 +25,7 @@ const config: Config = {
   moduleNameMapper: {
     "^@noctaCrdt$": "<rootDir>/../@noctaCrdt/dist/Crdt.js",
     "^@noctaCrdt/(.*)$": "<rootDir>/../@noctaCrdt/dist/$1.js",
+    "^(\\.{1,2}/.*)\\.js$": "$1",
     "^nanoid$": require.resolve("nanoid"),
   },
 };
