@@ -1,43 +1,28 @@
-/*
-import { MongoMemoryServer } from "mongodb-memory-server";
 import { Test, TestingModule } from "@nestjs/testing";
 import { MongooseModule } from "@nestjs/mongoose";
-import { AppModule } from "./app.module";
 import mongoose from "mongoose";
+import { AppModule } from "./app.module";
 
 jest.setTimeout(20000);
-*/
 
-describe("MongoDB Connection", () => {
-  /*
-  let mongoServer: MongoMemoryServer;
-
+describe("AppModule MongoDB Connection", () => {
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create({
-      instance: {
-        port: 27017,
-      },
-    });
-    const uri = mongoServer.getUri();
+    // jest-mongodb가 설정한 MONGO_URL을 MONGO_URI로 설정
+    process.env.MONGO_URI = process.env.MONGO_URL;
+    console.log(`MONGO_URI: ${process.env.MONGO_URI}`);
 
-    await mongoose.connect(uri);
+    await mongoose.connect(process.env.MONGO_URI);
 
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        MongooseModule.forRoot(uri), // in-memory MongoDB URI
-        AppModule,
-      ],
+      imports: [MongooseModule.forRoot(process.env.MONGO_URI), AppModule],
     }).compile();
   });
 
   afterAll(async () => {
-    if (mongoServer) await mongoServer.stop();
     await mongoose.connection.close();
   });
-  */
 
-  it("should connect to MongoDB successfully", () => {
-    // expect(mongoose.connection.readyState).toBe(1);
-    expect(true).toBe(true);
+  it("should connect to the MongoDB instance provided by jest-mongodb", async () => {
+    expect(mongoose.connection.readyState).toBe(1);
   });
 });

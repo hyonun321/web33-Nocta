@@ -10,6 +10,8 @@ const config: Config = {
   collectCoverageFrom: ["**/*.(t|j)s"],
   coverageDirectory: "./coverage",
   testEnvironment: "node",
+  preset: "@shelf/jest-mongodb",
+  watchPathIgnorePatterns: ["globalConfig"],
 };
 
 export default config;

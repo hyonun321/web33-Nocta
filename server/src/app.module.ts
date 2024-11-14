@@ -16,7 +16,7 @@ import { MongooseModule } from "@nestjs/mongoose";
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>("MONGODB_URI"), // 환경 변수에서 MongoDB URI 가져오기
+        uri: configService.get<string>("MONGO_URI"), // 환경 변수에서 MongoDB URI 가져오기
       }),
     }),
   ],

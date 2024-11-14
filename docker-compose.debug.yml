@@ -19,7 +19,7 @@ services:
       - "3000:3000" # NestJS 개발 서버 포트
       - "9229:9229" # Node.js 디버깅 포트
     environment:
-      - MONGODB_URI=mongodb://localhost:27017/boost
+      - MONGO_URI=mongodb://localhost:27017/boost
       - NODE_ENV=development
 
   nginx:
