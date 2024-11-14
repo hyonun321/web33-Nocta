@@ -1,37 +1,21 @@
-export class NodeId {
-  clock: number;
-  client: number;
+import { NodeId, BlockId, CharId } from "./NodeId";
+import { BlockCRDT } from "./Crdt";
+import { ElementType } from "./Interfaces";
 
-  constructor(clock: number, client: number) {
-    this.clock = clock;
-    this.client = client;
-  }
-
-  equals(other: NodeId): boolean {
-    return this.clock === other.clock && this.client === other.client;
-  }
-}
-
-export class Node {
-  id: NodeId;
+export class Node<T extends NodeId> {
+  id: T;
   value: string;
-  next: NodeId | null;
-  prev: NodeId | null;
+  next: T | null;
+  prev: T | null;
 
-  constructor(value: string, id: NodeId) {
+  constructor(value: string, id: T) {
     this.id = id;
     this.value = value;
     this.next = null;
     this.prev = null;
   }
 
-  /**
-   * 두 노드의 순서를 비교하여, 이 노드가 다른 노드보다 먼저 와야 하는지 여부를 반환합니다.
-   * @param node 비교할 노드
-   * @returns 순서 결정 결과
-   */
-  precedes(node: Node): boolean {
-    // prev가 다르면 비교 불가
+  precedes(node: Node<T>): boolean {
     if (!this.prev || !node.prev) return false;
     if (!this.prev.equals(node.prev)) return false;
 
@@ -39,5 +23,30 @@ export class Node {
     if (this.id.clock === node.id.clock && this.id.client < node.id.client) return true;
 
     return false;
+  }
+}
+
+export class Block extends Node<BlockId> {
+  type: ElementType;
+  indent: number;
+  animation: string;
+  style: string[];
+  icon: string;
+  crdt: BlockCRDT;
+
+  constructor(value: string, id: BlockId) {
+    super(value, id);
+    this.type = "p";
+    this.indent = 0;
+    this.animation = "";
+    this.style = [];
+    this.icon = "";
+    this.crdt = new BlockCRDT(id.client);
+  }
+}
+
+export class Char extends Node<CharId> {
+  constructor(value: string, id: CharId) {
+    super(value, id);
   }
 }
