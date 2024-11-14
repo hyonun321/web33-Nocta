@@ -1,4 +1,4 @@
 packages:
+  - "@noctaCrdt"
   - "client"
   - "server"
-  - "./@noctaCrdt"
