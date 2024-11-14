@@ -1,9 +1,8 @@
 {
-  "extend": "../tsconfig.base.json",
+  "extends": "../tsconfig.base.json",
   "references": [{ "path": "../@noctaCrdt" }],
   "compilerOptions": {
-    // 기본 설정
-    "module": "commonjs",
+    "module": "ESNext",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -21,8 +20,8 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "paths": {
-      "@Nocta/crdt": ["../@noctaCrdt/dist"],
-      "@Nocta/crdt/*": ["../@noctaCrdt/dist/*"]
+      "@noctaCrdt": ["../@noctaCrdt/dist"],
+      "@noctaCrdt/*": ["../@noctaCrdt/dist/*"]
     },
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
@@ -31,9 +30,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": [
-    "src/**/*",
-    "test/**/*" // e2e 테스트 파일을 위해
-  ],
+  "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
 }
