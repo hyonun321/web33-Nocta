@@ -21,8 +21,8 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "paths": {
-      "@Nocta/crdt": ["../@noctaCrdt/dist"],
-      "@Nocta/crdt/*": ["../@noctaCrdt/dist/*"]
+      "@noctaCrdt": ["../@noctaCrdt/dist"],
+      "@noctaCrdt/*": ["../@noctaCrdt/dist/*"]
     },
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
