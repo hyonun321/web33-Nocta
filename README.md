@@ -3,7 +3,7 @@
 
 ![image](https://github.com/user-attachments/assets/ce48d2e5-ca40-43e6-8d64-0f874312f065)
 <p align="center">
-  <a href="https://223.130.159.220" title="🌌 밤하늘의 별빛처럼, 자유로운 인터랙션 실시간 에디터"><strong>배포 사이트</strong></a>
+  <a href="http://223.130.159.220" title="🌌 밤하늘의 별빛처럼, 자유로운 인터랙션 실시간 에디터"><strong>배포 사이트</strong></a>
 </p>
 
 ## `Nocta`
