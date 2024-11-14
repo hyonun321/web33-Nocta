@@ -32,6 +32,6 @@
 
     "allowJs": true
   },
-  "include": ["src/**/*", "test/**/*", "schemas"],
+  "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
 }
