@@ -29,6 +29,13 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
+      # Run build
+      - name: Install dependencies and build packages
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @noctaCrdt build
+          pnpm --filter server build
+
       # Run lint
       - name: Run Lint
         run: pnpm eslint .
