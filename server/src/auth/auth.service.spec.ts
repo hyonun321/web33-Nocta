@@ -4,6 +4,7 @@ import { JwtService } from "@nestjs/jwt";
 import { getModelToken } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User, UserDocument } from "./schemas/user.schema";
+import * as bcrypt from "bcrypt";
 
 // Mock modules
 jest.mock("bcrypt", () => ({
@@ -14,8 +15,6 @@ jest.mock("bcrypt", () => ({
 jest.mock("nanoid", () => ({
   nanoid: () => "mockNanoId123",
 }));
-
-const bcrypt = require("bcrypt");
 
 describe("AuthService", () => {
   let service: AuthService;
