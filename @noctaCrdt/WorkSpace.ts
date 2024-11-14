@@ -1,7 +1,6 @@
-import { WorkSpace as WorkSpaceInterface } from "./Interfaces";
 import { Page } from "./Page";
 
-export class WorkSpace implements WorkSpaceInterface {
+export class WorkSpace {
   id: string;
   pageList: Page[];
   authUser: object;
