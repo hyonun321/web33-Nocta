@@ -1,119 +1,155 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
-import { getModelToken } from "@nestjs/mongoose";
 import { JwtService } from "@nestjs/jwt";
-import * as bcrypt from "bcrypt";
-import { nanoid } from "nanoid";
+import { getModelToken } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { User, UserDocument } from "./schemas/user.schema";
+
+// Mock modules
+jest.mock("bcrypt", () => ({
+  hash: jest.fn().mockResolvedValue("hashedPassword"),
+  compare: jest.fn().mockResolvedValue(true),
+}));
 
 jest.mock("nanoid", () => ({
-  nanoid: jest.fn(() => "mockNanoId123"),
+  nanoid: () => "mockNanoId123",
 }));
 
-jest.mock("bcrypt", () => ({
-  hash: jest.fn(() => Promise.resolve("hashedPassword123")),
-  compare: jest.fn(() => Promise.resolve(true)),
-}));
+const bcrypt = require("bcrypt");
 
 describe("AuthService", () => {
-  let authService: AuthService;
-  let userModel: any;
+  let service: AuthService;
+  let userModel: Model<UserDocument>;
   let jwtService: JwtService;
 
+  const mockUser = {
+    id: "mockNanoId123",
+    email: "test@example.com",
+    password: "hashedPassword",
+    name: "Test User",
+  };
+
+  // Updated mockUserModel
   const mockUserModel = {
-    create: jest.fn(),
     findOne: jest.fn(),
+    create: jest.fn(),
   };
 
   const mockJwtService = {
-    sign: jest.fn(),
+    sign: jest.fn().mockReturnValue("test-token"),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: getModelToken("User"), useValue: mockUserModel },
-        { provide: JwtService, useValue: mockJwtService },
+        {
+          provide: getModelToken(User.name),
+          useValue: mockUserModel,
+        },
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
+        },
       ],
     }).compile();
 
-    authService = module.get<AuthService>(AuthService);
-    userModel = module.get(getModelToken("User"));
+    service = module.get<AuthService>(AuthService);
+    userModel = module.get<Model<UserDocument>>(getModelToken(User.name));
     jwtService = module.get<JwtService>(JwtService);
-  });
 
-  it("should be defined", () => {
-    expect(authService).toBeDefined();
+    // Reset all mocks
+    jest.clearAllMocks();
   });
 
   describe("register", () => {
-    it("should create a new user with a nanoid as id", async () => {
-      // nanoid mock 설정
-      const mockId = "mockNanoId123";
-      (nanoid as jest.Mock).mockReturnValue(mockId);
-
-      const hashedPassword = "hashedPassword123";
-      jest.spyOn(bcrypt, "hash").mockResolvedValue(hashedPassword);
-
-      const mockUser = {
-        id: mockId,
+    it("should create a new user with hashed password", async () => {
+      const dto = {
         email: "test@example.com",
-        password: hashedPassword,
+        password: "password123",
         name: "Test User",
       };
 
-      userModel.create.mockResolvedValue(mockUser);
+      mockUserModel.create.mockResolvedValue(mockUser);
 
-      const result = await authService.register("test@example.com", "password123", "Test User");
+      const result = await service.register(dto.email, dto.password, dto.name);
 
-      expect(nanoid).toHaveBeenCalled(); // nanoid 호출 확인
-      expect(userModel.create).toHaveBeenCalledWith({
-        id: mockId,
-        email: "test@example.com",
-        password: hashedPassword,
-        name: "Test User",
+      expect(bcrypt.hash).toHaveBeenCalledWith(dto.password, 10);
+      expect(mockUserModel.create).toHaveBeenCalledWith({
+        email: dto.email,
+        password: "hashedPassword",
+        name: dto.name,
       });
       expect(result).toEqual(mockUser);
+    });
+
+    it("should throw an error if user creation fails", async () => {
+      const dto = {
+        email: "test@example.com",
+        password: "password123",
+        name: "Test User",
+      };
+
+      mockUserModel.create.mockRejectedValue(new Error("Database error"));
+
+      await expect(service.register(dto.email, dto.password, dto.name)).rejects.toThrow(
+        "Database error",
+      );
     });
   });
 
   describe("validateUser", () => {
-    it("should return the user if credentials are valid", async () => {
-      const mockUser = {
-        id: "mockNanoId123",
+    it("should return user if email and password are valid", async () => {
+      const dto = {
         email: "test@example.com",
-        password: "hashedPassword123",
+        password: "password123",
       };
-      userModel.findOne.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, "compare").mockResolvedValue(true);
 
-      const result = await authService.validateUser("test@example.com", "password123");
+      mockUserModel.findOne.mockResolvedValue(mockUser);
+      bcrypt.compare.mockResolvedValueOnce(true);
 
-      expect(userModel.findOne).toHaveBeenCalledWith({ email: "test@example.com" });
+      const result = await service.validateUser(dto.email, dto.password);
+
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: dto.email });
+      expect(bcrypt.compare).toHaveBeenCalledWith(dto.password, mockUser.password);
       expect(result).toEqual(mockUser);
     });
 
-    it("should return null if credentials are invalid", async () => {
-      userModel.findOne.mockResolvedValue(null);
+    it("should return null if user is not found", async () => {
+      mockUserModel.findOne.mockResolvedValue(null);
 
-      const result = await authService.validateUser("test@example.com", "password123");
+      const result = await service.validateUser("wrong@email.com", "password123");
 
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: "wrong@email.com" });
+      expect(result).toBeNull();
+    });
+
+    it("should return null if password is invalid", async () => {
+      mockUserModel.findOne.mockResolvedValue(mockUser);
+      bcrypt.compare.mockResolvedValueOnce(false);
+
+      const result = await service.validateUser("test@example.com", "wrongpassword");
+
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: "test@example.com" });
+      expect(bcrypt.compare).toHaveBeenCalledWith("wrongpassword", mockUser.password);
       expect(result).toBeNull();
     });
   });
 
   describe("login", () => {
-    it("should return a JWT token", async () => {
-      const mockUser = { id: "mockNanoId123", email: "test@example.com" };
-      mockJwtService.sign.mockReturnValue("mockJwtToken");
+    it("should return JWT token", async () => {
+      const user = {
+        id: "mockNanoId123",
+        email: "test@example.com",
+      };
 
-      const result = await authService.login(mockUser);
+      const result = await service.login(user);
 
       expect(jwtService.sign).toHaveBeenCalledWith({
-        sub: mockUser.id,
-        email: mockUser.email,
+        sub: user.id,
+        email: user.email,
       });
-      expect(result).toEqual({ accessToken: "mockJwtToken" });
+      expect(result).toEqual({ accessToken: "test-token" });
     });
   });
 });

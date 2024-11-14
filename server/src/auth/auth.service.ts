@@ -14,12 +14,11 @@ export class AuthService {
 
   async register(email: string, password: string, name: string): Promise<User> {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new this.userModel({
+    return this.userModel.create({
       email,
       password: hashedPassword,
       name,
     });
-    return newUser.save();
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {

@@ -18,12 +18,11 @@ const config: Config = {
   testEnvironment: "node",
   preset: "@shelf/jest-mongodb",
   watchPathIgnorePatterns: ["globalConfig"],
-  transformIgnorePatterns: ["node_modules/(?!(nanoid)/)", "node_modules/(?!@noctaCrdt)"],
+  transformIgnorePatterns: ["/node_modules/(?!(nanoid)/)", "/node_modules/(?!@noctaCrdt)"],
   extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
     "^@noctaCrdt$": "<rootDir>/../@noctaCrdt/dist/Crdt.js",
     "^@noctaCrdt/(.*)$": "<rootDir>/../@noctaCrdt/dist/$1.js",
-    "^(\\.{1,2}/.*)\\.js$": "$1",
     "^nanoid$": require.resolve("nanoid"),
   },
 };
