@@ -1,61 +1,52 @@
+// src/crdt/crdt.service.ts
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Doc, DocumentDocument } from "./schemas/document.schema";
+import { Doc, DocumentDocument } from "../schemas/document.schema";
 import { Model } from "mongoose";
-import { BlockCRDT } from "@noctaCrdt/Crdt";
-import { RemoteInsertOperation, RemoteDeleteOperation } from "@noctaCrdt/Interfaces";
-import { CharId } from "@noctaCrdt/NodeId";
-import { Char } from "@noctaCrdt/Node";
+import { CRDT } from "@noctaCrdt/crdt";
+import { NodeId, Node } from "@noctaCrdt/Node";
+
+interface RemoteInsertOperation {
+  node: Node;
+}
+
+interface RemoteDeleteOperation {
+  targetId: NodeId | null;
+  clock: number;
+}
 
 @Injectable()
 export class CrdtService implements OnModuleInit {
-  private crdt: BlockCRDT;
+  private crdt: CRDT;
 
   constructor(@InjectModel(Doc.name) private documentModel: Model<DocumentDocument>) {
-    this.crdt = new BlockCRDT(0);
+    this.crdt = new CRDT(0); // 초기 클라이언트 ID는 0으로 설정 (서버 자체)
   }
   async onModuleInit() {
     try {
       const doc = await this.getDocument();
-      if (doc && doc.crdt) {
-        this.crdt = new BlockCRDT(0);
+
+      if (doc && doc.content) {
+        this.crdt = new CRDT(0);
+        let contentArray: string[];
+
         try {
-          // 저장된 CRDT 상태를 복원
-          this.crdt.clock = doc.crdt.clock;
-          this.crdt.client = doc.crdt.client;
-
-          // LinkedList 복원
-          if (doc.crdt.LinkedList.head) {
-            this.crdt.LinkedList.head = new CharId(
-              doc.crdt.LinkedList.head.clock,
-              doc.crdt.LinkedList.head.client,
-            );
-          }
-
-          this.crdt.LinkedList.nodeMap = {};
-          for (const [key, node] of Object.entries(doc.crdt.LinkedList.nodeMap)) {
-            const reconstructedNode = new Char(
-              node.value,
-              new CharId(node.id.clock, node.id.client),
-            );
-
-            if (node.next) {
-              reconstructedNode.next = new CharId(node.next.clock, node.next.client);
-            }
-            if (node.prev) {
-              reconstructedNode.prev = new CharId(node.prev.clock, node.prev.client);
-            }
-
-            this.crdt.LinkedList.nodeMap[key] = reconstructedNode;
-          }
+          contentArray = JSON.parse(doc.content) as string[];
         } catch (e) {
-          console.error("Error reconstructing CRDT:", e);
+          console.error("Invalid JSON in document content:", doc.content);
         }
+        contentArray.forEach((char, index) => {
+          this.crdt.localInsert(index, char);
+        });
       }
     } catch (error) {
       console.error("Error during CrdtService initialization:", error);
     }
   }
+
+  /**
+   * MongoDB에서 문서를 가져옵니다.
+   */
   async getDocument(): Promise<Doc> {
     let doc = await this.documentModel.findOne();
     if (!doc) {
@@ -65,32 +56,49 @@ export class CrdtService implements OnModuleInit {
     return doc;
   }
 
+  /**
+   * MongoDB에 문서를 업데이트합니다.
+   */
   async updateDocument(): Promise<Doc> {
-    const serializedCRDT = this.crdt.serialize();
+    const content = JSON.stringify(this.crdt.spread());
     const doc = await this.documentModel.findOneAndUpdate(
       {},
-      { crdt: serializedCRDT, updatedAt: new Date() },
+      { content, updatedAt: new Date() },
       { new: true, upsert: true },
     );
-    if (!doc) throw new Error("문서 저장 실패");
+    ("d");
+    if (!doc) {
+      throw new Error("문서가 저장되지 않았습니다.");
+    }
     return doc;
   }
 
+  /**
+   * 삽입 연산을 처리하고 문서를 업데이트합니다.
+   */
   async handleInsert(operation: RemoteInsertOperation): Promise<void> {
     this.crdt.remoteInsert(operation);
     await this.updateDocument();
   }
 
+  /**
+   * 삭제 연산을 처리하고 문서를 업데이트합니다.
+   */
   async handleDelete(operation: RemoteDeleteOperation): Promise<void> {
     this.crdt.remoteDelete(operation);
     await this.updateDocument();
   }
 
+  /**
+   * 현재 CRDT의 텍스트를 반환합니다.
+   */
   getText(): string {
     return this.crdt.read();
   }
-
-  getCRDT(): BlockCRDT {
+  /**
+   * CRDT 인스턴스를 반환하는 Getter 메서드
+   */
+  getCRDT(): CRDT {
     return this.crdt;
   }
 }
