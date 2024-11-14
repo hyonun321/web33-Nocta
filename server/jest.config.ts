@@ -1,4 +1,6 @@
 import type { Config } from "jest";
+import { pathsToModuleNameMapper } from "ts-jest";
+import { compilerOptions } from "./tsconfig.json";
 
 const config: Config = {
   moduleFileExtensions: ["js", "json", "ts"],
@@ -18,11 +20,10 @@ const config: Config = {
   testEnvironment: "node",
   preset: "@shelf/jest-mongodb",
   watchPathIgnorePatterns: ["globalConfig"],
-  transformIgnorePatterns: ["/node_modules/(?!(nanoid)/)", "/node_modules/(?!@noctaCrdt)"],
+  transformIgnorePatterns: ["/node_modules/(?!(nanoid)/)"],
   extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
-    "^@noctaCrdt$": "<rootDir>/../@noctaCrdt/dist/Crdt.js",
-    "^@noctaCrdt/(.*)$": "<rootDir>/../@noctaCrdt/dist/$1.js",
+    ...pathsToModuleNameMapper(compilerOptions.paths, { prefix: "<rootDir>/../" }),
     "^nanoid$": require.resolve("nanoid"),
   },
 };
