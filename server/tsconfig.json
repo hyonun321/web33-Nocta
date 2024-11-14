@@ -3,7 +3,7 @@
   "references": [{ "path": "../@noctaCrdt" }],
   "compilerOptions": {
     // 기본 설정
-    "module": "commonjs",
+    "module": "ESNext",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,

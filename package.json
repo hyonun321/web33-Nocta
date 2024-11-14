@@ -10,7 +10,7 @@
     "lint": "eslint . --fix",
     "lint:client": "eslint \"client/src/**/*.{ts,tsx}\" --fix",
     "lint:server": "eslint \"server/src/**/*.{ts,tsx}\" --fix",
-    "build": "cd @noctaCrdt && pnpm build && cd .. && pnpm -r build",
+    "build": "pnpm build:lib && pnpm -r build",
     "build:lib": "cd @noctaCrdt && pnpm build",
     "build:client": "cd client && pnpm build",
     "build:server": "cd server && pnpm build",
