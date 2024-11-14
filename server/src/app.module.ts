@@ -3,6 +3,7 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
+import { CrdtModule } from "./crdt/crdt.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MongooseModule } from "@nestjs/mongoose";
         uri: configService.get<string>("MONGO_URI"), // 환경 변수에서 MongoDB URI 가져오기
       }),
     }),
+    CrdtModule,
   ],
   controllers: [AppController],
   providers: [AppService],
