@@ -7,7 +7,7 @@
     "build": "tsc -b"
   },
   "exports": {
-    ".": {
+    "./Crdt": {
       "types": "./dist/Crdt.d.ts",
       "default": "./dist/Crdt.js"
     },
