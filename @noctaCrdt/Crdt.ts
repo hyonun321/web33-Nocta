@@ -1,16 +1,23 @@
 import { LinkedList } from "./LinkedList";
 import { NodeId, Node } from "./Node";
-import { RemoteInsertOperation, RemoteDeleteOperation, SerializedProps } from "./Interfaces";
+import {
+  RemoteInsertOperation,
+  RemoteDeleteOperation,
+  SerializedProps,
+  Block,
+  Char,
+  CRDT as CRDTClassProps,
+} from "./Interfaces";
 
-export class CRDT {
+export class CRDT implements CRDTClassProps {
   clock: number;
   client: number;
-  textLinkedList: LinkedList;
+  LinkedList: LinkedList;
 
   constructor(client: number) {
     this.clock = 0; // 이 CRDT의 논리적 시간 설정
     this.client = client;
-    this.textLinkedList = new LinkedList();
+    this.LinkedList = new LinkedList();
   }
 
   /**
@@ -21,7 +28,7 @@ export class CRDT {
    */
   localInsert(index: number, value: string): RemoteInsertOperation {
     const id = new NodeId((this.clock += 1), this.client);
-    const remoteInsertion = this.textLinkedList.insertAtIndex(index, value, id);
+    const remoteInsertion = this.LinkedList.insertAtIndex(index, value, id);
     return { node: remoteInsertion.node };
   }
 
@@ -32,12 +39,12 @@ export class CRDT {
    */
   localDelete(index: number): RemoteDeleteOperation {
     // 유효한 인덱스인지 확인
-    if (index < 0 || index >= this.textLinkedList.spread().length) {
+    if (index < 0 || index >= this.LinkedList.spread().length) {
       throw new Error(`유효하지 않은 인덱스입니다: ${index}`);
     }
 
     // 삭제할 노드 찾기
-    const nodeToDelete = this.textLinkedList.findByIndex(index);
+    const nodeToDelete = this.LinkedList.findByIndex(index);
     if (!nodeToDelete) {
       throw new Error(`삭제할 노드를 찾을 수 없습니다. 인덱스: ${index}`);
     }
@@ -49,7 +56,7 @@ export class CRDT {
     };
 
     // 로컬 삭제 수행
-    this.textLinkedList.deleteNode(nodeToDelete.id);
+    this.LinkedList.deleteNode(nodeToDelete.id);
 
     // 클록 업데이트
     this.clock += 1;
@@ -66,7 +73,7 @@ export class CRDT {
     const newNode = new Node(operation.node.value, newNodeId);
     newNode.next = operation.node.next;
     newNode.prev = operation.node.prev;
-    this.textLinkedList.insertById(newNode);
+    this.LinkedList.insertById(newNode);
     // 동기화 논리적 시간
     if (this.clock <= newNode.id.clock) {
       this.clock = newNode.id.clock + 1;
@@ -80,7 +87,7 @@ export class CRDT {
   remoteDelete(operation: RemoteDeleteOperation): void {
     const { targetId, clock } = operation;
     if (targetId) {
-      this.textLinkedList.deleteNode(targetId);
+      this.LinkedList.deleteNode(targetId);
     }
     // 동기화 논리적 시간
     if (this.clock <= clock) {
@@ -93,15 +100,15 @@ export class CRDT {
    * @returns 현재 텍스트
    */
   read(): string {
-    return this.textLinkedList.stringify();
+    return this.LinkedList.stringify();
   }
 
   /**
    * 현재 텍스트를 배열로 반환합니다.
    * @returns 현재 텍스트 배열
    */
-  spread(): string[] {
-    return this.textLinkedList.spread();
+  spread(): Block[] | Char[] {
+    return this.LinkedList.spread();
   }
 
   /**
@@ -109,7 +116,7 @@ export class CRDT {
    * @returns LinkedList 인스턴스
    */
   public getTextLinkedList(): LinkedList {
-    return this.textLinkedList;
+    return this.LinkedList;
   }
 
   /**
@@ -121,8 +128,8 @@ export class CRDT {
       clock: this.clock,
       client: this.client,
       textLinkedList: {
-        head: this.textLinkedList.head,
-        nodeMap: this.textLinkedList.nodeMap,
+        head: this.LinkedList.head,
+        nodeMap: this.LinkedList.nodeMap,
       },
     };
   }

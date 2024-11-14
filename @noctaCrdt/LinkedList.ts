@@ -223,14 +223,14 @@ export class LinkedList {
    * 현재 리스트를 배열로 변환합니다.
    * @returns 배열로 변환된 리스트
    */
-  spread(): string[] {
+  spread(): Node[] {
     let currentNodeId = this.head;
-    const result: string[] = [];
+    const result: Node[] = [];
 
     while (currentNodeId !== null) {
       const currentNode = this.getNode(currentNodeId);
       if (!currentNode) break;
-      result.push(currentNode.value);
+      result.push(currentNode);
       currentNodeId = currentNode.next;
     }
 
