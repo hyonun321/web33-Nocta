@@ -5,7 +5,13 @@ const config: Config = {
   rootDir: ".",
   testRegex: ".*\\.spec\\.ts$",
   transform: {
-    "^.+\\.(t|j)s$": ["ts-jest", { useESM: true }],
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.json",
+        useESM: true,
+      },
+    ],
   },
   collectCoverageFrom: ["**/*.(t|j)s"],
   coverageDirectory: "./coverage",
@@ -17,6 +23,8 @@ const config: Config = {
   moduleNameMapper: {
     "^@noctaCrdt$": "<rootDir>/../@noctaCrdt/dist/Crdt.js",
     "^@noctaCrdt/(.*)$": "<rootDir>/../@noctaCrdt/dist/$1.js",
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+    "^nanoid$": require.resolve("nanoid"),
   },
 };
 
