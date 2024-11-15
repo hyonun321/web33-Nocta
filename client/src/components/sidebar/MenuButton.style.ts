@@ -14,6 +14,7 @@ export const imageBox = css({
   borderRadius: "sm",
   width: "50px",
   height: "50px",
+  background: "white",
   overflow: "hidden",
 });
 
