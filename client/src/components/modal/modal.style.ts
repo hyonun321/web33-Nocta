@@ -34,8 +34,6 @@ export const modalContainer = cx(
     width: "400px",
     height: "200px",
     padding: "md",
-    // eslint-disable-next-line @pandacss/no-hardcoded-color
-    background: "linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.))",
     boxShadow: "md",
   }),
 );
