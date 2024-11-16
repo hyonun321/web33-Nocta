@@ -16,11 +16,13 @@ export const navWrapper = css({
   gap: "md",
   flexDirection: "column",
   width: "100%",
+  overflowY: "scroll",
 });
 
 export const plusIconBox = css({
   display: "flex",
   justifyContent: "start",
+  marginBlock: "10px",
   paddingInline: "md",
 });
 
