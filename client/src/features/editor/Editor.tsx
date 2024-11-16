@@ -48,7 +48,7 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     onTitleChange(e.target.value);
   };
 
-  const handleBlockClick = (e: React.MouseEvent, blockId: BlockId) => {
+  const handleBlockClick = (blockId: BlockId) => {
     const block = editorState.linkedList.getNode(blockId);
     if (!block) return;
 

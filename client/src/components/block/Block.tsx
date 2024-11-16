@@ -10,7 +10,7 @@ interface BlockProps {
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, blockId: BlockId) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  onClick: (e: React.MouseEvent, blockId: BlockId) => void;
+  onClick: (blockId: BlockId) => void;
 }
 
 export const Block: React.FC<BlockProps> = memo(
@@ -40,7 +40,7 @@ export const Block: React.FC<BlockProps> = memo(
 
     const handleClick = (e: React.MouseEvent) => {
       e.preventDefault();
-      onClick(e, block.id);
+      onClick(block.id);
     };
 
     return (
