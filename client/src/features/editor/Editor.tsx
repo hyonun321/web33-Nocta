@@ -5,13 +5,7 @@ import { BlockId } from "@noctaCrdt/NodeId";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Block } from "@components/block/Block";
 import { useMarkdownGrammer } from "@src/hooks/useMarkdownGrammer";
-import {
-  editorContainer,
-  editorTitleContainer,
-  editorTitle,
-  checkboxContainer,
-  checkbox,
-} from "./Editor.style";
+import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;

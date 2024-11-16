@@ -1,6 +1,5 @@
-/* eslint-disable jsx-a11y/no-static-element-interactions */
 import { BlockCRDT } from "@noctaCrdt/Crdt";
-import { Block as CRDTBlock, Char as CRDTChar } from "@noctaCrdt/Node";
+import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import React, { memo, useEffect, useRef } from "react";
 import { textContainerStyle, blockContainerStyle } from "./Block.style";
