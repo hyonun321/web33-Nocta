@@ -1,7 +1,6 @@
-import { Page as PageType } from "@src/types/page";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRef } from "react";
 import { Editor } from "@features/editor/Editor";
+import { Page as PageType } from "@src/types/page";
 import { pageAnimation, resizeHandleAnimation } from "./Page.animation";
 import { pageContainer, pageHeader, resizeHandle } from "./Page.style";
 
@@ -10,7 +9,7 @@ import { PageTitle } from "./components/PageTitle/PageTitle";
 import { usePage } from "./hooks/usePage";
 
 interface PageProps extends PageType {
-  handlePageSelect: (pageId: number) => void;
+  handlePageSelect: ({ pageId, isSidebar }: { pageId: number; isSidebar?: boolean }) => void;
   handlePageClose: (pageId: number) => void;
   handleTitleChange: (pageId: number, newTitle: string) => void;
 }
@@ -26,7 +25,6 @@ export const Page = ({
   handlePageClose,
   handleTitleChange,
 }: PageProps) => {
-  const pageRef = useRef<HTMLDivElement>(null);
   const { position, size, pageDrag, pageResize, pageMinimize, pageMaximize } = usePage({ x, y });
 
   const onTitleChange = (newTitle: string) => {
@@ -36,7 +34,6 @@ export const Page = ({
   return (
     <AnimatePresence>
       <motion.div
-        ref={pageRef}
         className={pageContainer}
         initial={pageAnimation.initial}
         animate={pageAnimation.animate({
@@ -49,7 +46,11 @@ export const Page = ({
           height: `${size.height}px`,
           zIndex,
         }}
-        onPointerDown={() => handlePageSelect(id)}
+        onPointerDown={() =>
+          handlePageSelect({
+            pageId: id,
+          })
+        }
       >
         <div className={pageHeader} onPointerDown={pageDrag}>
           <PageTitle title={title} />
