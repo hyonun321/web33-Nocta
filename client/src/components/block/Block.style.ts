@@ -1,70 +1,22 @@
 import { cva } from "@styled-system/css";
 
-// 기본 블록 스타일
 const baseBlockStyle = {
-  textStyle: "display-medium16",
-  outline: "none",
-  borderRadius: "radii.xs",
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  position: "relative",
   width: "full",
   minHeight: "spacing.lg",
   margin: "spacing.sm 0",
   padding: "spacing.sm",
-  color: "gray.900",
   backgroundColor: "transparent",
-  "&:empty::before": {
-    content: "attr(data-placeholder)", // data-placeholder 속성의 값을 표시
-    color: "gray.300",
-    position: "absolute",
-    pointerEvents: "none", // 텍스트 선택이나 클릭 방지
-  },
 };
 
-// 블록 타입별 스타일 variants
 export const blockContainerStyle = cva({
-  base: baseBlockStyle,
+  base: {
+    ...baseBlockStyle,
+  },
   variants: {
-    type: {
-      p: {
-        textStyle: "display-medium16",
-        fontWeight: "bold",
-      },
-      h1: {
-        textStyle: "display-medium24",
-        fontWeight: "bold",
-      },
-      h2: {
-        textStyle: "display-medium20",
-        fontWeight: "bold",
-      },
-      h3: {
-        textStyle: "display-medium16",
-        fontWeight: "bold",
-      },
-      ul: {
-        display: "block",
-        listStyleType: "disc",
-        listStylePosition: "outside",
-      },
-      ol: {
-        display: "block",
-        listStyleType: "decimal",
-        listStylePosition: "outside",
-      },
-      li: {
-        textStyle: "display-medium16",
-        display: "list-item",
-        outline: "none",
-        margin: "0",
-        padding: "0 0 0 16px",
-      },
-      blockquote: {
-        borderLeft: "4px solid token(colors.gray.300)",
-        paddingLeft: "spacing.md",
-        color: "gray.500",
-        fontStyle: "italic",
-      },
-      checkbox: {},
-    },
     isActive: {
       true: {
         opacity: 0.9,
@@ -75,7 +27,92 @@ export const blockContainerStyle = cva({
     },
   },
   defaultVariants: {
-    type: "p",
     isActive: false,
+  },
+});
+
+const baseTextStyle = {
+  textStyle: "display-medium16",
+  flex: "1 1 auto", // 변경: flex-grow: 1, flex-shrink: 1, flex-basis: auto
+  minWidth: "0", // 추가: flex item의 최소 너비를 0으로 설정
+  outline: "none",
+  borderRadius: "radii.xs",
+  width: "full",
+  minHeight: "spacing.lg",
+  margin: "spacing.sm 0",
+  padding: "spacing.sm",
+  color: "gray.900",
+  backgroundColor: "transparent",
+  display: "flex",
+  alignItems: "center",
+};
+
+export const textContainerStyle = cva({
+  base: {
+    ...baseTextStyle,
+    position: "relative",
+    "&:empty::before": {
+      color: "gray.300",
+      pointerEvents: "none",
+    },
+  },
+  variants: {
+    type: {
+      p: {
+        textStyle: "display-medium16",
+        fontWeight: "bold",
+        "&:empty::before": {
+          content: '"텍스트를 입력하세요..."',
+        },
+      },
+      h1: {
+        textStyle: "display-medium24",
+        fontWeight: "bold",
+        "&:empty::before": {
+          content: '"제목 1"',
+        },
+      },
+      h2: {
+        textStyle: "display-medium20",
+        fontWeight: "bold",
+        "&:empty::before": {
+          content: '"제목 2"',
+        },
+      },
+      h3: {
+        textStyle: "display-medium16",
+        fontWeight: "bold",
+        "&:empty::before": {
+          content: '"제목 3"',
+        },
+      },
+      ul: {
+        textStyle: "display-medium16",
+        listStyleType: "disc",
+        "&:empty::before": {
+          content: '"리스트를 입력하세요..."',
+        },
+      },
+      li: {},
+      ol: {
+        listStyleType: "decimal",
+        "&:empty::before": {
+          content: '"번호 리스트를 입력하세요..."',
+        },
+      },
+      blockquote: {
+        borderLeft: "4px solid token(colors.gray.300)",
+        paddingLeft: "spacing.md",
+        color: "gray.500",
+        fontStyle: "italic",
+        "&:empty::before": {
+          content: '"텍스트를 입력하세요..."',
+        },
+      },
+      checkbox: {},
+    },
+  },
+  defaultVariants: {
+    type: "p",
   },
 });
