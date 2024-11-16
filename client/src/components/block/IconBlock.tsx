@@ -10,19 +10,19 @@ export const IconBlock: React.FC<IconBlocknProps> = ({ type, index }) => {
 
   if (type === "ul") {
     content = (
-      <div style={{ width: "12px" }}>
+      <div style={{ marginRight: "8px" }}>
         <span>•</span>
       </div>
     );
   } else if (type === "ol") {
     content = (
-      <div style={{ width: "12px" }}>
+      <div style={{ marginRight: "8px" }}>
         <span>{index}.</span>
       </div>
     );
   } else if (type === "checkbox") {
     content = (
-      <div style={{ width: "12px" }}>
+      <div style={{ marginRight: "8px" }}>
         <input type="checkbox" />
       </div>
     );

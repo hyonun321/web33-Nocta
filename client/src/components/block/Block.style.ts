@@ -109,7 +109,11 @@ export const textContainerStyle = cva({
           content: '"텍스트를 입력하세요..."',
         },
       },
-      checkbox: {},
+      checkbox: {
+        "&:empty::before": {
+          content: '"텍스트를 입력하세요..."',
+        },
+      },
     },
   },
   defaultVariants: {
