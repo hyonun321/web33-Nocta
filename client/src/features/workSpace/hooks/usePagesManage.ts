@@ -29,14 +29,14 @@ export const usePagesManage = () => {
     ]);
   };
 
-  const selectPage = ({ pageId, isSidebar = false }: { pageId: number; isSidebar?: boolean }) => {
+  const selectPage = ({ pageId }: { pageId: number }) => {
     setPages((prevPages) =>
       prevPages.map((page) => ({
         ...page,
         isActive: page.id === pageId,
         ...(page.id === pageId && {
           zIndex: getZIndex(),
-          isVisible: isSidebar ? true : page.isVisible,
+          isVisible: true,
         }),
       })),
     );
