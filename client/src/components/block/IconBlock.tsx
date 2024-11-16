@@ -20,6 +20,12 @@ export const IconBlock: React.FC<IconBlocknProps> = ({ type, index }) => {
         <span>{index}.</span>
       </div>
     );
+  } else if (type === "checkbox") {
+    content = (
+      <div style={{ width: "12px" }}>
+        <input type="checkbox" />
+      </div>
+    );
   } else {
     content = null;
   }
