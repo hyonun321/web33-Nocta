@@ -8,6 +8,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { Block } from "@src/features/editor/components/block/Block";
 import { useMarkdownGrammer } from "@src/features/editor/hooks/useMarkdownGrammer";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
+import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
@@ -28,13 +29,11 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     currentBlock: null as BlockId | null,
   });
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-  );
+  const { sensors, handleDragEnd } = useBlockDragAndDrop({
+    editorCRDT: editorCRDT.current,
+    editorState,
+    setEditorState,
+  });
 
   const { handleKeyDown } = useMarkdownGrammer({
     editorCRDT: editorCRDT.current,
@@ -107,34 +106,6 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     },
     [editorState.linkedList],
   );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = editorState.linkedList
-      .spread()
-      .findIndex((block) => `${block.id.client}-${block.id.clock}` === active.id);
-    const newIndex = editorState.linkedList
-      .spread()
-      .findIndex((block) => `${block.id.client}-${block.id.clock}` === over.id);
-
-    // 새로운 LinkedList 인스턴스 생성 및 재정렬
-    const newLinkedList = new BlockLinkedList(editorState.linkedList);
-    newLinkedList.reorderNodes(oldIndex, newIndex);
-
-    // EditorCRDT 업데이트
-    editorCRDT.current.LinkedList = newLinkedList;
-    editorCRDT.current.clock += 1;
-
-    // 상태 업데이트
-    setEditorState({
-      clock: editorCRDT.current.clock,
-      linkedList: newLinkedList,
-      currentBlock: editorState.currentBlock,
-    });
-  };
 
   useEffect(() => {
     const initialBlock = new CRDTBlock("", new BlockId(0, 0));
