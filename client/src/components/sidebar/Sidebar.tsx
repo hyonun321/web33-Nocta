@@ -72,7 +72,7 @@ export const Sidebar = ({
       </motion.div>
       <Modal isOpen={isOpen} primaryButtonLabel="확인" primaryButtonOnClick={closeModal}>
         <p>
-          최대 {MAX_VISIBLE_PAGE}개의 페이지만 화면에 표시할 수 있습니다.
+          최대 {MAX_VISIBLE_PAGE}개의 페이지만 표시할 수 있습니다
           <br />
           사용하지 않는 페이지는 닫아주세요.
         </p>

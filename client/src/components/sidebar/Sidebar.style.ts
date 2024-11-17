@@ -16,6 +16,7 @@ export const navWrapper = css({
   gap: "md",
   flexDirection: "column",
   width: "100%",
+  overflowX: "hidden",
   overflowY: "scroll",
 });
 
