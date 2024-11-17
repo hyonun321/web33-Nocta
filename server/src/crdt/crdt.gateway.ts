@@ -37,7 +37,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    */
   async handleConnection(client: Socket) {
     console.log(`클라이언트 연결: ${client.id}`);
-    const assignedId = this.clientIdCounter++;
+    const assignedId = (this.clientIdCounter += 1);
     this.clientMap.set(client.id, assignedId);
     client.emit("assignId", assignedId);
     const currentCRDT = this.crdtService.getCRDT().serialize();
