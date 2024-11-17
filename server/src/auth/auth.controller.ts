@@ -9,7 +9,12 @@ export class AuthController {
   @Post("register")
   async register(@Body() body: { email: string; password: string; name: string }) {
     const { email, password, name } = body;
-    return this.authService.register(email, password, name);
+    const user = await this.authService.register(email, password, name);
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    };
   }
 
   @Post("login")
