@@ -6,7 +6,7 @@ import { useCallback } from "react";
 import { EditorStateProps } from "@features/editor/Editor";
 import { checkMarkdownPattern } from "@src/utils/markdownPatterns";
 
-export const useMarkdownGrammer = (props: {
+interface useMarkdownGrammerProps {
   editorCRDT: EditorCRDT;
   editorState: EditorStateProps;
   setEditorState: React.Dispatch<
@@ -16,9 +16,12 @@ export const useMarkdownGrammer = (props: {
       currentBlock: BlockId | null;
     }>
   >;
-}) => {
-  const { editorCRDT, editorState, setEditorState } = props;
-
+}
+export const useMarkdownGrammer = ({
+  editorCRDT,
+  editorState,
+  setEditorState,
+}: useMarkdownGrammerProps) => {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const createNewBlock = (index: number): Block => {
@@ -132,17 +135,19 @@ export const useMarkdownGrammer = (props: {
               if (currentBlock.type !== "p") {
                 currentBlock.type = "p";
                 updateEditorState();
-                // TODO: 블록 합칠 때 마지막 글자가 사라짐;;;
+                // FIX: 서윤님 피드백 반영
               } else {
                 const prevBlock =
                   currentIndex > 0 ? editorCRDT.LinkedList.findByIndex(currentIndex - 1) : null;
                 if (prevBlock) {
+                  const prevBlockEndCaret = prevBlock.crdt.read().length;
                   currentContent.split("").forEach((char) => {
                     prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char);
                   });
-                  prevBlock.crdt.currentCaret = prevBlock.crdt.read().length;
+                  prevBlock.crdt.currentCaret = prevBlockEndCaret;
                   editorCRDT.localDelete(currentIndex);
                   updateEditorState(prevBlock.id);
+                  e.preventDefault();
                 }
               }
             }
