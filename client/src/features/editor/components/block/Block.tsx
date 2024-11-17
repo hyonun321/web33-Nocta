@@ -14,7 +14,7 @@ interface BlockProps {
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, blockId: BlockId) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  onClick: (blockId: BlockId) => void;
+  onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export const Block: React.FC<BlockProps> = memo(
@@ -32,11 +32,6 @@ export const Block: React.FC<BlockProps> = memo(
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
       onInput(e, block.id);
-    };
-
-    const handleClick = (e: React.MouseEvent) => {
-      e.preventDefault();
-      onClick(block.id);
     };
 
     const setFocusAndCursor = () => {
@@ -79,7 +74,7 @@ export const Block: React.FC<BlockProps> = memo(
             ref={blockRef}
             onKeyDown={onKeyDown}
             onInput={handleInput}
-            onClick={handleClick}
+            onClick={(e) => onClick(block.id, e)}
             contentEditable
             suppressContentEditableWarning
             className={textContainerStyle({

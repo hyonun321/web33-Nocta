@@ -45,14 +45,22 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     onTitleChange(e.target.value);
   };
 
-  const handleBlockClick = (blockId: BlockId) => {
+  const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
     const block = editorState.linkedList.getNode(blockId);
     if (!block) return;
+
+    // 클릭된 요소 내에서의 위치를 가져오기 위해
+    const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+    if (!range) return;
 
     const selection = window.getSelection();
     if (!selection) return;
 
-    // 클릭한 위치의 offset을 currentCaret으로 저장
+    // 새로운 Range로 Selection 설정
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // 현재 캐럿 위치를 저장
     block.crdt.currentCaret = selection.focusOffset;
 
     setEditorState((prev) => ({
