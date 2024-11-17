@@ -5,8 +5,8 @@ import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Block } from "@features/editor/components/Block/Block";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
+import { Block } from "./components/Block/Block";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 
