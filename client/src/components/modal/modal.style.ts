@@ -27,8 +27,6 @@ export const modalContainer = cx(
     display: "flex",
     zIndex: 10001,
     position: "absolute",
-    top: "50%",
-    left: "50%",
     transform: "translate(-50%, -50%)",
     flexDirection: "column",
     width: "400px",

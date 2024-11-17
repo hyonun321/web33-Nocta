@@ -1,12 +1,12 @@
-import { Page } from "@src/types/page";
 import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
+import { Page } from "@src/types/page";
 import { animation } from "./BottomNavigator.animation";
 import { bottomNavigatorContainer } from "./BottomNavigator.style";
 
 interface BottomNavigatorProps {
   pages: Page[];
-  handlePageSelect: (pageId: number) => void;
+  handlePageSelect: ({ pageId, isSidebar }: { pageId: number; isSidebar?: boolean }) => void;
 }
 
 export const BottomNavigator = ({ pages, handlePageSelect }: BottomNavigatorProps) => {
@@ -25,7 +25,9 @@ export const BottomNavigator = ({ pages, handlePageSelect }: BottomNavigatorProp
             icon={page.icon}
             size="md"
             onClick={() => {
-              handlePageSelect(page.id);
+              handlePageSelect({
+                pageId: page.id,
+              });
             }}
           />
         </motion.div>
