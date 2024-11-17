@@ -23,8 +23,6 @@ import { CrdtModule } from "./crdt/crdt.module";
     }),
     AuthModule,
     CrdtModule,
-    AuthModule,
-    CrdtModule,
   ],
   controllers: [AppController],
   providers: [AppService],
