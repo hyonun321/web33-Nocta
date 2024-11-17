@@ -6,7 +6,7 @@ import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
-import { Block } from "./components/Block/Block";
+import { Block } from "./components/block/Block.tsx";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 
