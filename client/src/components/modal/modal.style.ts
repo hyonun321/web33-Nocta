@@ -17,8 +17,8 @@ export const overlayBox = css({
   inset: 0,
   width: "100%",
   height: "100%",
-  background: "gray.500/30",
-  backdropFilter: "blur(5px)",
+  background: "gray.500/10",
+  backdropFilter: "blur(3px)",
 });
 
 export const modalContainer = cx(
@@ -30,9 +30,10 @@ export const modalContainer = cx(
     transform: "translate(-50%, -50%)",
     flexDirection: "column",
     width: "400px",
-    height: "200px",
     padding: "md",
+    background: "white/20",
     boxShadow: "md",
+    blur: "1px",
   }),
 );
 export const modalContent = css({
