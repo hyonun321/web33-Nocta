@@ -1,4 +1,4 @@
-import DraggableIcon from "@assets/icons/draggable.svg";
+import DraggableIcon from "@assets/icons/draggable.svg?url";
 import { menuBlockStyle, dragHandleIconStyle } from "./MenuBlock.style";
 
 interface MenuBlockProps {
