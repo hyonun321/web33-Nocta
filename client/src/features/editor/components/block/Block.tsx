@@ -4,9 +4,9 @@ import { BlockCRDT } from "@noctaCrdt/Crdt";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { memo, useEffect, useRef } from "react";
+import { IconBlock } from "../IconBlock/IconBlock";
+import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { textContainerStyle, blockContainerStyle } from "./Block.style";
-import { IconBlock } from "./IconBlock";
-import { MenuBlock } from "./MenuBlock";
 
 interface BlockProps {
   id: string;
