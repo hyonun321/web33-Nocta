@@ -6,9 +6,7 @@ const baseBlockStyle = {
   alignItems: "center",
   position: "relative",
   width: "full",
-  minHeight: "spacing.lg",
-  margin: "spacing.sm 0",
-  padding: "spacing.sm",
+  minHeight: "16px",
   backgroundColor: "transparent",
 };
 
@@ -36,7 +34,7 @@ const baseTextStyle = {
   flex: "1 1 auto", // 변경: flex-grow: 1, flex-shrink: 1, flex-basis: auto
   minWidth: "0", // 추가: flex item의 최소 너비를 0으로 설정
   outline: "none",
-  borderRadius: "radii.xs",
+  borderRadius: "xs",
   width: "full",
   minHeight: "spacing.lg",
   margin: "spacing.sm 0",

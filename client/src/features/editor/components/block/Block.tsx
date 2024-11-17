@@ -1,7 +1,7 @@
 import { BlockCRDT } from "@noctaCrdt/Crdt";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import React, { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import { textContainerStyle, blockContainerStyle } from "./Block.style";
 import { IconBlock } from "./IconBlock";
 
