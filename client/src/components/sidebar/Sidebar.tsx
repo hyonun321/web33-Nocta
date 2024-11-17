@@ -1,7 +1,10 @@
-import { useIsSidebarOpen, useSidebarActions } from "@src/stores/useSidebarStore";
-import { Page } from "@src/types/page";
 import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
+import { Modal } from "@components/modal/modal";
+import { useModal } from "@components/modal/useModal";
+import { MAX_VISIBLE_PAGE } from "@src/constants/page";
+import { useIsSidebarOpen, useSidebarActions } from "@src/stores/useSidebarStore";
+import { Page } from "@src/types/page";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
@@ -14,10 +17,30 @@ export const Sidebar = ({
 }: {
   pages: Page[];
   handlePageAdd: () => void;
-  handlePageSelect: (pageId: number, isSidebar: boolean) => void;
+  handlePageSelect: ({ pageId }: { pageId: number }) => void;
 }) => {
+  const visiblePages = pages.filter((page) => page.isVisible);
+  const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
+
   const isSidebarOpen = useIsSidebarOpen();
   const { toggleSidebar } = useSidebarActions();
+  const { isOpen, openModal, closeModal } = useModal();
+
+  const handlePageItemClick = (id: number) => {
+    if (isMaxVisiblePage) {
+      openModal();
+      return;
+    }
+    handlePageSelect({ pageId: id });
+  };
+
+  const handleAddPageButtonClick = () => {
+    if (isMaxVisiblePage) {
+      openModal();
+      return;
+    }
+    handlePageAdd();
+  };
 
   return (
     <motion.aside
@@ -29,9 +52,10 @@ export const Sidebar = ({
       <div className={sidebarToggleButton} onClick={toggleSidebar}>
         {isSidebarOpen ? "«" : "»"}
       </div>
-
-      <motion.nav className={navWrapper} variants={contentVariants}>
+      <motion.div variants={contentVariants}>
         <MenuButton />
+      </motion.div>
+      <motion.nav className={navWrapper} variants={contentVariants}>
         {pages?.map((item) => (
           <motion.div
             key={item.id}
@@ -39,13 +63,20 @@ export const Sidebar = ({
             animate={animation.animate}
             transition={animation.transition}
           >
-            <PageItem {...item} onClick={() => handlePageSelect(item.id, true)} />
+            <PageItem {...item} onClick={() => handlePageItemClick(item.id)} />
           </motion.div>
         ))}
-        <div className={plusIconBox}>
-          <IconButton icon="➕" size="sm" onClick={handlePageAdd} />
-        </div>
       </motion.nav>
+      <motion.div className={plusIconBox} variants={contentVariants}>
+        <IconButton icon="➕" onClick={handleAddPageButtonClick} size="sm" />
+      </motion.div>
+      <Modal isOpen={isOpen} primaryButtonLabel="확인" primaryButtonOnClick={closeModal}>
+        <p>
+          최대 {MAX_VISIBLE_PAGE}개의 페이지만 화면에 표시할 수 있습니다.
+          <br />
+          사용하지 않는 페이지는 닫아주세요.
+        </p>
+      </Modal>
     </motion.aside>
   );
 };
