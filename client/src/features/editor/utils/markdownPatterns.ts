@@ -1,4 +1,4 @@
-import { MarkdownElement, MarkdownPattern } from "../types/markdown";
+import { MarkdownElement, MarkdownPattern } from "../../../types/markdown";
 
 const MARKDOWN_PATTERNS: Record<string, MarkdownPattern> = {
   // Fix: 서윤님 피드백 반영

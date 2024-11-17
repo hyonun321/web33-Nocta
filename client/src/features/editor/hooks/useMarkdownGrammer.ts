@@ -4,7 +4,7 @@ import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useCallback } from "react";
 import { EditorStateProps } from "@features/editor/Editor";
-import { checkMarkdownPattern } from "@src/utils/markdownPatterns";
+import { checkMarkdownPattern } from "@src/features/editor/utils/markdownPatterns";
 
 interface useMarkdownGrammerProps {
   editorCRDT: EditorCRDT;
