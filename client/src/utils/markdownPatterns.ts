@@ -1,20 +1,21 @@
 import { MarkdownElement, MarkdownPattern } from "../types/markdown";
 
 const MARKDOWN_PATTERNS: Record<string, MarkdownPattern> = {
-  h1: {
-    regex: /^#$/,
-    length: 1,
-    createElement: () => ({ type: "h1", length: 1 }),
+  // Fix: 서윤님 피드백 반영
+  h3: {
+    regex: /^###$/,
+    length: 3,
+    createElement: () => ({ type: "h3", length: 3 }),
   },
   h2: {
     regex: /^##$/,
     length: 2,
     createElement: () => ({ type: "h2", length: 2 }),
   },
-  h3: {
-    regex: /^###$/,
-    length: 3,
-    createElement: () => ({ type: "h3", length: 3 }),
+  h1: {
+    regex: /^#$/,
+    length: 1,
+    createElement: () => ({ type: "h1", length: 1 }),
   },
   ul: {
     regex: /^-$/,
