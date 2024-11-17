@@ -1,4 +1,4 @@
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
