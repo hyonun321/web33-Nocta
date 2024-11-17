@@ -29,7 +29,9 @@ export const modalContainer = cx(
     position: "absolute",
     transform: "translate(-50%, -50%)",
     flexDirection: "column",
+    justifyContent: "space-between",
     width: "400px",
+    minHeight: "200px",
     padding: "md",
     background: "white/20",
     boxShadow: "md",
@@ -38,6 +40,7 @@ export const modalContainer = cx(
 );
 export const modalContent = css({
   display: "flex",
+  flexGrow: 1,
   justifyContent: "center",
   alignItems: "center",
   width: "100%",
