@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { BlockCRDT } from "@noctaCrdt/Crdt";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { memo, useEffect, useRef } from "react";
+import { memo, useRef } from "react";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
@@ -39,11 +39,10 @@ export const Block: React.FC<BlockProps> = memo(
       onClick(block.id);
     };
 
-    useEffect(() => {
+    const setFocusAndCursor = () => {
       if (blockRef.current && isActive) {
         const selection = window.getSelection();
         if (!selection) return;
-
         const range = document.createRange();
         const content =
           blockRef.current.firstChild || blockRef.current.appendChild(document.createTextNode(""));
@@ -53,7 +52,12 @@ export const Block: React.FC<BlockProps> = memo(
         selection.removeAllRanges();
         selection.addRange(range);
       }
-    }, [isActive, blockRef.current?.textContent]);
+    };
+
+    requestAnimationFrame(() => {
+      // ✅ 추가
+      setFocusAndCursor();
+    });
 
     return (
       // TODO: eslint 규칙을 수정해야 할까?
