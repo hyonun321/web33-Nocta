@@ -28,9 +28,8 @@ services:
       - "443:443"
     volumes:
       - ./client/dist:/usr/share/nginx/html
-      - ./certbot/conf:/etc/letsencrypt # Certbot 인증서 파일 공유
-      - ./certbot/www:/var/www/certbot # Certbot 웹 루트 디렉토리 공유
-      - ./nginx/conf.d:/etc/nginx/conf.d # Nginx 설정 공유
+      - ./certbot/www:/var/www/certbot
+      - certbot-etc:/etc/letsencrypt:ro
     depends_on:
       - frontend
       - backend
@@ -38,11 +37,13 @@ services:
 
   certbot:
     image: certbot/certbot
-    container_name: certbot
     volumes:
-      - ./certbot/conf:/etc/letsencrypt # 인증서 저장 경로
-      - ./certbot/www:/var/www/certbot # 인증 과정에 필요한 웹 루트 경로
-    entrypoint: /bin/sh -c 'trap exit TERM; while :; do sleep 1; done'
+      - certbot-etc:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: certonly --webroot --webroot-path=/var/www/certbot --email minjungw00@naver.com --agree-tos --no-eff-email -d nocta.site -d www.nocta.site
+
+volumes:
+  certbot-etc:
 
 networks:
   app-network:
