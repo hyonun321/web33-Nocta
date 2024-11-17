@@ -28,22 +28,10 @@ services:
       - "443:443"
     volumes:
       - ./client/dist:/usr/share/nginx/html
-      - ./certbot/www:/var/www/certbot
-      - certbot-etc:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - frontend
       - backend
-      - certbot
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - certbot-etc:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    command: certonly --webroot --webroot-path=/var/www/certbot --email minjungw00@naver.com --agree-tos --no-eff-email -d nocta.site -d www.nocta.site
-
-volumes:
-  certbot-etc:
 
 networks:
   app-network:

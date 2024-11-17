@@ -23,11 +23,6 @@ jobs:
         run: |
           docker-compose up -d --build
 
-      # 3. 인증서 갱신 및 Nginx 재시작
-      - name: Renew SSL Certificates
-        run: |
-          ./renew_certificates.sh
-
-      # 4. Clean up Old Images
+      # 3. Clean up Old Images
       - name: Remove Dangling Images
         run: docker image prune -f
