@@ -22,11 +22,13 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const toggleMode = () => {
     setMode(mode === "login" ? "register" : "login");
-    resetFormData();
+    setFormData({ email: "", password: "", name: "" });
   };
 
-  const resetFormData = () => {
+  const closeModal = () => {
+    setMode("login");
     setFormData({ email: "", password: "", name: "" });
+    onClose();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,15 +36,9 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCancelButtonClick = () => {
-    resetFormData();
-    onClose();
-  };
-
   const handleSubmitButtonClick = () => {
     // TODO API 연결
-    resetFormData();
-    onClose();
+    closeModal();
   };
 
   return (
@@ -51,7 +47,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       primaryButtonLabel={mode === "login" ? "로그인" : "회원가입"}
       primaryButtonOnClick={handleSubmitButtonClick}
       secondaryButtonLabel="취소"
-      secondaryButtonOnClick={handleCancelButtonClick}
+      secondaryButtonOnClick={closeModal}
     >
       <div className={container({ mode })}>
         <h1 className={title}>{mode === "login" ? "Login" : "Sign Up"}</h1>
