@@ -15,21 +15,10 @@ interface AuthModalProps {
 export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
-    name: "",
   });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = () => {
-    // TODO API 연결
-    resetFormData();
-    onClose();
-  };
 
   const toggleMode = () => {
     setMode(mode === "login" ? "register" : "login");
@@ -40,13 +29,29 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setFormData({ email: "", password: "", name: "" });
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCancelButtonClick = () => {
+    resetFormData();
+    onClose();
+  };
+
+  const handleSubmitButtonClick = () => {
+    // TODO API 연결
+    resetFormData();
+    onClose();
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       primaryButtonLabel={mode === "login" ? "로그인" : "회원가입"}
-      primaryButtonOnClick={handleSubmit}
+      primaryButtonOnClick={handleSubmitButtonClick}
       secondaryButtonLabel="취소"
-      secondaryButtonOnClick={onClose}
+      secondaryButtonOnClick={handleCancelButtonClick}
     >
       <div className={container({ mode })}>
         <h1 className={title}>{mode === "login" ? "Login" : "Sign Up"}</h1>
