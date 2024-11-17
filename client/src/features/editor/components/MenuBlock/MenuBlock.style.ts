@@ -1,25 +1,18 @@
+// MenuBlock.style.ts
 import { css } from "@styled-system/css";
 
 export const menuBlockStyle = css({
   display: "flex",
-  position: "absolute",
-  top: "50%", // 세로 중앙 정렬
-  left: "-28px", // 왼쪽 여백 늘림
-  transform: "translateY(-50%)", // 세로 중앙 정렬 보정
+  zIndex: 1,
+
+  position: "relative", // absolute에서 relative로 변경
   justifyContent: "center",
   alignItems: "center",
-  borderRadius: "3px",
-
-  width: "24px",
-  height: "24px",
-  opacity: 0,
-  backgroundColor: "transparent",
+  width: "20px",
+  height: "20px",
+  marginLeft: "-20px",
   transition: "opacity 0.2s ease-in-out",
   cursor: "grab",
-  _hover: {
-    backgroundColor: "rgba(55, 53, 47, 0.08)",
-  },
-
   _groupHover: {
     opacity: 1,
   },
@@ -35,5 +28,4 @@ export const dragHandleIconStyle = css({
   alignItems: "center",
   width: "100%",
   height: "100%",
-  color: "rgba(55, 53, 47, 0.45)",
 });

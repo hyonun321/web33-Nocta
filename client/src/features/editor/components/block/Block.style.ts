@@ -29,6 +29,16 @@ export const blockContainerStyle = cva({
   },
 });
 
+export const contentWrapperStyle = cva({
+  base: {
+    display: "flex",
+    position: "relative",
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+});
+
 const baseTextStyle = {
   textStyle: "display-medium16",
   flex: "1 1 auto", // 변경: flex-grow: 1, flex-shrink: 1, flex-basis: auto

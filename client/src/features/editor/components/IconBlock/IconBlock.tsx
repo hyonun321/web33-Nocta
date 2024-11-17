@@ -1,28 +1,27 @@
 import { ElementType } from "@noctaCrdt/Interfaces";
+import { iconContainerStyle, iconStyle } from "./IconBlock.style";
 
-// Fix: 서윤님 피드백 반영
 interface IconBlockProps {
   type: ElementType;
   index?: number;
 }
+
 export const IconBlock = ({ type, index = 1 }: IconBlockProps) => {
   const getIcon = () => {
     switch (type) {
       case "ul":
-        return "•";
+        return <span className={iconStyle({ type: "ul" })}>•</span>;
       case "ol":
-        return `${index}.`;
+        return <span className={iconStyle({ type: "ol" })}>{`${index}.`}</span>;
       case "checkbox":
-        return <input type="checkbox" />;
+        return <span className={iconStyle({ type: "checkbox" })} />;
       default:
         return null;
     }
   };
+
   const icon = getIcon();
   if (!icon) return null;
-  return (
-    <div style={{ marginRight: "8px" }}>
-      <span>{icon}</span>
-    </div>
-  );
+
+  return <div className={iconContainerStyle}>{icon}</div>;
 };

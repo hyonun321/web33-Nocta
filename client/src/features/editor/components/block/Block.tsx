@@ -6,7 +6,7 @@ import { BlockId } from "@noctaCrdt/NodeId";
 import { memo, useEffect, useRef } from "react";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
-import { textContainerStyle, blockContainerStyle } from "./Block.style";
+import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
 
 interface BlockProps {
   id: string;
@@ -29,14 +29,6 @@ export const Block: React.FC<BlockProps> = memo(
         block,
       },
     });
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      paddingLeft: `${block.indent * 12}px`,
-      opacity: isDragging ? 0.5 : 1,
-      position: "relative" as const,
-    };
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
       onInput(e, block.id);
@@ -69,23 +61,29 @@ export const Block: React.FC<BlockProps> = memo(
       <div
         ref={setNodeRef}
         className={blockContainerStyle({ isActive })}
-        style={style}
+        style={{
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.5 : 1,
+        }}
         data-group // indent에 따른 마진
       >
-        <MenuBlock attributes={attributes} listeners={listeners} />
-        <IconBlock type={block.type} index={1} />
-        <div
-          ref={blockRef}
-          onKeyDown={onKeyDown}
-          onInput={handleInput}
-          onClick={handleClick}
-          contentEditable
-          suppressContentEditableWarning
-          className={textContainerStyle({
-            type: block.type,
-          })}
-        >
-          {block.crdt.read()}
+        <div className={contentWrapperStyle()} style={{ paddingLeft: `${block.indent * 12}px` }}>
+          <MenuBlock attributes={attributes} listeners={listeners} />
+          <IconBlock type={block.type} index={1} />
+          <div
+            ref={blockRef}
+            onKeyDown={onKeyDown}
+            onInput={handleInput}
+            onClick={handleClick}
+            contentEditable
+            suppressContentEditableWarning
+            className={textContainerStyle({
+              type: block.type,
+            })}
+          >
+            {block.crdt.read()}
+          </div>
         </div>
       </div>
     );
