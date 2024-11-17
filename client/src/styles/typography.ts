@@ -48,4 +48,16 @@ export const textStyles = defineTextStyles({
       textTransform: "None",
     },
   },
+
+  "display-medium32": {
+    value: {
+      fontFamily: "Inter",
+      fontWeight: "700",
+      fontSize: "32px",
+      lineHeight: "40px",
+      letterSpacing: "-0.2px",
+      textDecoration: "None",
+      textTransform: "None",
+    },
+  },
 });
