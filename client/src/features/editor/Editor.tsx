@@ -3,8 +3,8 @@ import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Block } from "@components/block/Block";
-import { useMarkdownGrammer } from "@src/hooks/useMarkdownGrammer";
+import { Block } from "@src/features/editor/components/block/Block";
+import { useMarkdownGrammer } from "@src/features/editor/hooks/useMarkdownGrammer";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 
 interface EditorProps {
@@ -31,18 +31,6 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     editorState,
     setEditorState,
   });
-
-  useEffect(() => {
-    const initialBlock = new CRDTBlock("", new BlockId(0, 0));
-    editorCRDT.current.currentBlock = initialBlock;
-    editorCRDT.current.LinkedList.insertById(initialBlock);
-
-    setEditorState({
-      clock: editorCRDT.current.clock,
-      linkedList: editorCRDT.current.LinkedList,
-      currentBlock: initialBlock.id,
-    });
-  }, []);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitleChange(e.target.value);
@@ -109,6 +97,18 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     },
     [editorState.linkedList],
   );
+
+  useEffect(() => {
+    const initialBlock = new CRDTBlock("", new BlockId(0, 0));
+    editorCRDT.current.currentBlock = initialBlock;
+    editorCRDT.current.LinkedList.insertById(initialBlock);
+
+    setEditorState({
+      clock: editorCRDT.current.clock,
+      linkedList: editorCRDT.current.LinkedList,
+      currentBlock: initialBlock.id,
+    });
+  }, []);
 
   return (
     <div className={editorContainer}>
