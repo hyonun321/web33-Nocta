@@ -2,10 +2,11 @@ import {
   RemoteInsertOperation,
   RemoteDeleteOperation,
   CursorPosition,
+  SerializedProps,
 } from "@noctaCrdt/Interfaces";
+import { Block, Char } from "@noctaCrdt/Node";
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-
 // 구독 핸들러들의 타입 정의
 interface RemoteOperationHandlers {
   onRemoteInsert: (operation: RemoteInsertOperation) => void;
@@ -42,7 +43,8 @@ export const useSocket = (): UseSocketReturn => {
       console.log("Assigned client ID:", clientId);
     });
 
-    socketRef.current.on("document", (document: any) => {
+    socketRef.current.on("document", (document: SerializedProps<Block> | SerializedProps<Char>) => {
+      // 추후 확인 필요
       console.log("Received initial document state:", document);
     });
 

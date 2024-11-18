@@ -53,7 +53,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    */
   async handleConnection(client: Socket) {
     try {
-      const assignedId = this.clientIdCounter++;
+      const assignedId = (this.clientIdCounter += 1);
       const clientInfo: ClientInfo = {
         clientId: assignedId,
         connectionTime: new Date(),
