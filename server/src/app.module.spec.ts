@@ -14,7 +14,7 @@ describe("AppModule", () => {
 
   beforeAll(async () => {
     // jest-mongodb가 설정한 MONGO_URL을 MONGO_URI로 설정
-    process.env.MONGO_URI = process.env.MONGO_URL || "mongodb://localhost:27017/test-db";
+    process.env.MONGO_URI = process.env.MONGO_URL || "mongodb://localhost:27017/test";
     console.log(`MONGO_URI: ${process.env.MONGO_URI}`);
 
     testingModule = await Test.createTestingModule({

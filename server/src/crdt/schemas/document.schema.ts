@@ -3,7 +3,7 @@ import { Document } from "mongoose";
 
 export type DocumentDocument = Document & Doc;
 
-@Schema()
+@Schema({ minimize: false })
 export class Doc {
   @Prop({ type: Object, required: true })
   crdt: {
