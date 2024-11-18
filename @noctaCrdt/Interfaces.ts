@@ -12,11 +12,21 @@ export interface DeleteOperation {
   clock: number;
 }
 
-export interface RemoteInsertOperation {
-  node: Block | Char;
+export interface RemoteBlockInsertOperation {
+  node: Block;
 }
 
-export interface RemoteDeleteOperation {
+export interface RemoteCharInsertOperation {
+  node: Char;
+  blockId: BlockId;
+}
+
+export interface RemoteBlockDeleteOperation {
+  targetId: NodeId;
+  clock: number;
+}
+
+export interface RemoteCharDeleteOperation {
   targetId: NodeId;
   clock: number;
 }

@@ -11,12 +11,15 @@ import {
 import { Socket, Server } from "socket.io";
 import { CrdtService } from "./crdt.service";
 import {
-  RemoteInsertOperation,
-  RemoteDeleteOperation,
+  RemoteBlockDeleteOperation,
+  RemoteCharDeleteOperation,
+  RemoteBlockInsertOperation,
+  RemoteCharInsertOperation,
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
 import { NodeId } from "@noctaCrdt/NodeId";
+import { Block, Char } from "@noctaCrdt/Node";
 
 // 클라이언트 맵 타입 정의
 interface ClientInfo {
@@ -105,11 +108,45 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   /**
-   * 삽입 연산 처리
+   * 블록 삽입 연산 처리
    */
-  @SubscribeMessage("insert")
-  async handleInsert(
-    @MessageBody() data: RemoteInsertOperation,
+  @SubscribeMessage("insert/block")
+  async handleBlockInsert(
+    @MessageBody() data: RemoteBlockInsertOperation,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `Insert 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+      // 클라이언트의 char 변경을 보고 char변경이 일어난 block정보를 나머지 client에게 broadcast한다.
+
+      await this.crdtService.handleInsert(data);
+      console.log("블럭입니다", data);
+      const block = this.crdtService.getCRDT().LinkedList.getNode(data.node.id); // 변경이 일어난 block
+      client.broadcast.emit("insert/block", {
+        operation: data,
+        node: block,
+        timestamp: new Date().toISOString(),
+        sourceClientId: clientInfo?.clientId,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Insert 연산 실패: ${error.message}`);
+    }
+  }
+
+  /**
+   * 블록 삽입 연산 처리
+   */
+  @SubscribeMessage("insert/char")
+  async handleCharInsert(
+    @MessageBody() data: RemoteCharInsertOperation,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     const clientInfo = this.clientMap.get(client.id);
@@ -119,12 +156,14 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      // CRDT 연산 처리
       await this.crdtService.handleInsert(data);
+      console.log("char:", data);
+      const char = this.crdtService.getCRDT().LinkedList.getNode(data.node.id); // 변경이 일어난 block
 
-      // 다른 클라이언트들에게 연산 브로드캐스트
-      client.broadcast.emit("insert", {
-        ...data,
+      client.broadcast.emit("insert/char", {
+        operation: data,
+        node: char,
+        // block: block, // TODO : char는 BlockID를 보내야한다? Block을 보내야한다? 고민예정.
         timestamp: new Date().toISOString(),
         sourceClientId: clientInfo?.clientId,
       });
@@ -140,9 +179,41 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   /**
    * 삭제 연산 처리
    */
-  @SubscribeMessage("delete")
-  async handleDelete(
-    @MessageBody() data: RemoteDeleteOperation,
+  @SubscribeMessage("delete/block")
+  async handleBlockDelete(
+    @MessageBody() data: RemoteBlockDeleteOperation,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `Delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+
+      const deleteNode = new NodeId(data.clock, data.targetId.client);
+      await this.crdtService.handleDelete({ targetId: deleteNode, clock: data.clock });
+
+      client.broadcast.emit("delete", {
+        ...data,
+        timestamp: new Date().toISOString(),
+        sourceClientId: clientInfo?.clientId,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Delete 연산 실패: ${error.message}`);
+    }
+  }
+
+  /**
+   * 삭제 연산 처리
+   */
+  @SubscribeMessage("delete/char")
+  async handleCharDelete(
+    @MessageBody() data: RemoteCharDeleteOperation,
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     const clientInfo = this.clientMap.get(client.id);

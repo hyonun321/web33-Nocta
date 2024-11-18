@@ -2,8 +2,10 @@ import { LinkedList } from "./LinkedList";
 import { CharId, BlockId, NodeId } from "./NodeId";
 import { Node, Char, Block } from "./Node";
 import {
-  RemoteDeleteOperation,
-  RemoteInsertOperation,
+  RemoteBlockDeleteOperation,
+  RemoteCharDeleteOperation,
+  RemoteBlockInsertOperation,
+  RemoteCharInsertOperation,
   SerializedProps,
   RemoteReorderOperation,
 } from "./Interfaces";
@@ -19,18 +21,24 @@ export class CRDT<T extends Node<NodeId>> {
     this.LinkedList = new LinkedList<T>();
   }
 
-  localInsert(index: number, value: string): RemoteInsertOperation {
-    const id =
-      this instanceof BlockCRDT
-        ? new CharId(this.clock + 1, this.client)
-        : new BlockId(this.clock + 1, this.client);
-
-    const remoteInsertion = this.LinkedList.insertAtIndex(index, value, id);
-    this.clock += 1;
-    return { node: remoteInsertion.node };
+  localInsert(
+    index: number,
+    value: string,
+  ): RemoteBlockInsertOperation | RemoteCharInsertOperation {
+    if (this instanceof BlockCRDT) {
+      const id = new CharId(this.clock + 1, this.client);
+      const remoteInsertion = this.LinkedList.insertAtIndex(index, value, id);
+      this.clock += 1;
+      return { node: remoteInsertion.node, blockId: BlockId } as RemoteBlockInsertOperation;
+    } else {
+      const id = new BlockId(this.clock + 1, this.client);
+      const remoteInsertion = this.LinkedList.insertAtIndex(index, value, id);
+      this.clock += 1;
+      return { node: remoteInsertion.node } as RemoteCharInsertOperation;
+    }
   }
 
-  localDelete(index: number): RemoteDeleteOperation {
+  localDelete(index: number): RemoteBlockDeleteOperation | RemoteCharDeleteOperation {
     if (index < 0 || index >= this.LinkedList.spread().length) {
       throw new Error(`Invalid index: ${index}`);
     }
@@ -40,7 +48,7 @@ export class CRDT<T extends Node<NodeId>> {
       throw new Error(`Node not found at index: ${index}`);
     }
 
-    const operation: RemoteDeleteOperation = {
+    const operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation = {
       targetId: nodeToDelete.id,
       clock: this.clock + 1,
     };
@@ -51,11 +59,12 @@ export class CRDT<T extends Node<NodeId>> {
     return operation;
   }
 
-  remoteInsert(operation: RemoteInsertOperation): void {
+  remoteInsert(operation: RemoteBlockInsertOperation | RemoteCharInsertOperation): void {
     const NodeIdClass = this instanceof BlockCRDT ? CharId : BlockId;
     const NodeClass = this instanceof BlockCRDT ? Char : Block;
 
     const newNodeId = new NodeIdClass(operation.node.id.clock, operation.node.id.client);
+
     const newNode = new NodeClass(operation.node.value, newNodeId) as T;
     newNode.next = operation.node.next;
     newNode.prev = operation.node.prev;
@@ -67,7 +76,7 @@ export class CRDT<T extends Node<NodeId>> {
     }
   }
 
-  remoteDelete(operation: RemoteDeleteOperation): void {
+  remoteDelete(operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation): void {
     const { targetId, clock } = operation;
     if (targetId) {
       this.LinkedList.deleteNode(targetId);

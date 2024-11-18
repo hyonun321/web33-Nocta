@@ -3,7 +3,13 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Doc, DocumentDocument } from "./schemas/document.schema";
 import { Model } from "mongoose";
 import { BlockCRDT } from "@noctaCrdt/Crdt";
-import { RemoteInsertOperation, RemoteDeleteOperation } from "@noctaCrdt/Interfaces";
+import {
+  RemoteBlockDeleteOperation,
+  RemoteCharDeleteOperation,
+  RemoteBlockInsertOperation,
+  RemoteCharInsertOperation,
+} from "@noctaCrdt/Interfaces";
+
 import { CharId } from "@noctaCrdt/NodeId";
 import { Char } from "@noctaCrdt/Node";
 
@@ -76,12 +82,16 @@ export class CrdtService implements OnModuleInit {
     return doc;
   }
 
-  async handleInsert(operation: RemoteInsertOperation): Promise<void> {
+  async handleInsert(
+    operation: RemoteBlockInsertOperation | RemoteCharInsertOperation,
+  ): Promise<void> {
     this.crdt.remoteInsert(operation);
     await this.updateDocument();
   }
 
-  async handleDelete(operation: RemoteDeleteOperation): Promise<void> {
+  async handleDelete(
+    operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation,
+  ): Promise<void> {
     this.crdt.remoteDelete(operation);
     await this.updateDocument();
   }
