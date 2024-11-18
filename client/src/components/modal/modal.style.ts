@@ -32,7 +32,7 @@ export const modalContainer = cx(
     transform: "translate(-50%, -50%)",
     flexDirection: "column",
     width: "400px",
-    height: "200px",
+    height: "auto",
     padding: "md",
     boxShadow: "md",
   }),
