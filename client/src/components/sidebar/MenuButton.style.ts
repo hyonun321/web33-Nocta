@@ -8,6 +8,7 @@ export const menuItemWrapper = css({
   width: "300px",
   padding: "md",
   boxShadow: "sm",
+  cursor: "pointer",
 });
 
 export const imageBox = css({
