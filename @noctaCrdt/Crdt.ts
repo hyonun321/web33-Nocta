@@ -122,7 +122,7 @@ export class CRDT<T extends Node<NodeId>> {
       client: this.client,
       LinkedList: {
         head: this.LinkedList.head,
-        nodeMap: this.LinkedList.nodeMap,
+        nodeMap: this.LinkedList.nodeMap || {},
       },
     };
   }

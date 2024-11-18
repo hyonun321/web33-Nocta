@@ -59,7 +59,7 @@ export class CrdtService implements OnModuleInit {
   async getDocument(): Promise<Doc> {
     let doc = await this.documentModel.findOne();
     if (!doc) {
-      doc = new this.documentModel({ content: JSON.stringify(this.crdt.spread()) });
+      doc = new this.documentModel({ crdt: this.crdt.serialize() });
       await doc.save();
     }
     return doc;
