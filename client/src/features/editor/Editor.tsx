@@ -1,11 +1,14 @@
+import { DndContext } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Block } from "@src/features/editor/components/block/Block";
-import { useMarkdownGrammer } from "@src/features/editor/hooks/useMarkdownGrammer";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
+import { Block } from "./components/block/Block.tsx";
+import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
+import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
@@ -26,6 +29,12 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     currentBlock: null as BlockId | null,
   });
 
+  const { sensors, handleDragEnd } = useBlockDragAndDrop({
+    editorCRDT: editorCRDT.current,
+    editorState,
+    setEditorState,
+  });
+
   const { handleKeyDown } = useMarkdownGrammer({
     editorCRDT: editorCRDT.current,
     editorState,
@@ -36,14 +45,22 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     onTitleChange(e.target.value);
   };
 
-  const handleBlockClick = (blockId: BlockId) => {
+  const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
     const block = editorState.linkedList.getNode(blockId);
     if (!block) return;
+
+    // 클릭된 요소 내에서의 위치를 가져오기 위해
+    const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+    if (!range) return;
 
     const selection = window.getSelection();
     if (!selection) return;
 
-    // 클릭한 위치의 offset을 currentCaret으로 저장
+    // 새로운 Range로 Selection 설정
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // 현재 캐럿 위치를 저장
     block.crdt.currentCaret = selection.focusOffset;
 
     setEditorState((prev) => ({
@@ -110,6 +127,8 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     });
   }, []);
 
+  console.log("block list", editorState.linkedList.spread());
+
   return (
     <div className={editorContainer}>
       <div className={editorTitleContainer}>
@@ -119,16 +138,26 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
           onChange={handleTitleChange}
           className={editorTitle}
         />
-        {editorState.linkedList.spread().map((block) => (
-          <Block
-            key={`${block.id.client}-${block.id.clock}`}
-            block={block}
-            isActive={block.id === editorState.currentBlock}
-            onInput={handleBlockInput}
-            onKeyDown={handleKeyDown}
-            onClick={handleBlockClick}
-          />
-        ))}
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={editorState.linkedList
+              .spread()
+              .map((block) => `${block.id.client}-${block.id.clock}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {editorState.linkedList.spread().map((block) => (
+              <Block
+                key={`${block.id.client}-${block.id.clock}`}
+                id={`${block.id.client}-${block.id.clock}`}
+                block={block}
+                isActive={block.id === editorState.currentBlock}
+                onInput={handleBlockInput}
+                onKeyDown={handleKeyDown}
+                onClick={handleBlockClick}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
     </div>
   );
