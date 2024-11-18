@@ -1,5 +1,5 @@
 import { ElementType } from "@noctaCrdt/Interfaces";
-import { iconContainerStyle, iconStyle } from "./IconBlock.style";
+import { iconContainerStyle, iconStyle } from "./IconBlock.style";
 
 interface IconBlockProps {
   type: ElementType;
