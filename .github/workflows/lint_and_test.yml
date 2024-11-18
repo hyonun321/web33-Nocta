@@ -37,6 +37,8 @@ jobs:
       # Run Unit tests
       - name: Run Unit Tests
         run: pnpm test
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
   test_building_docker_image:
     name: Test Building Docker Image

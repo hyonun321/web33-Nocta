@@ -1,165 +1,133 @@
+import { DndContext } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { EditorCRDT } from "@noctaCrdt/Crdt";
+import { BlockLinkedList } from "@noctaCrdt/LinkedList";
+import { Block as CRDTBlock } from "@noctaCrdt/Node";
+import { BlockId } from "@noctaCrdt/NodeId";
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Block } from "@components/block/Block";
-import { useCaretManager } from "@hooks/useCaretManager";
-import { useKeyboardHandlers } from "@hooks/useMarkdownGrammer";
-import { LinkedListBlock } from "@utils/linkedLIstBlock";
-import { checkMarkdownPattern } from "@utils/markdownPatterns";
-import { EditorState } from "../../types/markdown";
-import {
-  editorContainer,
-  editorTitleContainer,
-  editorTitle,
-  checkboxContainer,
-  checkbox,
-} from "./Editor.style";
+import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
+import { Block } from "./components/block/Block.tsx";
+import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
+import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
 }
 
+export interface EditorStateProps {
+  clock: number;
+  linkedList: BlockLinkedList;
+  currentBlock: BlockId | null;
+}
+
 export const Editor = ({ onTitleChange }: EditorProps) => {
-  const [editorList] = useState(() => new LinkedListBlock());
-  const [editorState, setEditorState] = useState<EditorState>(() => ({
-    rootNode: editorList.root,
-    currentNode: editorList.current,
-  }));
-  const [isComposing, setIsComposing] = useState(false);
+  const editorCRDT = useRef<EditorCRDT>(new EditorCRDT(0));
 
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const { setCaretPosition } = useCaretManager();
-
-  const { handleKeyDown } = useKeyboardHandlers({
-    editorState,
-    editorList,
-    setEditorState,
-    checkMarkdownPattern,
+  const [editorState, setEditorState] = useState<EditorStateProps>({
+    clock: editorCRDT.current.clock,
+    linkedList: editorCRDT.current.LinkedList,
+    currentBlock: null as BlockId | null,
   });
 
-  const handleBlockClick = useCallback(
-    (nodeId: string) => {
-      const node = editorList.findNodeById(nodeId);
-      if (node) {
-        setEditorState((prev) => ({
-          ...prev,
-          currentNode: node,
-        }));
-      }
-    },
-    [editorList],
-  );
+  const { sensors, handleDragEnd } = useBlockDragAndDrop({
+    editorCRDT: editorCRDT.current,
+    editorState,
+    setEditorState,
+  });
 
-  const handleCompositionStart = useCallback(() => {
-    setIsComposing(true);
-  }, []);
-
-  const handleCompositionEnd = useCallback(() => {
-    setIsComposing(false);
-  }, []);
-
-  const handleInput = useCallback(() => {
-    if (isComposing) return;
-
-    if (contentRef.current && editorState.currentNode) {
-      const newContent = contentRef.current.textContent || "";
-      editorState.currentNode.content = newContent;
-    }
-  }, [editorState.currentNode, isComposing]);
+  const { handleKeyDown } = useMarkdownGrammer({
+    editorCRDT: editorCRDT.current,
+    editorState,
+    setEditorState,
+  });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitleChange(e.target.value);
   };
 
-  useEffect(() => {
-    if (editorState.currentNode) {
-      requestAnimationFrame(() => {
-        const element = document.querySelector(
-          `[data-node-id="${editorState.currentNode!.id}"]`,
-        ) as HTMLElement;
-        if (element) {
-          contentRef.current = element as HTMLDivElement;
-          const caretPosition = element.textContent?.length || 0;
-          setCaretPosition(element, caretPosition);
-        }
-      });
-    }
-  }, [editorState.currentNode!.id, editorState.currentNode?.type, setCaretPosition]);
+  const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
+    const block = editorState.linkedList.getNode(blockId);
+    if (!block) return;
 
-  const renderNodes = () => {
-    const nodes = editorList.traverseNodes();
-    return nodes.map((node) => {
-      if (node.type === "li") return;
-      if (node.type === "ul" || node.type === "ol") {
-        const children = [];
-        let child = node.firstChild;
-        while (child && child.parentNode === node) {
-          children.push(child);
-          child = child.nextSibling;
-        }
+    // 클릭된 요소 내에서의 위치를 가져오기 위해
+    const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+    if (!range) return;
 
-        return (
-          <node.type key={node.id}>
-            {children.map((liNode) => (
-              <Block
-                key={liNode.id}
-                node={liNode}
-                isActive={liNode === editorState.currentNode}
-                contentRef={liNode === editorState.currentNode ? contentRef : undefined}
-                currentNodeId={editorState.currentNode?.id || ""}
-                onKeyDown={handleKeyDown}
-                onCompositionStart={handleCompositionStart}
-                onCompositionEnd={handleCompositionEnd}
-                onInput={handleInput}
-                onClick={handleBlockClick}
-              />
-            ))}
-          </node.type>
-        );
-      }
+    const selection = window.getSelection();
+    if (!selection) return;
 
-      if (node.type === "checkbox") {
-        return (
-          <div key={node.id} className={checkboxContainer}>
-            <input
-              type="checkbox"
-              checked={node.attributes?.checked || false}
-              onChange={() => {}}
-              onClick={(e) => e.stopPropagation()}
-              className={checkbox}
-            />
-            {node.firstChild && (
-              <Block
-                key={node.firstChild.id}
-                node={node.firstChild}
-                isActive={node.firstChild === editorState.currentNode}
-                contentRef={node.firstChild === editorState.currentNode ? contentRef : undefined}
-                currentNodeId={editorState.currentNode?.id || ""}
-                onKeyDown={handleKeyDown}
-                onCompositionStart={handleCompositionStart}
-                onCompositionEnd={handleCompositionEnd}
-                onInput={handleInput}
-                onClick={handleBlockClick}
-              />
-            )}
-          </div>
-        );
-      }
+    // 새로운 Range로 Selection 설정
+    selection.removeAllRanges();
+    selection.addRange(range);
 
-      return (
-        <Block
-          key={node.id}
-          node={node}
-          isActive={node === editorState.currentNode}
-          contentRef={node === editorState.currentNode ? contentRef : undefined}
-          currentNodeId={editorState.currentNode?.id || ""}
-          onKeyDown={handleKeyDown}
-          onCompositionStart={handleCompositionStart}
-          onCompositionEnd={handleCompositionEnd}
-          onInput={handleInput}
-          onClick={handleBlockClick}
-        />
-      );
-    });
+    // 현재 캐럿 위치를 저장
+    block.crdt.currentCaret = selection.focusOffset;
+
+    setEditorState((prev) => ({
+      ...prev,
+      currentBlock: blockId,
+    }));
   };
+
+  const handleBlockInput = useCallback(
+    (e: React.FormEvent<HTMLDivElement>, blockId: BlockId) => {
+      const block = editorState.linkedList.getNode(blockId);
+      if (!block) return;
+
+      const element = e.currentTarget;
+      const newContent = element.textContent || "";
+      const currentContent = block.crdt.read();
+      const selection = window.getSelection();
+      const caretPosition = selection?.focusOffset || 0;
+
+      if (newContent.length > currentContent.length) {
+        // 텍스트 추가 로직
+        if (caretPosition === 0) {
+          const [addedChar] = newContent;
+          block.crdt.localInsert(0, addedChar);
+          block.crdt.currentCaret = 1;
+        } else if (caretPosition > currentContent.length) {
+          const addedChar = newContent[newContent.length - 1];
+          block.crdt.localInsert(currentContent.length, addedChar);
+          block.crdt.currentCaret = caretPosition;
+        } else {
+          const addedChar = newContent[caretPosition - 1];
+          block.crdt.localInsert(caretPosition - 1, addedChar);
+          block.crdt.currentCaret = caretPosition;
+        }
+      } else if (newContent.length < currentContent.length) {
+        // 텍스트 삭제 로직
+        if (caretPosition === 0) {
+          block.crdt.localDelete(0);
+          block.crdt.currentCaret = 0;
+        } else {
+          block.crdt.localDelete(caretPosition);
+          block.crdt.currentCaret = caretPosition;
+        }
+      }
+
+      setEditorState((prev) => ({
+        clock: editorCRDT.current.clock,
+        linkedList: editorCRDT.current.LinkedList,
+        currentBlock: prev.currentBlock,
+      }));
+    },
+    [editorState.linkedList],
+  );
+
+  useEffect(() => {
+    const initialBlock = new CRDTBlock("", new BlockId(0, 0));
+    editorCRDT.current.currentBlock = initialBlock;
+    editorCRDT.current.LinkedList.insertById(initialBlock);
+
+    setEditorState({
+      clock: editorCRDT.current.clock,
+      linkedList: editorCRDT.current.LinkedList,
+      currentBlock: initialBlock.id,
+    });
+  }, []);
+
+  console.log("block list", editorState.linkedList.spread());
 
   return (
     <div className={editorContainer}>
@@ -170,9 +138,27 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
           onChange={handleTitleChange}
           className={editorTitle}
         />
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={editorState.linkedList
+              .spread()
+              .map((block) => `${block.id.client}-${block.id.clock}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {editorState.linkedList.spread().map((block) => (
+              <Block
+                key={`${block.id.client}-${block.id.clock}`}
+                id={`${block.id.client}-${block.id.clock}`}
+                block={block}
+                isActive={block.id === editorState.currentBlock}
+                onInput={handleBlockInput}
+                onKeyDown={handleKeyDown}
+                onClick={handleBlockClick}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
-
-      {renderNodes()}
     </div>
   );
 };

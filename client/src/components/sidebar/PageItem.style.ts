@@ -5,6 +5,7 @@ export const pageItemContainer = css({
   gap: "sm",
   alignItems: "center",
   width: "100%",
+  height: "56px",
   paddingInline: "md",
   "&:hover": {
     background: "white/50",
@@ -14,6 +15,7 @@ export const pageItemContainer = css({
 
 export const iconBox = css({
   display: "flex",
+  flexShrink: 0,
   justifyContent: "center",
   alignItems: "center",
   borderRadius: "xs",
@@ -26,4 +28,7 @@ export const iconBox = css({
 export const textBox = css({
   textStyle: "display-medium20",
   color: "gray.700",
+  textOverflow: "ellipsis",
+  overflow: "hidden",
+  whiteSpace: "nowrap",
 });
