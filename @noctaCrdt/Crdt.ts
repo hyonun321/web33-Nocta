@@ -72,6 +72,10 @@ export class CRDT<T extends Node<NodeId>> {
     }
   }
 
+  localReorder() {}
+
+  remoteReorder() {}
+
   read(): string {
     return this.LinkedList.stringify();
   }
