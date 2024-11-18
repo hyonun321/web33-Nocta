@@ -6,6 +6,7 @@ import {
   OnGatewayDisconnect,
   MessageBody,
   ConnectedSocket,
+  WsException,
 } from "@nestjs/websockets";
 import { Socket, Server } from "socket.io";
 import { CrdtService } from "./crdt.service";
