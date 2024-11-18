@@ -1,5 +1,4 @@
 import { css } from "@styled-system/css";
-import { glassContainer } from "@styled-system/recipes";
 
 export const modalWrapper = css({
   display: "flex",
