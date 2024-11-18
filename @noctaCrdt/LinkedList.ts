@@ -55,6 +55,85 @@ export class LinkedList<T extends Node<NodeId>> {
     delete this.nodeMap[JSON.stringify(id)];
   }
 
+  reorderNodes(oldIndex: number, newIndex: number): LinkedList<T> {
+    if (oldIndex === newIndex) return this;
+
+    const nodes = this.spread();
+    if (oldIndex < 0 || oldIndex >= nodes.length || newIndex < 0 || newIndex >= nodes.length) {
+      throw new Error("Invalid index for reordering");
+    }
+
+    // 이동할 노드
+    const targetNode = nodes[oldIndex];
+
+    // 1. 기존 연결 해제
+    if (targetNode.prev) {
+      const prevNode = this.getNode(targetNode.prev);
+      if (prevNode) {
+        prevNode.next = targetNode.next;
+      }
+    } else {
+      this.head = targetNode.next;
+    }
+
+    if (targetNode.next) {
+      const nextNode = this.getNode(targetNode.next);
+      if (nextNode) {
+        nextNode.prev = targetNode.prev;
+      }
+    }
+
+    // 2. 새로운 위치에 연결
+    // oldIndex가 newIndex보다 큰 경우(위로 이동)와 작은 경우(아래로 이동)를 구분
+    if (oldIndex < newIndex) {
+      // 아래로 이동하는 경우
+      if (newIndex === nodes.length - 1) {
+        // 맨 끝으로 이동
+        const lastNode = nodes[nodes.length - 1];
+        lastNode.next = targetNode.id;
+        targetNode.prev = lastNode.id;
+        targetNode.next = null;
+      } else {
+        const afterNode = nodes[newIndex + 1];
+        const beforeNode = nodes[newIndex];
+
+        targetNode.prev = beforeNode.id;
+        targetNode.next = afterNode.id;
+        beforeNode.next = targetNode.id;
+        afterNode.prev = targetNode.id;
+      }
+    } else {
+      // 위로 이동하는 경우
+      if (newIndex === 0) {
+        // 맨 앞으로 이동
+        const oldHead = this.head;
+        this.head = targetNode.id;
+        targetNode.prev = null;
+        targetNode.next = oldHead;
+
+        if (oldHead) {
+          const headNode = this.getNode(oldHead);
+          if (headNode) {
+            headNode.prev = targetNode.id;
+          }
+        }
+      } else {
+        const beforeNode = nodes[newIndex - 1];
+        const afterNode = nodes[newIndex];
+
+        targetNode.prev = beforeNode.id;
+        targetNode.next = afterNode.id;
+        beforeNode.next = targetNode.id;
+        afterNode.prev = targetNode.id;
+      }
+    }
+
+    // 노드맵 갱신
+    this.setNode(targetNode.id, targetNode);
+
+    return this;
+  }
+
   findByIndex(index: number): T {
     if (index < 0) {
       throw new Error(`Invalid negative index: ${index}`);

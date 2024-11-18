@@ -8,7 +8,7 @@ export const textButtonContainer = ({ variant }: { variant: "primary" | "seconda
 const textButton = cva({
   base: {
     borderRadius: "md",
-    width: "150px",
+    width: "50%",
     height: "40px",
     cursor: "pointer",
   },
