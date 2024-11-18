@@ -1,7 +1,12 @@
 import { LinkedList } from "./LinkedList";
 import { CharId, BlockId, NodeId } from "./NodeId";
 import { Node, Char, Block } from "./Node";
-import { RemoteDeleteOperation, RemoteInsertOperation, SerializedProps } from "./Interfaces";
+import {
+  RemoteDeleteOperation,
+  RemoteInsertOperation,
+  SerializedProps,
+  RemoteReorderOperation,
+} from "./Interfaces";
 
 export class CRDT<T extends Node<NodeId>> {
   clock: number;
@@ -67,6 +72,37 @@ export class CRDT<T extends Node<NodeId>> {
     if (targetId) {
       this.LinkedList.deleteNode(targetId);
     }
+    if (this.clock <= clock) {
+      this.clock = clock + 1;
+    }
+  }
+
+  localReorder(params: {
+    targetId: NodeId;
+    beforeId: NodeId | null;
+    afterId: NodeId | null;
+  }): RemoteReorderOperation {
+    const operation: RemoteReorderOperation = {
+      ...params,
+      clock: this.clock + 1,
+      client: this.client,
+    };
+
+    this.LinkedList.reorderNodes(params);
+    this.clock += 1;
+
+    return operation;
+  }
+
+  remoteReorder(operation: RemoteReorderOperation): void {
+    const { targetId, beforeId, afterId, clock } = operation;
+
+    this.LinkedList.reorderNodes({
+      targetId,
+      beforeId,
+      afterId,
+    });
+
     if (this.clock <= clock) {
       this.clock = clock + 1;
     }

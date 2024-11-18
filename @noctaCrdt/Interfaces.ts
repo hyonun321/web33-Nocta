@@ -36,43 +36,16 @@ export interface SerializedProps<T> {
   };
 }
 
-// export interface WorkSpace {
-//   id: string;
-//   pageList: Page[];
-//   authUser: object;
-// }
+export interface ReorderNodesProps {
+  targetId: BlockId;
+  beforeId: BlockId | null;
+  afterId: BlockId | null;
+}
 
-// export interface Page {
-//   id: string;
-//   title: string;
-//   icon: string; // 추후 수정
-//   crdt: EditorCRDT;
-// }
-// export interface LinkedList {
-//   head: NodeId | null;
-//   nodeMap: { [key: string]: Block | Char };
-// }
-
-// export interface Block {
-//   id: BlockId;
-//   icon: string; // 추후 수정
-//   type: ElementType;
-//   animation: string;
-//   crdt: BlockCRDT;
-//   indent: number;
-//   next: NodeId;
-//   prev: NodeId;
-//   style: string[];
-// }
-
-// export interface Char {
-//   id: NodeId;
-//   value: string;
-//   next: NodeId | null;
-//   prev: NodeId | null;
-// }
-
-// export interface BlockId {
-//   clock: number;
-//   client: number;
-// }
+export interface RemoteReorderOperation {
+  targetId: NodeId;
+  beforeId: NodeId | null;
+  afterId: NodeId | null;
+  clock: number;
+  client: number;
+}
