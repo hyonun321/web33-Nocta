@@ -1,15 +1,5 @@
-// import { Player } from "@lottiefiles/react-lottie-player";
-// import errorAlert from "@assets/lotties/errorAlert.json";
-// import { TextButton } from "@src/components/button/textButton";
-// import { glassContainer } from "@styled-system/recipes";
-// import {
-//   modalWrapper,
-//   overlay,
-//   content,
-//   title,
-//   message,
-//   animationContainer,
-// } from "./ErrorModal.style";
+import { ErrorAlert } from "@components/lotties/ErrorAlert";
+import { errorMessageItem, errorModalWrapper } from "./ErrorModal.style";
 import { Modal } from "./modal";
 
 interface ErrorScreenProps {
@@ -25,7 +15,12 @@ export const ErrorModal = ({ errorMessage }: ErrorScreenProps) => {
         window.location.reload();
       }}
     >
-      오류가 발생했습니다.{errorMessage}
+      <div className={errorModalWrapper}>
+        <ErrorAlert size={200} />
+        오류가 발생했습니다.
+        <br />
+        <p className={errorMessageItem}>{errorMessage}</p>
+      </div>
     </Modal>
   );
 };
