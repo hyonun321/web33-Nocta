@@ -3,6 +3,8 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
+import { AuthModule } from "./auth/auth.module";
+import { CrdtModule } from "./crdt/crdt.module";
 
 @Module({
   imports: [
@@ -16,9 +18,11 @@ import { MongooseModule } from "@nestjs/mongoose";
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>("MONGODB_URI"), // 환경 변수에서 MongoDB URI 가져오기
+        uri: configService.get<string>("MONGO_URI"), // 환경 변수에서 MongoDB URI 가져오기
       }),
     }),
+    AuthModule,
+    CrdtModule,
   ],
   controllers: [AppController],
   providers: [AppService],

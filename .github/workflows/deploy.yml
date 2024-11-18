@@ -7,6 +7,7 @@ on:
 
 jobs:
   deploy:
+    name: Deploy on Server
     runs-on: [self-hosted, boost-was] # 라벨에 해당하는 runner로 실행
 
     steps:
@@ -18,7 +19,7 @@ jobs:
       - name: Build and Deploy Docker Images
         env:
           NODE_ENV: production
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
         run: |
           docker-compose up -d --build
 

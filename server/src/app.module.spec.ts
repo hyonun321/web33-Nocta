@@ -1,43 +1,47 @@
-/*
-import { MongoMemoryServer } from "mongodb-memory-server";
 import { Test, TestingModule } from "@nestjs/testing";
 import { MongooseModule } from "@nestjs/mongoose";
-import { AppModule } from "./app.module";
 import mongoose from "mongoose";
+import { AppModule } from "./app.module";
 
 jest.setTimeout(20000);
-*/
 
-describe("MongoDB Connection", () => {
-  /*
-  let mongoServer: MongoMemoryServer;
+jest.mock("nanoid", () => ({
+  nanoid: () => "mockNanoId123",
+}));
+
+describe("AppModule", () => {
+  let testingModule: TestingModule;
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create({
-      instance: {
-        port: 27017,
-      },
-    });
-    const uri = mongoServer.getUri();
+    // jest-mongodb가 설정한 MONGO_URL을 MONGO_URI로 설정
+    process.env.MONGO_URI = process.env.MONGO_URL || "mongodb://localhost:27017/test-db";
+    console.log(`MONGO_URI: ${process.env.MONGO_URI}`);
 
-    await mongoose.connect(uri);
-
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        MongooseModule.forRoot(uri), // in-memory MongoDB URI
-        AppModule,
-      ],
+    testingModule = await Test.createTestingModule({
+      imports: [MongooseModule.forRoot(process.env.MONGO_URI), AppModule],
     }).compile();
+
+    await mongoose.connect(process.env.MONGO_URI);
   });
 
   afterAll(async () => {
-    if (mongoServer) await mongoServer.stop();
     await mongoose.connection.close();
+    if (testingModule) {
+      await testingModule.close();
+    }
   });
-  */
 
-  it("should connect to MongoDB successfully", () => {
-    // expect(mongoose.connection.readyState).toBe(1);
-    expect(true).toBe(true);
+  it("should connect to the MongoDB instance provided by jest-mongodb", async () => {
+    expect(mongoose.connection.readyState).toBe(1); // 연결 상태가 'connected'인지 확인
+  });
+
+  it("should load AppModule without errors", async () => {
+    expect(AppModule).toBeDefined(); // AppModule이 정의되었는지 확인
+  });
+
+  it("should have a valid MongoDB URI", async () => {
+    const uri = process.env.MONGO_URI;
+    expect(uri).toBeDefined();
+    expect(uri).toMatch(/^mongodb:\/\/.+/); // MongoDB URI 형식인지 확인
   });
 });

@@ -16,7 +16,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - MONGODB_URI=${MONGODB_URI}
+      - MONGO_URI=${MONGO_URI}
       - NODE_ENV=${NODE_ENV}
 
   nginx:
@@ -25,8 +25,10 @@ services:
       dockerfile: ./nginx/Dockerfile
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./client/dist:/usr/share/nginx/html
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - frontend
       - backend
