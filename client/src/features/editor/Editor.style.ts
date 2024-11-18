@@ -5,6 +5,7 @@ export const editorContainer = css({
   height: "full", // 부모 컴포넌트의 header(60px)를 제외한 높이
   margin: "spacing.lg", // 16px margin
   padding: "24px", // 24px padding
+  overflowX: "hidden",
   overflowY: "auto", // 내용이 많을 경우 스크롤
   _focus: {
     outline: "none",

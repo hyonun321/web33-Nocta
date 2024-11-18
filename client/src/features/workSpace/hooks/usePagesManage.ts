@@ -1,18 +1,10 @@
+import { useEffect, useState } from "react";
 import { Page } from "@src/types/page";
-import { useState } from "react";
-
-interface usePagesManageProps {
-  pages: Page[];
-  addPage: () => void;
-  selectPage: (pageId: number, isSidebar?: boolean) => void;
-  closePage: (pageId: number) => void;
-  updatePageTitle: (pageId: number, newTitle: string) => void;
-}
 
 const INIT_ICON = "📄";
 const PAGE_OFFSET = 60;
 
-export const usePagesManage = (): usePagesManageProps => {
+export const usePagesManage = () => {
   const [pages, setPages] = useState<Page[]>([]);
 
   const getZIndex = () => {
@@ -37,14 +29,14 @@ export const usePagesManage = (): usePagesManageProps => {
     ]);
   };
 
-  const selectPage = (pageId: number, isSidebar: boolean = false) => {
+  const selectPage = ({ pageId }: { pageId: number }) => {
     setPages((prevPages) =>
       prevPages.map((page) => ({
         ...page,
         isActive: page.id === pageId,
         ...(page.id === pageId && {
           zIndex: getZIndex(),
-          isVisible: isSidebar ? true : page.isVisible,
+          isVisible: true,
         }),
       })),
     );
@@ -61,6 +53,21 @@ export const usePagesManage = (): usePagesManageProps => {
       prevPages.map((page) => (page.id === pageId ? { ...page, title: newTitle } : page)),
     );
   };
+
+  // 서버에서 처음 불러올때는 좌표를 모르기에, 초기화 과정 필요
+  const initPagePosition = () => {
+    setPages((prevPages) =>
+      prevPages.map((page, index) => ({
+        ...page,
+        x: PAGE_OFFSET * index,
+        y: PAGE_OFFSET * index,
+      })),
+    );
+  };
+
+  useEffect(() => {
+    initPagePosition();
+  }, []);
 
   return {
     pages,
