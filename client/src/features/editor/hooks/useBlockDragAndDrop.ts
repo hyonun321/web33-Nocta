@@ -1,7 +1,6 @@
 // hooks/useBlockDragAndDrop.ts
 import { DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { EditorStateProps } from "../Editor";
 
 interface UseBlockDragAndDropProps {
