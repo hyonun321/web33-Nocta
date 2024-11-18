@@ -14,6 +14,14 @@ import {
   RemoteDeleteOperation,
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
+import { Logger } from "@nestjs/common";
+import { NodeId } from "@noctaCrdt/NodeId";
+
+// 클라이언트 맵 타입 정의
+interface ClientInfo {
+  clientId: number;
+  connectionTime: Date;
+}
 
 @WebSocketGateway({
   cors: {
