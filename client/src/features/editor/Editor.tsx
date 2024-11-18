@@ -5,6 +5,7 @@ import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useRef, useState, useCallback, useEffect } from "react";
+import { useSocket } from "@src/apis/useSocket.ts";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 import { Block } from "./components/block/Block.tsx";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
@@ -22,7 +23,7 @@ export interface EditorStateProps {
 
 export const Editor = ({ onTitleChange }: EditorProps) => {
   const editorCRDT = useRef<EditorCRDT>(new EditorCRDT(0));
-
+  const { sendInsertOperation, sendDeleteOperation } = useSocket();
   const [editorState, setEditorState] = useState<EditorStateProps>({
     clock: editorCRDT.current.clock,
     linkedList: editorCRDT.current.LinkedList,
@@ -73,7 +74,7 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     (e: React.FormEvent<HTMLDivElement>, blockId: BlockId) => {
       const block = editorState.linkedList.getNode(blockId);
       if (!block) return;
-
+      let testNode;
       const element = e.currentTarget;
       const newContent = element.textContent || "";
       const currentContent = block.crdt.read();
@@ -81,29 +82,30 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
       const caretPosition = selection?.focusOffset || 0;
 
       if (newContent.length > currentContent.length) {
-        // 텍스트 추가 로직
         if (caretPosition === 0) {
           const [addedChar] = newContent;
-          block.crdt.localInsert(0, addedChar);
+          testNode = block.crdt.localInsert(0, addedChar);
           block.crdt.currentCaret = 1;
         } else if (caretPosition > currentContent.length) {
           const addedChar = newContent[newContent.length - 1];
-          block.crdt.localInsert(currentContent.length, addedChar);
+          testNode = block.crdt.localInsert(currentContent.length, addedChar);
           block.crdt.currentCaret = caretPosition;
         } else {
           const addedChar = newContent[caretPosition - 1];
-          block.crdt.localInsert(caretPosition - 1, addedChar);
+          testNode = block.crdt.localInsert(caretPosition - 1, addedChar);
           block.crdt.currentCaret = caretPosition;
         }
+        sendInsertOperation(testNode);
       } else if (newContent.length < currentContent.length) {
-        // 텍스트 삭제 로직
         if (caretPosition === 0) {
-          block.crdt.localDelete(0);
+          testNode = block.crdt.localDelete(0);
           block.crdt.currentCaret = 0;
         } else {
-          block.crdt.localDelete(caretPosition);
+          testNode = block.crdt.localDelete(caretPosition);
           block.crdt.currentCaret = caretPosition;
         }
+        console.log(testNode);
+        sendDeleteOperation(testNode);
       }
 
       setEditorState((prev) => ({
