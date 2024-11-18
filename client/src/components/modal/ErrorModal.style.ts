@@ -1,5 +1,4 @@
 import { css } from "@styled-system/css";
-import { glassContainer } from "@styled-system/recipes";
 
 export const modalWrapper = css({
   display: "flex",
@@ -10,6 +9,7 @@ export const modalWrapper = css({
   minHeight: "400px",
   padding: "40px",
 });
+
 export const overlay = css({
   display: "flex",
   position: "fixed",
@@ -27,7 +27,7 @@ export const content = css({
 });
 
 export const title = css({
-  color: "gray.800",
+  color: "gray.700",
   fontSize: "xl",
   fontWeight: "bold",
 });
