@@ -1,6 +1,6 @@
 import { Node, Char, Block } from "./Node";
 import { NodeId } from "./NodeId";
-import { InsertOperation } from "./Interfaces";
+import { InsertOperation, ReorderNodesProps } from "./Interfaces";
 
 export class LinkedList<T extends Node<NodeId>> {
   head: T["id"] | null;
@@ -55,16 +55,9 @@ export class LinkedList<T extends Node<NodeId>> {
     delete this.nodeMap[JSON.stringify(id)];
   }
 
-  reorderNodes(oldIndex: number, newIndex: number): LinkedList<T> {
-    if (oldIndex === newIndex) return this;
-
-    const nodes = this.spread();
-    if (oldIndex < 0 || oldIndex >= nodes.length || newIndex < 0 || newIndex >= nodes.length) {
-      throw new Error("Invalid index for reordering");
-    }
-
-    // 이동할 노드
-    const targetNode = nodes[oldIndex];
+  reorderNodes({ targetId, beforeId, afterId }: ReorderNodesProps): void {
+    const targetNode = this.getNode(targetId);
+    if (!targetNode) return;
 
     // 1. 기존 연결 해제
     if (targetNode.prev) {
@@ -84,54 +77,42 @@ export class LinkedList<T extends Node<NodeId>> {
     }
 
     // 2. 새로운 위치에 연결
-    // oldIndex가 newIndex보다 큰 경우(위로 이동)와 작은 경우(아래로 이동)를 구분
-    if (oldIndex < newIndex) {
-      // 아래로 이동하는 경우
-      if (newIndex === nodes.length - 1) {
-        // 맨 끝으로 이동
-        const lastNode = nodes[nodes.length - 1];
-        lastNode.next = targetNode.id;
-        targetNode.prev = lastNode.id;
-        targetNode.next = null;
-      } else {
-        const afterNode = nodes[newIndex + 1];
-        const beforeNode = nodes[newIndex];
+    if (!beforeId) {
+      // 맨 앞으로 이동
+      const oldHead = this.head;
+      this.head = targetId;
+      targetNode.prev = null;
+      targetNode.next = oldHead;
 
-        targetNode.prev = beforeNode.id;
-        targetNode.next = afterNode.id;
-        beforeNode.next = targetNode.id;
-        afterNode.prev = targetNode.id;
+      if (oldHead) {
+        const headNode = this.getNode(oldHead);
+        if (headNode) {
+          headNode.prev = targetId;
+        }
+      }
+    } else if (!afterId) {
+      // 맨 끝으로 이동
+      const beforeNode = this.getNode(beforeId);
+      if (beforeNode) {
+        beforeNode.next = targetId;
+        targetNode.prev = beforeId;
+        targetNode.next = null;
       }
     } else {
-      // 위로 이동하는 경우
-      if (newIndex === 0) {
-        // 맨 앞으로 이동
-        const oldHead = this.head;
-        this.head = targetNode.id;
-        targetNode.prev = null;
-        targetNode.next = oldHead;
+      // 중간으로 이동
+      const beforeNode = this.getNode(beforeId);
+      const afterNode = this.getNode(afterId);
 
-        if (oldHead) {
-          const headNode = this.getNode(oldHead);
-          if (headNode) {
-            headNode.prev = targetNode.id;
-          }
-        }
-      } else {
-        const beforeNode = nodes[newIndex - 1];
-        const afterNode = nodes[newIndex];
-
-        targetNode.prev = beforeNode.id;
-        targetNode.next = afterNode.id;
-        beforeNode.next = targetNode.id;
-        afterNode.prev = targetNode.id;
+      if (beforeNode && afterNode) {
+        targetNode.prev = beforeId;
+        targetNode.next = afterId;
+        beforeNode.next = targetId;
+        afterNode.prev = targetId;
       }
     }
 
     // 노드맵 갱신
-    this.setNode(targetNode.id, targetNode);
-
-    return this;
+    this.setNode(targetId, targetNode);
   }
 
   findByIndex(index: number): T {
