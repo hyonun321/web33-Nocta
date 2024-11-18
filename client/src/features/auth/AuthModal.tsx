@@ -4,6 +4,7 @@ import Lock from "@assets/icons/lock.svg?react";
 import Mail from "@assets/icons/mail.svg?react";
 import User from "@assets/icons/user.svg?react";
 import { Modal } from "@components/modal/modal";
+import { useLoginMutation, useSignupMutation } from "@src/apis/auth";
 import { InputField } from "@src/components/inputField/InputField";
 import { container, formContainer, title, toggleButton } from "./AuthModal.style";
 
@@ -19,6 +20,9 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     email: "",
     password: "",
   });
+
+  const { mutate: signUp } = useSignupMutation();
+  const { mutate: login } = useLoginMutation();
 
   const toggleMode = () => {
     setMode(mode === "login" ? "register" : "login");
@@ -38,7 +42,12 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const handleSubmitButtonClick = () => {
     // TODO API 연결
-    closeModal();
+    if (mode === "register") {
+      signUp(formData);
+    } else {
+      login(formData);
+    }
+    // closeModal();
   };
 
   return (

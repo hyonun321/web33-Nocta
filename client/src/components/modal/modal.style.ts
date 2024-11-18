@@ -31,7 +31,7 @@ export const modalContainer = cx(
     flexDirection: "column",
     justifyContent: "space-between",
     width: "400px",
-    minHeight: "200px",
+    height: "auto",
     padding: "md",
     background: "white/20",
     boxShadow: "md",
