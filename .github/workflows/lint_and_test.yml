@@ -70,5 +70,6 @@ jobs:
         env:
           NODE_ENV: production
           MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           docker-compose build frontend backend
