@@ -1,13 +1,9 @@
-import { LoadingSpinner } from "@components/loading/LoadingSpinner";
+import { LoadingSpinner } from "@components/lotties/LoadingSpinner";
+import { IntroScreenContainer } from "./IntroScreen.style";
 
 export const IntroScreen = () => {
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-white z-50"
-      style={{
-        transition: "opacity 0.5s ease-in-out",
-      }}
-    >
+    <div className={IntroScreenContainer}>
       <LoadingSpinner size={200} />
     </div>
   );

@@ -9,6 +9,6 @@ export const errorModalWrapper = css({
 });
 
 export const errorMessageItem = css({
-  color: "red.500",
+  color: "red",
   fontSize: "sm",
 });
