@@ -21,8 +21,8 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     password: "",
   });
 
-  const { mutate: signUp } = useSignupMutation();
-  const { mutate: login } = useLoginMutation();
+  const { mutate: login } = useLoginMutation(onClose);
+  const { mutate: signUp } = useSignupMutation(() => login(formData));
 
   const toggleMode = () => {
     setMode(mode === "login" ? "register" : "login");
@@ -41,19 +41,10 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleSubmitButtonClick = () => {
-    // TODO API 연결
     if (mode === "register") {
-      signUp(formData, {
-        onSuccess: () => {
-          closeModal();
-        },
-      });
+      signUp(formData);
     } else {
-      login(formData, {
-        onSuccess: () => {
-          closeModal();
-        },
-      });
+      login(formData);
     }
   };
 

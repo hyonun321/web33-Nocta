@@ -26,10 +26,11 @@ export const plusIconBox = css({
   position: "absolute",
   bottom: "0px",
   gap: "md",
+  justifyContent: "space-between",
   alignItems: "center",
+  width: "100%",
   height: "60px",
   paddingInline: "md",
-  // background: "white",
   justifyItems: "center",
 });
 

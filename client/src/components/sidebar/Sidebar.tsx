@@ -2,12 +2,10 @@ import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
-import { useLogoutMutation } from "@src/apis/auth";
 import { MAX_VISIBLE_PAGE } from "@src/constants/page";
+import { AuthButton } from "@src/features/auth/AuthButton";
 import { useIsSidebarOpen, useSidebarActions } from "@src/stores/useSidebarStore";
-import { useCheckLogin } from "@src/stores/useUserStore";
 import { Page } from "@src/types/page";
-import { TextButton } from "../button/textButton";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
@@ -29,9 +27,6 @@ export const Sidebar = ({
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
 
-  const isLogin = useCheckLogin();
-  const { mutate: logout } = useLogoutMutation();
-
   const handlePageItemClick = (id: number) => {
     if (isMaxVisiblePage) {
       openModal();
@@ -46,10 +41,6 @@ export const Sidebar = ({
       return;
     }
     handlePageAdd();
-  };
-
-  const handleLogoutButtonClick = () => {
-    logout();
   };
 
   return (
@@ -79,11 +70,7 @@ export const Sidebar = ({
       </motion.nav>
       <motion.div className={plusIconBox} variants={contentVariants}>
         <IconButton icon="➕" onClick={handleAddPageButtonClick} size="sm" />
-        {isLogin && (
-          <TextButton variant="secondary" onClick={handleLogoutButtonClick}>
-            로그아웃
-          </TextButton>
-        )}
+        <AuthButton />
       </motion.div>
       <Modal isOpen={isOpen} primaryButtonLabel="확인" primaryButtonOnClick={closeModal}>
         <p>
