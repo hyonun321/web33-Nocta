@@ -31,6 +31,12 @@ export const Page = ({
     handleTitleChange(id, newTitle);
   };
 
+  const handlePageClick = () => {
+    if (!isActive) {
+      handlePageSelect({ pageId: id });
+    }
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -46,13 +52,9 @@ export const Page = ({
           height: `${size.height}px`,
           zIndex,
         }}
-        onPointerDown={() =>
-          handlePageSelect({
-            pageId: id,
-          })
-        }
+        onPointerDown={handlePageClick}
       >
-        <div className={pageHeader} onPointerDown={pageDrag}>
+        <div className={pageHeader} onPointerDown={pageDrag} onClick={handlePageClick}>
           <PageTitle title={title} />
           <PageControlButton
             onPageClose={() => handlePageClose(id)}
@@ -60,7 +62,7 @@ export const Page = ({
             onPageMinimize={pageMinimize}
           />
         </div>
-        <Editor onTitleChange={onTitleChange} />
+        <Editor onTitleChange={onTitleChange} isActive={isActive} />
         <motion.div
           className={resizeHandle}
           onMouseDown={pageResize}

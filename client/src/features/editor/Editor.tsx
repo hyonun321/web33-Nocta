@@ -12,6 +12,7 @@ import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
+  isActive: boolean;
 }
 
 export interface EditorStateProps {
@@ -20,7 +21,7 @@ export interface EditorStateProps {
   currentBlock: BlockId | null;
 }
 
-export const Editor = ({ onTitleChange }: EditorProps) => {
+export const Editor = ({ onTitleChange, isActive }: EditorProps) => {
   const editorCRDT = useRef<EditorCRDT>(new EditorCRDT(0));
 
   const [editorState, setEditorState] = useState<EditorStateProps>({
@@ -114,6 +115,29 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     },
     [editorState.linkedList],
   );
+
+  useEffect(() => {
+    if (isActive && editorState.currentBlock) {
+      const currentBlock = editorState.linkedList.getNode(editorState.currentBlock);
+      if (!currentBlock) return;
+
+      // currentBlock에 대한 Range 생성하고 캐럿 설정
+      const range = document.createRange();
+      const selection = window.getSelection();
+
+      if (selection) {
+        try {
+          const textNode = document.createTextNode(currentBlock.crdt.read());
+          range.setStart(textNode, currentBlock.crdt.currentCaret);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } catch (error) {
+          console.error("Failed to set caret position:", error);
+        }
+      }
+    }
+  }, [isActive]);
 
   useEffect(() => {
     const initialBlock = new CRDTBlock("", new BlockId(0, 0));
