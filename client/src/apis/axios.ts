@@ -46,7 +46,7 @@ fetch.interceptors.request.use(
 //         return fetch(originalRequest);
 //       } catch (error) {
 //         if (error instanceof AxiosError && error.response?.status === 403) {
-//           useUserStore.getState().removeCredentials();
+//           useUserStore.getState().removeUserInfo();
 //           return;
 //         }
 //       }

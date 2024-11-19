@@ -22,7 +22,7 @@ export const useSignupMutation = () => {
 };
 
 export const useLoginMutation = () => {
-  const { setCredentials } = useUserActions();
+  const { setUserInfo } = useUserActions();
 
   const fetcher = ({ email, password }: { email: string; password: string }) => {
     return unAuthorizationFetch.post("/auth/login", { email, password });
@@ -32,13 +32,13 @@ export const useLoginMutation = () => {
     mutationFn: fetcher,
     onSuccess: (response) => {
       const { id, name, accessToken } = response.data;
-      setCredentials(id, name, accessToken);
+      setUserInfo(id, name, accessToken);
     },
   });
 };
 
 export const useLogoutMutation = () => {
-  const { removeCredentials } = useUserActions();
+  const { removeUserInfo } = useUserActions();
 
   const fetcher = () => {
     return fetch.post("/auth/logout");
@@ -47,7 +47,7 @@ export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: fetcher,
     onSuccess: () => {
-      removeCredentials();
+      removeUserInfo();
     },
   });
 };
