@@ -62,8 +62,10 @@ export class AuthService {
     }
   }
 
-  generateAccessToken(payload: { sub: string; email: string }): string {
-    return this.jwtService.sign(payload);
+  async generateAccessToken(user: User): Promise<string> {
+    const tokenVersion = user.tokenVersion + 1;
+    await this.userModel.updateOne({ id: user.id }, { tokenVersion });
+    return this.jwtService.sign({ sub: user.id, email: user.email, tokenVersion });
   }
 
   async generateRefreshToken(id: string): Promise<string> {
@@ -87,8 +89,8 @@ export class AuthService {
     return !!blacklistedToken;
   }
 
-  async login(user: { id: string; name: string; email: string }, res: Response): Promise<UserDto> {
-    const accessToken = this.generateAccessToken({ sub: user.id, email: user.email });
+  async login(user: User, res: Response): Promise<UserDto> {
+    const accessToken = await this.generateAccessToken(user);
     const refreshToken = await this.generateRefreshToken(user.id);
 
     res.cookie("refreshToken", refreshToken, {
@@ -134,7 +136,7 @@ export class AuthService {
       return null;
     }
 
-    const accessToken = this.generateAccessToken({ sub: user.id, email: user.email });
+    const accessToken = await this.generateAccessToken(user);
     return {
       id: user.id,
       email: user.email,
