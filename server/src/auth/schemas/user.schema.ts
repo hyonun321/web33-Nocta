@@ -17,6 +17,8 @@ export class User {
 
   @Prop({ required: true })
   name: string;
+
+  // TODO refresh token
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

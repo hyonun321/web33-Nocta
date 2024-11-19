@@ -27,6 +27,7 @@ export class AuthController {
   }
 
   @Post("logout")
+  // TODO access token 검증 과정....
   @UseGuards(JwtAuthGuard)
   public async logout(@Req() req) {
     const { user } = req;
@@ -38,6 +39,7 @@ export class AuthController {
   }
 
   // @Post("refresh")
+  // TODO access token 검증 과정
   // TODO refresh token을 이용해서 access token 재발급
 
   @UseGuards(JwtAuthGuard)
