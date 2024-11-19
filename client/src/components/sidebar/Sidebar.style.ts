@@ -16,15 +16,21 @@ export const navWrapper = css({
   gap: "md",
   flexDirection: "column",
   width: "100%",
+  height: "calc(100% - 176px)",
   overflowX: "hidden",
   overflowY: "scroll",
 });
 
 export const plusIconBox = css({
   display: "flex",
-  justifyContent: "start",
-  marginBlock: "10px",
+  position: "absolute",
+  bottom: "0px",
+  gap: "md",
+  alignItems: "center",
+  height: "60px",
   paddingInline: "md",
+  // background: "white",
+  justifyItems: "center",
 });
 
 export const sidebarToggleButton = css({

@@ -43,11 +43,18 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const handleSubmitButtonClick = () => {
     // TODO API 연결
     if (mode === "register") {
-      signUp(formData);
+      signUp(formData, {
+        onSuccess: () => {
+          closeModal();
+        },
+      });
     } else {
-      login(formData);
+      login(formData, {
+        onSuccess: () => {
+          closeModal();
+        },
+      });
     }
-    // closeModal();
   };
 
   return (
