@@ -23,7 +23,7 @@ export class CRDT<T extends Node<NodeId>> {
 
   localInsert(index: number, value: string, blockId?: BlockId) {}
 
-  localDelete(index: number, blockId?: BlockId) {}
+  localDelete(index: number, blockId?: BlockId, pageId?: string) {}
 
   remoteInsert(operation: RemoteBlockInsertOperation | RemoteCharInsertOperation) {}
 
@@ -64,7 +64,7 @@ export class EditorCRDT extends CRDT<Block> {
     return { node: remoteInsertion.node } as RemoteBlockInsertOperation;
   }
 
-  localDelete(index: number): RemoteBlockDeleteOperation {
+  localDelete(index: number, blockId: undefined, pageId: string): RemoteBlockDeleteOperation {
     if (index < 0 || index >= this.LinkedList.spread().length) {
       throw new Error(`Invalid index: ${index}`);
     }
@@ -77,6 +77,7 @@ export class EditorCRDT extends CRDT<Block> {
     const operation: RemoteBlockDeleteOperation = {
       targetId: nodeToDelete.id,
       clock: this.clock + 1,
+      pageId,
     };
 
     this.LinkedList.deleteNode(nodeToDelete.id);
@@ -143,6 +144,9 @@ export class EditorCRDT extends CRDT<Block> {
     if (this.clock <= clock) {
       this.clock = clock + 1;
     }
+  }
+  deserialize(): void {
+    return;
   }
 }
 
@@ -211,5 +215,8 @@ export class BlockCRDT extends CRDT<Char> {
     if (this.clock <= clock) {
       this.clock = clock + 1;
     }
+  }
+  deserialize(): void {
+    return;
   }
 }

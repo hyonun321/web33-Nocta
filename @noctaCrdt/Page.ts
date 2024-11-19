@@ -1,5 +1,12 @@
 import { EditorCRDT } from "./Crdt";
 
+interface PageProps {
+  id: string;
+  title: string;
+  icon: string;
+  crdt: EditorCRDT;
+}
+
 export class Page {
   id: string;
   title: string;
@@ -12,5 +19,17 @@ export class Page {
     this.title = "title";
     this.icon = "icon";
     this.crdt = editorCRDT;
+  }
+
+  serialize(): PageProps {
+    return {
+      id: this.id,
+      title: this.title,
+      icon: this.icon,
+      crdt: this.crdt,
+    };
+  }
+  fromJSON(): void {
+    return;
   }
 }

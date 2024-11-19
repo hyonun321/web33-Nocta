@@ -246,6 +246,14 @@ export class LinkedList<T extends Node<NodeId>> {
   }
 }
 
-export class BlockLinkedList extends LinkedList<Block> {}
+export class BlockLinkedList extends LinkedList<Block> {
+  deserialize(): void {
+    return;
+  }
+}
 
-export class TextLinkedList extends LinkedList<Char> {}
+export class TextLinkedList extends LinkedList<Char> {
+  deserialize(): void {
+    return;
+  }
+}

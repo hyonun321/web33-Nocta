@@ -1,5 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { EditorCRDT } from "node_modules/@noctaCrdt/Crdt";
 import { Editor } from "@features/editor/Editor";
+import { useSocket } from "@src/apis/useSocket";
 import { Page as PageType } from "@src/types/page";
 import { pageAnimation, resizeHandleAnimation } from "./Page.animation";
 import { pageContainer, pageHeader, resizeHandle } from "./Page.style";
@@ -9,9 +11,9 @@ import { PageTitle } from "./components/PageTitle/PageTitle";
 import { usePage } from "./hooks/usePage";
 
 interface PageProps extends PageType {
-  handlePageSelect: ({ pageId, isSidebar }: { pageId: number; isSidebar?: boolean }) => void;
-  handlePageClose: (pageId: number) => void;
-  handleTitleChange: (pageId: number, newTitle: string) => void;
+  handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
+  handlePageClose: (pageId: string) => void;
+  handleTitleChange: (pageId: string, newTitle: string) => void;
 }
 
 export const Page = ({
@@ -24,8 +26,12 @@ export const Page = ({
   handlePageSelect,
   handlePageClose,
   handleTitleChange,
+  editorCRDT,
 }: PageProps) => {
   const { position, size, pageDrag, pageResize, pageMinimize, pageMaximize } = usePage({ x, y });
+
+  // TODO: workspace에서 pageId, editorCRDT props로 받아와야 함
+  // const {} = useSocket();
 
   const onTitleChange = (newTitle: string) => {
     handleTitleChange(id, newTitle);
@@ -60,7 +66,7 @@ export const Page = ({
             onPageMinimize={pageMinimize}
           />
         </div>
-        <Editor onTitleChange={onTitleChange} />
+        <Editor onTitleChange={onTitleChange} pageId="" editorCRDT={editorCRDT} />
         <motion.div
           className={resizeHandle}
           onMouseDown={pageResize}
