@@ -18,6 +18,7 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI}
       - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
 
   nginx:
     build:
@@ -28,7 +29,7 @@ services:
       - "443:443"
     volumes:
       - ./client/dist:/usr/share/nginx/html
-      - ./certbot/www:/var/www/certbot
+      - ~/certbot/www:/var/www/certbot
       - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - frontend

@@ -142,7 +142,7 @@ describe("AuthService", () => {
         email: "test@example.com",
       };
 
-      const result = await service.login(user);
+      const result = await service.login(user as any, {} as any);
 
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: user.id,
