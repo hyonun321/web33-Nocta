@@ -21,101 +21,13 @@ export class CRDT<T extends Node<NodeId>> {
     this.LinkedList = new LinkedList<T>();
   }
 
-  localInsert(
-    index: number,
-    value: string,
-  ): RemoteBlockInsertOperation | RemoteCharInsertOperation {
-    if (this instanceof BlockCRDT) {
-      const id = new CharId(this.clock + 1, this.client);
-      const remoteInsertion = this.LinkedList.insertAtIndex(index, value, id);
-      this.clock += 1;
-      return { node: remoteInsertion.node, blockId: BlockId } as RemoteBlockInsertOperation;
-    } else {
-      const id = new BlockId(this.clock + 1, this.client);
-      const remoteInsertion = this.LinkedList.insertAtIndex(index, value, id);
-      this.clock += 1;
-      return { node: remoteInsertion.node } as RemoteCharInsertOperation;
-    }
-  }
+  localInsert(index: number, value: string, blockId?: BlockId) {}
 
-  localDelete(index: number): RemoteBlockDeleteOperation | RemoteCharDeleteOperation {
-    if (index < 0 || index >= this.LinkedList.spread().length) {
-      throw new Error(`Invalid index: ${index}`);
-    }
+  localDelete(index: number, blockId?: BlockId) {}
 
-    const nodeToDelete = this.LinkedList.findByIndex(index);
-    if (!nodeToDelete) {
-      throw new Error(`Node not found at index: ${index}`);
-    }
+  remoteInsert(operation: RemoteBlockInsertOperation | RemoteCharInsertOperation) {}
 
-    const operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation = {
-      targetId: nodeToDelete.id,
-      clock: this.clock + 1,
-    };
-
-    this.LinkedList.deleteNode(nodeToDelete.id);
-    this.clock += 1;
-
-    return operation;
-  }
-
-  remoteInsert(operation: RemoteBlockInsertOperation | RemoteCharInsertOperation): void {
-    const NodeIdClass = this instanceof BlockCRDT ? CharId : BlockId;
-    const NodeClass = this instanceof BlockCRDT ? Char : Block;
-
-    const newNodeId = new NodeIdClass(operation.node.id.clock, operation.node.id.client);
-
-    const newNode = new NodeClass(operation.node.value, newNodeId) as T;
-    newNode.next = operation.node.next;
-    newNode.prev = operation.node.prev;
-
-    this.LinkedList.insertById(newNode);
-
-    if (this.clock <= newNode.id.clock) {
-      this.clock = newNode.id.clock + 1;
-    }
-  }
-
-  remoteDelete(operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation): void {
-    const { targetId, clock } = operation;
-    if (targetId) {
-      this.LinkedList.deleteNode(targetId);
-    }
-    if (this.clock <= clock) {
-      this.clock = clock + 1;
-    }
-  }
-
-  localReorder(params: {
-    targetId: NodeId;
-    beforeId: NodeId | null;
-    afterId: NodeId | null;
-  }): RemoteReorderOperation {
-    const operation: RemoteReorderOperation = {
-      ...params,
-      clock: this.clock + 1,
-      client: this.client,
-    };
-
-    this.LinkedList.reorderNodes(params);
-    this.clock += 1;
-
-    return operation;
-  }
-
-  remoteReorder(operation: RemoteReorderOperation): void {
-    const { targetId, beforeId, afterId, clock } = operation;
-
-    this.LinkedList.reorderNodes({
-      targetId,
-      beforeId,
-      afterId,
-    });
-
-    if (this.clock <= clock) {
-      this.clock = clock + 1;
-    }
-  }
+  remoteDelete(operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation) {}
 
   read(): string {
     return this.LinkedList.stringify();
@@ -144,6 +56,94 @@ export class EditorCRDT extends CRDT<Block> {
     super(client);
     this.currentBlock = null;
   }
+
+  localInsert(index: number, value: string): RemoteBlockInsertOperation {
+    const id = new BlockId(this.clock + 1, this.client);
+    const remoteInsertion = this.LinkedList.insertAtIndex(index, value, id);
+    this.clock += 1;
+    return { node: remoteInsertion.node } as RemoteBlockInsertOperation;
+  }
+
+  localDelete(index: number): RemoteBlockDeleteOperation {
+    if (index < 0 || index >= this.LinkedList.spread().length) {
+      throw new Error(`Invalid index: ${index}`);
+    }
+
+    const nodeToDelete = this.LinkedList.findByIndex(index);
+    if (!nodeToDelete) {
+      throw new Error(`Node not found at index: ${index}`);
+    }
+
+    const operation: RemoteBlockDeleteOperation = {
+      targetId: nodeToDelete.id,
+      clock: this.clock + 1,
+    };
+
+    this.LinkedList.deleteNode(nodeToDelete.id);
+    this.clock += 1;
+
+    return operation;
+  }
+
+  remoteUpdate(block: Block) {
+    this.LinkedList.nodeMap[JSON.stringify(block.id)] = block;
+    return { remoteUpdateOperation: block };
+  }
+
+  remoteInsert(operation: RemoteBlockInsertOperation): void {
+    const newNodeId = new BlockId(operation.node.id.clock, operation.node.id.client);
+    const newNode = new Block(operation.node.value, newNodeId);
+
+    newNode.next = operation.node.next;
+    newNode.prev = operation.node.prev;
+
+    this.LinkedList.insertById(newNode);
+
+    if (this.clock <= newNode.id.clock) {
+      this.clock = newNode.id.clock + 1;
+    }
+  }
+
+  remoteDelete(operation: RemoteBlockDeleteOperation): void {
+    const { targetId, clock } = operation;
+    if (targetId) {
+      this.LinkedList.deleteNode(targetId);
+    }
+    if (this.clock <= clock) {
+      this.clock = clock + 1;
+    }
+  }
+
+  localReorder(params: {
+    targetId: BlockId;
+    beforeId: BlockId | null;
+    afterId: BlockId | null;
+  }): RemoteReorderOperation {
+    const operation: RemoteReorderOperation = {
+      ...params,
+      clock: this.clock + 1,
+      client: this.client,
+    };
+
+    this.LinkedList.reorderNodes(params);
+    this.clock += 1;
+
+    return operation;
+  }
+
+  remoteReorder(operation: RemoteReorderOperation): void {
+    const { targetId, beforeId, afterId, clock } = operation;
+
+    this.LinkedList.reorderNodes({
+      targetId,
+      beforeId,
+      afterId,
+    });
+
+    if (this.clock <= clock) {
+      this.clock = clock + 1;
+    }
+  }
 }
 
 export class BlockCRDT extends CRDT<Char> {
@@ -152,5 +152,64 @@ export class BlockCRDT extends CRDT<Char> {
   constructor(client: number) {
     super(client);
     this.currentCaret = 0;
+  }
+
+  localInsert(index: number, value: string, blockId: BlockId): RemoteCharInsertOperation {
+    const id = new CharId(this.clock + 1, this.client);
+    const { node } = this.LinkedList.insertAtIndex(index, value, id);
+    this.clock += 1;
+    const operation: RemoteCharInsertOperation = {
+      node,
+      blockId,
+    };
+
+    return operation;
+  }
+
+  localDelete(index: number, blockId: BlockId): RemoteCharDeleteOperation {
+    if (index < 0 || index >= this.LinkedList.spread().length) {
+      throw new Error(`Invalid index: ${index}`);
+    }
+
+    const nodeToDelete = this.LinkedList.findByIndex(index);
+    if (!nodeToDelete) {
+      throw new Error(`Node not found at index: ${index}`);
+    }
+
+    const operation: RemoteCharDeleteOperation = {
+      targetId: nodeToDelete.id,
+      clock: this.clock + 1,
+      blockId,
+    };
+
+    this.LinkedList.deleteNode(nodeToDelete.id);
+    this.clock += 1;
+
+    return operation;
+  }
+
+  remoteInsert(operation: RemoteCharInsertOperation): void {
+    const newNodeId = new CharId(operation.node.id.clock, operation.node.id.client);
+    const newNode = new Char(operation.node.value, newNodeId);
+
+    newNode.next = operation.node.next;
+    newNode.prev = operation.node.prev;
+
+    this.LinkedList.insertById(newNode);
+
+    if (this.clock <= newNode.id.clock) {
+      this.clock = newNode.id.clock + 1;
+    }
+  }
+
+  remoteDelete(operation: RemoteCharDeleteOperation): void {
+    const { targetId, clock } = operation;
+    if (targetId) {
+      const targetNodeId = new CharId(operation.targetId.clock, operation.targetId.client);
+      this.LinkedList.deleteNode(targetNodeId);
+    }
+    if (this.clock <= clock) {
+      this.clock = clock + 1;
+    }
   }
 }

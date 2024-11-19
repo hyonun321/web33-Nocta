@@ -12,6 +12,9 @@ export interface DeleteOperation {
   clock: number;
 }
 
+export interface RemoteBlockUpdateOperation {
+  node: Block;
+}
 export interface RemoteBlockInsertOperation {
   node: Block;
 }
@@ -22,13 +25,14 @@ export interface RemoteCharInsertOperation {
 }
 
 export interface RemoteBlockDeleteOperation {
-  targetId: NodeId;
+  targetId: BlockId;
   clock: number;
 }
 
 export interface RemoteCharDeleteOperation {
-  targetId: NodeId;
+  targetId: CharId;
   clock: number;
+  blockId?: BlockId;
 }
 
 export interface CursorPosition {
@@ -53,9 +57,9 @@ export interface ReorderNodesProps {
 }
 
 export interface RemoteReorderOperation {
-  targetId: NodeId;
-  beforeId: NodeId | null;
-  afterId: NodeId | null;
+  targetId: BlockId;
+  beforeId: BlockId | null;
+  afterId: BlockId | null;
   clock: number;
   client: number;
 }
