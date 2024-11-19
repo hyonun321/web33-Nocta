@@ -3,6 +3,7 @@ import {
   RemoteBlockDeleteOperation,
   RemoteCharInsertOperation,
   RemoteCharDeleteOperation,
+  RemoteBlockUpdateOperation,
   CursorPosition,
   SerializedProps,
 } from "@noctaCrdt/Interfaces";
@@ -11,6 +12,7 @@ import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 // 구독 핸들러들의 타입 정의
 interface RemoteOperationHandlers {
+  onRemoteBlockUpdate: (operation: RemoteBlockUpdateOperation) => void;
   onRemoteBlockInsert: (operation: RemoteBlockInsertOperation) => void;
   onRemoteBlockDelete: (operation: RemoteBlockDeleteOperation) => void;
   onRemoteCharInsert: (operation: RemoteCharInsertOperation) => void;
@@ -21,8 +23,11 @@ interface RemoteOperationHandlers {
 // 훅의 반환 타입을 명시적으로 정의
 interface UseSocketReturn {
   socket: Socket | null;
-  sendInsertOperation: (operation: RemoteBlockInsertOperation | RemoteCharInsertOperation) => void;
-  sendDeleteOperation: (operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation) => void;
+  sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
+  sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
+  sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
+  sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => void;
+  sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => void;
   sendCursorPosition: (position: CursorPosition) => void;
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => (() => void) | undefined;
 }
@@ -71,21 +76,27 @@ export const useSocket = (): UseSocketReturn => {
     };
   }, []);
 
-  const sendInsertOperation = (
-    operation: RemoteBlockInsertOperation | RemoteCharInsertOperation,
-  ) => {
-    if (operation.node instanceof Block) {
-      socketRef.current?.emit("insert/block", operation);
-    } else {
-      socketRef.current?.emit("insert/char", operation);
-    }
+  const sendBlockInsertOperation = (operation: RemoteBlockInsertOperation) => {
+    socketRef.current?.emit("insert/block", operation);
     console.log(operation);
   };
 
-  const sendDeleteOperation = (
-    operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation,
-  ) => {
-    socketRef.current?.emit("delete", operation);
+  const sendCharInsertOperation = (operation: RemoteCharInsertOperation) => {
+    socketRef.current?.emit("insert/char", operation);
+
+    console.log(operation);
+  };
+
+  const sendBlockUpdateOperation = (operation: RemoteBlockUpdateOperation) => {
+    socketRef.current?.emit("update/block", operation);
+  };
+
+  const sendBlockDeleteOperation = (operation: RemoteBlockDeleteOperation) => {
+    socketRef.current?.emit("delete/block", operation);
+  };
+
+  const sendCharDeleteOperation = (operation: RemoteCharDeleteOperation) => {
+    socketRef.current?.emit("delete/char", operation);
   };
 
   const sendCursorPosition = (position: CursorPosition) => {
@@ -93,6 +104,7 @@ export const useSocket = (): UseSocketReturn => {
   };
 
   const subscribeToRemoteOperations = ({
+    onRemoteBlockUpdate,
     onRemoteBlockInsert,
     onRemoteBlockDelete,
     onRemoteCharInsert,
@@ -100,7 +112,7 @@ export const useSocket = (): UseSocketReturn => {
     onRemoteCursor,
   }: RemoteOperationHandlers) => {
     if (!socketRef.current) return;
-
+    socketRef.current.on("update/block", onRemoteBlockUpdate);
     socketRef.current.on("insert/block", onRemoteBlockInsert);
     socketRef.current.on("delete/block", onRemoteBlockDelete);
     socketRef.current.on("insert/char", onRemoteCharInsert);
@@ -108,6 +120,7 @@ export const useSocket = (): UseSocketReturn => {
     socketRef.current.on("cursor", onRemoteCursor);
 
     return () => {
+      socketRef.current?.off("update/block", onRemoteBlockUpdate);
       socketRef.current?.off("insert/block", onRemoteBlockInsert);
       socketRef.current?.off("delete/block", onRemoteBlockDelete);
       socketRef.current?.off("insert/char", onRemoteCharInsert);
@@ -118,8 +131,11 @@ export const useSocket = (): UseSocketReturn => {
 
   return {
     socket: socketRef.current,
-    sendInsertOperation,
-    sendDeleteOperation,
+    sendBlockUpdateOperation,
+    sendBlockInsertOperation,
+    sendCharInsertOperation,
+    sendBlockDeleteOperation,
+    sendCharDeleteOperation,
     sendCursorPosition,
     subscribeToRemoteOperations,
   };

@@ -24,7 +24,8 @@ export interface EditorStateProps {
 
 export const Editor = ({ onTitleChange }: EditorProps) => {
   const editorCRDT = useRef<EditorCRDT>(new EditorCRDT(0));
-  const { sendInsertOperation, sendDeleteOperation, subscribeToRemoteOperations } = useSocket();
+  const { sendCharInsertOperation, sendCharDeleteOperation, subscribeToRemoteOperations } =
+    useSocket();
   const [editorState, setEditorState] = useState<EditorStateProps>({
     clock: editorCRDT.current.clock,
     linkedList: editorCRDT.current.LinkedList,
@@ -81,28 +82,29 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
       const currentContent = block.crdt.read();
       const selection = window.getSelection();
       const caretPosition = selection?.focusOffset || 0;
+
       if (newContent.length > currentContent.length) {
-        // 문자가 추가된 경우
+        let charNode: RemoteCharInsertOperation;
         if (caretPosition === 0) {
           const [addedChar] = newContent;
-          operationNode = block.crdt.localInsert(0, addedChar);
+          charNode = block.crdt.localInsert(0, addedChar, block.id);
           block.crdt.currentCaret = 1;
         } else if (caretPosition > currentContent.length) {
           const addedChar = newContent[newContent.length - 1];
-          operationNode = block.crdt.localInsert(currentContent.length, addedChar);
+          charNode = block.crdt.localInsert(currentContent.length, addedChar, block.id);
           block.crdt.currentCaret = caretPosition;
         } else {
           const addedChar = newContent[caretPosition - 1];
-          operationNode = block.crdt.localInsert(caretPosition - 1, addedChar);
+          charNode = block.crdt.localInsert(caretPosition - 1, addedChar, block.id);
           block.crdt.currentCaret = caretPosition;
         }
-        console.log("여기여", operationNode);
-        sendInsertOperation(operationNode);
+        sendCharInsertOperation({ node: charNode.node, blockId: block.id });
       } else if (newContent.length < currentContent.length) {
         // 문자가 삭제된 경우
-        operationNode = block.crdt.localDelete(caretPosition);
+        operationNode = block.crdt.localDelete(caretPosition, block.id);
         block.crdt.currentCaret = caretPosition;
-        sendDeleteOperation(operationNode);
+        console.log("로컬 삭제 연산 송신", operationNode);
+        sendCharDeleteOperation(operationNode);
       }
 
       setEditorState((prev) => ({
@@ -111,7 +113,7 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
         currentBlock: prev.currentBlock,
       }));
     },
-    [editorState.linkedList, sendInsertOperation, sendDeleteOperation],
+    [editorState.linkedList, sendCharInsertOperation, sendCharDeleteOperation],
   );
 
   useEffect(() => {
@@ -156,16 +158,10 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
       },
 
       onRemoteCharInsert: (operation) => {
-        // 변경되는건 char
-        console.log(operation, "char : 입력 확인합니다이");
         if (!editorCRDT.current) return;
-        const insertOperation: RemoteCharInsertOperation = {
-          node: operation.node,
-          blockId: operation.blockId,
-        };
-        // 여기 ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ
-
-        editorCRDT.current.remoteInsert(insertOperation);
+        const targetBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+        targetBlock.crdt.remoteInsert(operation);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -176,15 +172,22 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
       onRemoteCharDelete: (operation) => {
         console.log(operation, "char : 삭제 확인합니다이");
         if (!editorCRDT.current) return;
-        editorCRDT.current.remoteDelete(operation);
+        const targetBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+
+        targetBlock.crdt.remoteDelete({ targetId: operation.targetId, clock: operation.clock });
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
           currentBlock: prev.currentBlock,
         }));
       },
+
+      onRemoteBlockUpdate: (operation) => {
+        console.log(operation, "새 블럭 업데이트 수신 ");
+      },
       onRemoteCursor: (position) => {
-        console.log(position);
+        console.log(position, "커서위치 수신");
       },
     });
 
@@ -194,7 +197,7 @@ export const Editor = ({ onTitleChange }: EditorProps) => {
     };
   }, []);
 
-  console.log("block list", editorState.linkedList.spread());
+  // console.log("block list", editorState.linkedList.spread());
 
   return (
     <div className={editorContainer}>

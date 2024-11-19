@@ -142,7 +142,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   /**
-   * 블록 삽입 연산 처리
+   * 글자 삽입 연산 처리
    */
   @SubscribeMessage("insert/char")
   async handleCharInsert(
@@ -159,11 +159,15 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       await this.crdtService.handleInsert(data);
       console.log("char:", data);
       const char = this.crdtService.getCRDT().LinkedList.getNode(data.node.id); // 변경이 일어난 block
+      // !! TODO 블록 찾기
 
+      // BlockCRDT
+
+      // server는 EditorCRDT 없습니다. - BlockCRDT 로 사용되고있음.
       client.broadcast.emit("insert/char", {
         operation: data,
         node: char,
-        // block: block, // TODO : char는 BlockID를 보내야한다? Block을 보내야한다? 고민예정.
+        blockId: data.blockId, // TODO : char는 BlockID를 보내야한다? Block을 보내야한다? 고민예정.
         timestamp: new Date().toISOString(),
         sourceClientId: clientInfo?.clientId,
       });
@@ -224,9 +228,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
 
       const deleteNode = new NodeId(data.clock, data.targetId.client);
-      await this.crdtService.handleDelete({ targetId: deleteNode, clock: data.clock });
+      await this.crdtService.handleDelete({ targetId: deleteNode, clock: data.clock }); // 얘도안됨
 
-      client.broadcast.emit("delete", {
+      client.broadcast.emit("delete/char", {
         ...data,
         timestamp: new Date().toISOString(),
         sourceClientId: clientInfo?.clientId,
