@@ -1,0 +1,157 @@
+import { Test, TestingModule } from "@nestjs/testing";
+import { AuthController } from "../auth.controller";
+import { AuthService } from "../auth.service";
+import { JwtAuthGuard } from "../guards/jwt-auth.guard";
+import { JwtRefreshTokenAuthGuard } from "../guards/jwt-refresh-token-auth.guard";
+import { UnauthorizedException, ConflictException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { Response as ExpressResponse, Request as ExpressRequest } from "express";
+
+jest.mock("nanoid", () => ({
+  nanoid: jest.fn(() => "mockNanoId123"),
+}));
+
+describe("AuthController", () => {
+  let authController: AuthController;
+
+  const mockAuthService = {
+    register: jest.fn(),
+    login: jest.fn(),
+    removeRefreshToken: jest.fn(),
+    clearCookie: jest.fn(),
+    generateAccessToken: jest.fn(),
+    validateRefreshToken: jest.fn(),
+    findByEmail: jest.fn(),
+    validateUser: jest.fn(),
+    getProfile: jest.fn(),
+    blacklistToken: jest.fn(),
+  };
+
+  const mockJwtService = {
+    sign: jest.fn().mockReturnValue("test-token"),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AuthController],
+      providers: [
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: JwtService, useValue: mockJwtService },
+        JwtAuthGuard,
+        JwtRefreshTokenAuthGuard,
+      ],
+    }).compile();
+
+    authController = module.get<AuthController>(AuthController);
+  });
+
+  it("should be defined", () => {
+    expect(authController).toBeDefined();
+  });
+
+  describe("register", () => {
+    it("should call authService.register and return the result", async () => {
+      const dto = { email: "test@example.com", password: "password", name: "Test User" };
+      mockAuthService.findByEmail.mockResolvedValue(null);
+      mockAuthService.register.mockResolvedValue(undefined);
+
+      await authController.register(dto);
+
+      expect(mockAuthService.findByEmail).toHaveBeenCalledWith(dto.email);
+      expect(mockAuthService.register).toHaveBeenCalledWith(dto.email, dto.password, dto.name);
+    });
+
+    it("should throw ConflictException if email already exists", async () => {
+      const dto = { email: "test@example.com", password: "password", name: "Test User" };
+      mockAuthService.findByEmail.mockResolvedValue({ id: "mockNanoId123", email: dto.email });
+
+      await expect(authController.register(dto)).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe("login", () => {
+    it("should call authService.validateUser and return the result", async () => {
+      const dto = { email: "test@example.com", password: "password" };
+      const user = { id: "mockNanoId123", email: dto.email, name: "Test User" };
+      mockAuthService.validateUser.mockResolvedValue(user);
+      mockAuthService.login.mockResolvedValue(user);
+
+      const result = await authController.login(dto, {
+        setHeader: jest.fn(),
+      } as unknown as ExpressResponse);
+
+      expect(mockAuthService.validateUser).toHaveBeenCalledWith(dto.email, dto.password);
+      expect(mockAuthService.login).toHaveBeenCalledWith(user, expect.any(Object));
+      expect(result).toEqual(user);
+    });
+
+    it("should throw UnauthorizedException if credentials are invalid", async () => {
+      const dto = { email: "test@example.com", password: "password" };
+      mockAuthService.validateUser.mockResolvedValue(null);
+
+      await expect(
+        authController.login(dto, { setHeader: jest.fn() } as unknown as ExpressResponse),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe("logout", () => {
+    it("should call authService.removeRefreshToken and clearCookie", async () => {
+      const req = {
+        user: { id: "mockNanoId123" },
+        headers: { authorization: "Bearer token" },
+        res: { setHeader: jest.fn() },
+      } as unknown as ExpressRequest;
+      mockAuthService.removeRefreshToken.mockResolvedValue(undefined);
+      mockAuthService.blacklistToken.mockResolvedValue(undefined);
+      mockAuthService.clearCookie.mockResolvedValue(undefined);
+
+      await authController.logout(req);
+
+      expect(mockAuthService.removeRefreshToken).toHaveBeenCalledWith(req.user.id);
+      expect(mockAuthService.blacklistToken).toHaveBeenCalledWith("token", expect.any(Date));
+      expect(mockAuthService.clearCookie).toHaveBeenCalledWith(req.res);
+    });
+
+    it("should throw UnauthorizedException if user is not found", async () => {
+      const req = { user: null } as ExpressRequest;
+
+      await expect(authController.logout(req)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should throw UnauthorizedException if authorization header is not found", async () => {
+      const req = { user: { id: "mockNanoId123" }, headers: {} } as ExpressRequest;
+
+      await expect(authController.logout(req)).rejects.toThrow(UnauthorizedException);
+    });
+
+    it("should throw UnauthorizedException if token is not found", async () => {
+      const req = {
+        user: { id: "mockNanoId123" },
+        headers: { authorization: "Bearer " },
+      } as ExpressRequest;
+
+      await expect(authController.logout(req)).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe("getProfile", () => {
+    it("should call authService.getProfile and return the result", async () => {
+      const req = { user: { id: "mockNanoId123" } } as ExpressRequest;
+      const user = { id: "mockNanoId123", email: "test@example.com", name: "Test User" };
+      mockAuthService.getProfile.mockResolvedValue(user);
+
+      const result = await authController.getProfile(req);
+
+      expect(mockAuthService.getProfile).toHaveBeenCalledWith(req.user.id);
+      expect(result).toEqual(user);
+    });
+
+    it("should throw UnauthorizedException if user is not found", async () => {
+      const req = { user: { id: "mockNanoId123" } } as ExpressRequest;
+      mockAuthService.getProfile.mockResolvedValue(null);
+
+      await expect(authController.getProfile(req)).rejects.toThrow(UnauthorizedException);
+    });
+  });
+});

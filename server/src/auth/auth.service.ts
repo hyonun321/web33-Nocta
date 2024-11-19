@@ -5,11 +5,15 @@ import { User, UserDocument } from "./schemas/user.schema";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { Response } from "express";
+import { BlacklistedToken, BlacklistedTokenDocument } from "./schemas/blacklisted-token.schema";
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
+    @InjectModel(BlacklistedToken.name)
+    private blacklistedTokenModel: Model<BlacklistedTokenDocument>,
     private jwtService: JwtService,
   ) {}
 
@@ -22,32 +26,59 @@ export class AuthService {
     });
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.userModel.findOne({ id });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email });
+  }
+
+  async findByRefreshToken(token: string): Promise<User | null> {
+    return this.userModel.findOne({ refreshToken: token });
+  }
+
   async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ email });
+    const user = await this.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       return user;
     }
     return null;
   }
 
-  private generateAccessToken(payload: { sub: string; email: string }): string {
+  async validateRefreshToken(refreshToken: string): Promise<boolean> {
+    const user = await this.findByRefreshToken(refreshToken);
+    if (!user) {
+      return false;
+    }
+    return true;
+  }
+
+  generateAccessToken(payload: { sub: string; email: string }): string {
     return this.jwtService.sign(payload);
   }
 
-  private generateRefreshToken(payload: { sub: string; email: string }): string {
-    return this.jwtService.sign(payload, {
+  generateRefreshToken(): string {
+    return this.jwtService.sign({
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: "7d",
     });
   }
 
+  async blacklistToken(token: string, expiresAt: Date): Promise<void> {
+    await this.blacklistedTokenModel.create({ token, expiresAt });
+  }
+
+  async isTokenBlacklisted(token: string): Promise<boolean> {
+    const blacklistedToken = await this.blacklistedTokenModel.findOne({ token });
+    return !!blacklistedToken;
+  }
+
   async login(user: { id: string; name: string; email: string }, res: Response) {
-    const payload = { sub: user.id, email: user.email };
+    const accessToken = this.generateAccessToken({ sub: user.id, email: user.email });
+    const refreshToken = this.generateRefreshToken();
 
-    const accessToken = this.generateAccessToken(payload);
-    const refreshToken = this.generateRefreshToken(payload);
-
-    res.cookie("refresh_token", refreshToken, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -57,33 +88,26 @@ export class AuthService {
 
     return {
       id: user.id,
+      email: user.email,
       name: user.name,
       accessToken,
     };
   }
 
-  // access 검증 과정
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
-    // Refresh Token 검증
-    // TODO db에 저장된 refresh token과 비교
-
-    // TODO 새로운 Access Token 발급
-    const newAccessToken = this.generateAccessToken({
-      sub: "",
-      email: "",
-    });
-
-    return {
-      accessToken: newAccessToken,
-    };
+  async getProfile(id: string): Promise<User | null> {
+    const user = await this.findById(id);
+    if (!user) {
+      return null;
+    }
+    return user;
   }
 
   public async removeRefreshToken(user: User) {
-    // TODO DB에 저장된 Refresh Token 삭제
+    await this.userModel.updateOne({ id: user.id }, { refreshToken: null });
   }
 
   public clearCookie(res: Response): void {
-    res.clearCookie("refresh_token", {
+    res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",

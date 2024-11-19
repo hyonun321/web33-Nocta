@@ -1,7 +1,25 @@
-import { Controller, Post, Body, UseGuards, Req, Res, Request } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Response,
+  UnauthorizedException,
+  ConflictException,
+} from "@nestjs/common";
+import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 import { AuthService } from "./auth.service";
-import { JwtAuthGuard } from "./jwt-auth.guard";
-import { ApiTags, ApiOperation, ApiBody, ApiResponse } from "@nestjs/swagger";
+import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBody,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiCookieAuth,
+} from "@nestjs/swagger";
 import { UserDto } from "./dto/user.dto";
 
 @ApiTags("auth")
@@ -24,19 +42,18 @@ export class AuthController {
   @ApiResponse({
     status: 201,
     description: "The user has been successfully created.",
-    type: UserDto,
   })
   @ApiResponse({ status: 400, description: "Bad Request" })
-  async register(
-    @Body() body: { email: string; password: string; name: string },
-  ): Promise<UserDto> {
+  @ApiResponse({ status: 409, description: "Conflict: Email already exists" })
+  async register(@Body() body: { email: string; password: string; name: string }): Promise<void> {
     const { email, password, name } = body;
-    const user = await this.authService.register(email, password, name);
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-    };
+
+    const existingUser = await this.authService.findByEmail(email);
+    if (existingUser) {
+      throw new ConflictException("Email already exists");
+    }
+
+    await this.authService.register(email, password, name);
   }
 
   @Post("login")
@@ -52,36 +69,64 @@ export class AuthController {
   })
   @ApiResponse({ status: 200, description: "The user has been successfully logged in." })
   @ApiResponse({ status: 401, description: "Unauthorized" })
-  async login(@Body() body: { email: string; password: string }, @Res({ passthrough: true }) res) {
+  async login(
+    @Body() body: { email: string; password: string },
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ): Promise<UserDto> {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new UnauthorizedException("Invalid credentials");
     }
+
     return this.authService.login(user, res);
   }
 
-  @Post("logout")
-  // TODO access token 검증 과정....
   @UseGuards(JwtAuthGuard)
-  public async logout(@Req() req) {
+  @Post("logout")
+  @ApiOperation({ summary: "Logout a user" })
+  @ApiBearerAuth()
+  @ApiCookieAuth("refreshToken")
+  @ApiResponse({ status: 200, description: "The user has been successfully logged out." })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async logout(@Request() req: ExpressRequest): Promise<void> {
     const { user } = req;
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
     // DB에서 refresh token 삭제
-    await this.authService.removeRefreshToken(user);
+    await this.authService.removeRefreshToken(user.id);
+
+    // TODO access token 블랙리스트 추가
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new UnauthorizedException("Authorization header not found");
+    }
+    const [, token] = authHeader.split(" ");
+    if (!token) {
+      throw new UnauthorizedException("Token not found");
+    }
+    this.authService.blacklistToken(token, new Date());
+
     // 쿠키 삭제
     this.authService.clearCookie(req.res);
-    return {};
   }
 
-  // @Post("refresh")
-  // TODO access token 검증 과정
-  // TODO refresh token을 이용해서 access token 재발급
-
   @UseGuards(JwtAuthGuard)
-  @Post("profile")
+  @Get("profile")
   @ApiOperation({ summary: "Get user profile" })
+  @ApiBearerAuth()
   @ApiResponse({ status: 200, description: "The user profile has been successfully retrieved." })
   @ApiResponse({ status: 401, description: "Unauthorized" })
-  getProfile(@Request() req) {
-    return req.user;
+  async getProfile(@Request() req: ExpressRequest): Promise<UserDto> {
+    const user = await this.authService.getProfile(req.user.id);
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    };
   }
 }
