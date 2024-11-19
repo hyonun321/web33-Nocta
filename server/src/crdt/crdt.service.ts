@@ -85,7 +85,7 @@ export class CrdtService implements OnModuleInit {
   async handleInsert(
     operation: RemoteBlockInsertOperation | RemoteCharInsertOperation,
   ): Promise<void> {
-    this.crdt.remoteInsert(operation);
+    this.crdt.remoteInsert(operation as RemoteCharInsertOperation);
     await this.updateDocument();
   }
 
