@@ -25,6 +25,7 @@ describe("AuthController", () => {
     validateUser: jest.fn(),
     getProfile: jest.fn(),
     blacklistToken: jest.fn(),
+    refresh: jest.fn(),
   };
 
   const mockJwtService = {
@@ -152,6 +153,28 @@ describe("AuthController", () => {
       mockAuthService.getProfile.mockResolvedValue(null);
 
       await expect(authController.getProfile(req)).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe("refresh", () => {
+    it("should call authService.refresh and return the result", async () => {
+      const req = { cookies: { refreshToken: "valid-refresh-token" } } as unknown as ExpressRequest;
+      const newAccessToken = { accessToken: "new-access-token" };
+      mockAuthService.refresh.mockResolvedValue(newAccessToken);
+
+      const result = await authController.refresh(req);
+
+      expect(mockAuthService.refresh).toHaveBeenCalledWith("valid-refresh-token");
+      expect(result).toEqual(newAccessToken);
+    });
+
+    it("should throw UnauthorizedException if refresh token is invalid", async () => {
+      const req = {
+        cookies: { refreshToken: "invalid-refresh-token" },
+      } as unknown as ExpressRequest;
+      mockAuthService.refresh.mockRejectedValue(new UnauthorizedException("Invalid refresh token"));
+
+      await expect(authController.refresh(req)).rejects.toThrow(UnauthorizedException);
     });
   });
 });

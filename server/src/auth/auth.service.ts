@@ -6,6 +6,7 @@ import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { Response } from "express";
 import { BlacklistedToken, BlacklistedTokenDocument } from "./schemas/blacklisted-token.schema";
+import { UserDto } from "./dto/user.dto";
 
 @Injectable()
 export class AuthService {
@@ -47,22 +48,34 @@ export class AuthService {
   }
 
   async validateRefreshToken(refreshToken: string): Promise<boolean> {
-    const user = await this.findByRefreshToken(refreshToken);
-    if (!user) {
+    try {
+      const decoded = await this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+      const user = await this.findByRefreshToken(refreshToken);
+      if (!user) {
+        return false;
+      }
+      return !!decoded;
+    } catch (error) {
       return false;
     }
-    return true;
   }
 
   generateAccessToken(payload: { sub: string; email: string }): string {
     return this.jwtService.sign(payload);
   }
 
-  generateRefreshToken(): string {
-    return this.jwtService.sign({
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: "7d",
-    });
+  async generateRefreshToken(id: string): Promise<string> {
+    const refreshToken = this.jwtService.sign(
+      {},
+      {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: "7d",
+      },
+    );
+    await this.userModel.updateOne({ id }, { refreshToken });
+    return refreshToken;
   }
 
   async blacklistToken(token: string, expiresAt: Date): Promise<void> {
@@ -74,9 +87,9 @@ export class AuthService {
     return !!blacklistedToken;
   }
 
-  async login(user: { id: string; name: string; email: string }, res: Response) {
+  async login(user: { id: string; name: string; email: string }, res: Response): Promise<UserDto> {
     const accessToken = this.generateAccessToken({ sub: user.id, email: user.email });
-    const refreshToken = this.generateRefreshToken();
+    const refreshToken = await this.generateRefreshToken(user.id);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -113,5 +126,20 @@ export class AuthService {
       sameSite: "strict",
       path: "/",
     });
+  }
+
+  async refresh(refreshToken: string): Promise<UserDto | null> {
+    const user = await this.findByRefreshToken(refreshToken);
+    if (!user) {
+      return null;
+    }
+
+    const accessToken = this.generateAccessToken({ sub: user.id, email: user.email });
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      accessToken,
+    };
   }
 }

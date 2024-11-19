@@ -21,6 +21,7 @@ import {
   ApiCookieAuth,
 } from "@nestjs/swagger";
 import { UserDto } from "./dto/user.dto";
+import { JwtRefreshTokenAuthGuard } from "./guards/jwt-refresh-token-auth.guard";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -82,7 +83,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post("logout")
+  @Get("logout")
   @ApiOperation({ summary: "Logout a user" })
   @ApiBearerAuth()
   @ApiCookieAuth("refreshToken")
@@ -128,5 +129,15 @@ export class AuthController {
       email: user.email,
       name: user.name,
     };
+  }
+
+  @UseGuards(JwtRefreshTokenAuthGuard)
+  @Get("refresh")
+  @ApiOperation({ summary: "Refresh access token" })
+  @ApiCookieAuth("refreshToken")
+  @ApiResponse({ status: 200, description: "The access token has been successfully refreshed." })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async refresh(@Request() req: ExpressRequest) {
+    return this.authService.refresh(req.cookies.refreshToken);
   }
 }

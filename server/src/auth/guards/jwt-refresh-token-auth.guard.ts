@@ -21,7 +21,7 @@ export class JwtRefreshTokenAuthGuard extends AuthGuard("jwt-refresh") {
     }
 
     // 사용자에게 등록된 Refresh Token와 일치 여부 확인
-    const { refreshToken } = request.body;
+    const { refreshToken } = request.cookies;
     const isValid = await this.authService.validateRefreshToken(refreshToken);
     if (!isValid) {
       throw new UnauthorizedException("Invalid refresh token");

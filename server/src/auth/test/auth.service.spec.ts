@@ -256,4 +256,30 @@ describe("AuthService", () => {
       });
     });
   });
+
+  describe("refresh", () => {
+    it("should return new access token if refresh token is valid", async () => {
+      mockUserModel.findOne.mockResolvedValue(mockUser);
+
+      const result = await service.refresh("valid-refresh-token");
+
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ refreshToken: "valid-refresh-token" });
+      expect(mockJwtService.sign).toHaveBeenCalledWith({ sub: mockUser.id, email: mockUser.email });
+      expect(result).toEqual({
+        id: mockUser.id,
+        email: mockUser.email,
+        name: mockUser.name,
+        accessToken: "test-token",
+      });
+    });
+
+    it("should return null if refresh token is invalid", async () => {
+      mockUserModel.findOne.mockResolvedValue(null);
+
+      const result = await service.refresh("invalid-refresh-token");
+
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ refreshToken: "invalid-refresh-token" });
+      expect(result).toBeNull();
+    });
+  });
 });
