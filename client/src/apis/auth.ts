@@ -1,5 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
+
+import { useUserActions } from "@src/stores/useUserStore";
+import { fetch, unAuthorizationFetch } from "./axios";
 
 export const useSignupMutation = () => {
   const fetcher = ({
@@ -11,7 +13,7 @@ export const useSignupMutation = () => {
     email: string;
     password: string;
   }) => {
-    return axios.post("/auth/register", { name, email, password });
+    return unAuthorizationFetch.post("/auth/register", { name, email, password });
   };
 
   return useMutation({
@@ -20,16 +22,32 @@ export const useSignupMutation = () => {
 };
 
 export const useLoginMutation = () => {
+  const { setCredentials } = useUserActions();
+
   const fetcher = ({ email, password }: { email: string; password: string }) => {
-    return axios.post("/auth/login", { email, password });
+    return unAuthorizationFetch.post("/auth/login", { email, password });
   };
 
   return useMutation({
     mutationFn: fetcher,
-    // TODO 성공했을 경우 accessToken 저장 (zustand? localStorage? cookie?)
-    // accessToken: cookie (쿠기 다 때려넣기...) / localStorage / zustand (번거로움..귀찮음.. 안해봤음..)
-    // refreshToken: cookie,
-    // onSuccess: (data) => {
-    // },
+    onSuccess: (response) => {
+      const { id, name, accessToken } = response.data;
+      setCredentials(id, name, accessToken);
+    },
+  });
+};
+
+export const useLogoutMutation = () => {
+  const { removeCredentials } = useUserActions();
+
+  const fetcher = () => {
+    return fetch.post("/auth/logout");
+  };
+
+  return useMutation({
+    mutationFn: fetcher,
+    onSuccess: () => {
+      removeCredentials();
+    },
   });
 };
