@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Request, UseGuards } from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, Req, Res, Request } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 
@@ -18,17 +18,31 @@ export class AuthController {
   }
 
   @Post("login")
-  async login(@Body() body: { email: string; password: string }) {
+  async login(@Body() body: { email: string; password: string }, @Res({ passthrough: true }) res) {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
       throw new Error("Invalid credentials");
     }
-    return this.authService.login(user);
+    return this.authService.login(user, res);
   }
+
+  @Post("logout")
+  @UseGuards(JwtAuthGuard)
+  public async logout(@Req() req) {
+    const { user } = req;
+    // DB에서 refresh token 삭제
+    await this.authService.removeRefreshToken(user);
+    // 쿠키 삭제
+    this.authService.clearCookie(req.res);
+    return {};
+  }
+
+  // @Post("refresh")
+  // TODO refresh token을 이용해서 access token 재발급
 
   @UseGuards(JwtAuthGuard)
   @Post("profile")
-  getProfile(@Request() req) {
+  getProfile(@Req() req) {
     return req.user;
   }
 }
