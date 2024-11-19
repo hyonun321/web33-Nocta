@@ -7,7 +7,6 @@ export const IntroScreenContainer = css({
   inset: 0,
   justifyContent: "center",
   alignItems: "center",
-  backgroundImage: "linear-gradient(135deg, gray, green)",
   backgroundSize: "cover",
   transition: "opacity 0.5s ease-in-out",
 });
