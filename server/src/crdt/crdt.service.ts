@@ -9,6 +9,7 @@ import { Block, Char } from "@noctaCrdt/Node";
 
 import { BlockLinkedList, TextLinkedList } from "@noctaCrdt/LinkedList";
 import { Page as CRDTPage } from "@noctaCrdt/Page";
+import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
 
 @Injectable()
 export class workSpaceService implements OnModuleInit {
@@ -26,128 +27,19 @@ export class workSpaceService implements OnModuleInit {
       if (doc) {
         // 1. Workspace 기본 정보 복원
         this.workspace = new CRDTWorkSpace(doc.id, []);
-
-        // 2. PageList 복원
-        if (doc.pageList && Array.isArray(doc.pageList)) {
-          for (const pageData of doc.pageList) {
-            const page = await this.deserializePage(pageData);
-            this.workspace.pageList.push(page);
-          }
-        }
-        // 3. AuthUser Map 복원
-        if (doc.authUser) {
-          this.workspace.authUser = new Map(Array.from(doc.authUser.entries()));
-        }
+        this.workspace.deserialize({
+          id: doc.id,
+          pageList: doc.pageList,
+          authUser: doc.authUser,
+        } as WorkSpaceSerializedProps);
       }
+      console.log(doc, "잘됐나?");
     } catch (error) {
       console.error("Error during CrdtService initialization:", error);
       throw error;
     }
   }
 
-  private async deserializePage(pageData: any): Promise<CRDTPage> {
-    return new CRDTPage(await this.deserializeEditorCRDT(pageData.crdt));
-  }
-
-  private async deserializeEditorCRDT(editorData: any): Promise<EditorCRDT> {
-    const editor = new EditorCRDT(editorData.client);
-    editor.clock = editorData.clock;
-
-    if (editorData.currentBlock) {
-      editor.currentBlock = await this.deserializeBlock(editorData.currentBlock);
-    }
-
-    editor.LinkedList = await this.deserializeBlockLinkedList(editorData.LinkedList);
-
-    return editor;
-  }
-
-  private async deserializeBlockLinkedList(listData: any): Promise<BlockLinkedList> {
-    const blockList = new BlockLinkedList();
-
-    // head 복원
-    if (listData.head) {
-      blockList.head = new BlockId(listData.head.clock, listData.head.client);
-    }
-
-    // nodeMap 복원
-    blockList.nodeMap = {};
-    if (listData.nodeMap && typeof listData.nodeMap === "object") {
-      for (const [key, blockData] of Object.entries(listData.nodeMap)) {
-        blockList.nodeMap[key] = await this.deserializeBlock(blockData);
-      }
-    } else {
-      console.warn("listData.nodeMap이 없습니다. 빈 nodeMap으로 초기화합니다.");
-    }
-
-    return blockList;
-  }
-
-  private async deserializeBlock(blockData: any): Promise<Block> {
-    // BlockId 생성
-    const blockId = new BlockId(blockData.id.clock, blockData.id.client);
-
-    // Block 인스턴스 생성
-    const block = new Block("", blockData.id);
-
-    // BlockCRDT 복원
-    block.crdt = await this.deserializeBlockCRDT(blockData.crdt);
-
-    // 연결 정보(next, prev) 복원
-    if (blockData.next) {
-      block.next = new BlockId(blockData.next.clock, blockData.next.client);
-    }
-    if (blockData.prev) {
-      block.prev = new BlockId(blockData.prev.clock, blockData.prev.client);
-    }
-
-    // 추가 속성 복원
-    block.animation = blockData.animation || "none";
-    block.style = Array.isArray(blockData.style) ? blockData.style : [];
-
-    return block;
-  }
-
-  private async deserializeBlockCRDT(crdtData: any): Promise<BlockCRDT> {
-    const blockCRDT = new BlockCRDT(crdtData.client);
-
-    blockCRDT.clock = crdtData.clock;
-    blockCRDT.currentCaret = crdtData.currentCaret;
-    blockCRDT.LinkedList = await this.deserializeTextLinkedList(crdtData.LinkedList);
-
-    return blockCRDT;
-  }
-
-  private async deserializeTextLinkedList(listData: any): Promise<TextLinkedList> {
-    const textList = new TextLinkedList();
-
-    // head 복원
-    if (listData.head) {
-      textList.head = new CharId(listData.head.clock, listData.head.client);
-    }
-
-    // nodeMap 복원
-    textList.nodeMap = {};
-    for (const [key, charData] of listData.nodeMap.entries()) {
-      textList.nodeMap[key] = await this.deserializeChar(charData);
-    }
-
-    return textList;
-  }
-
-  private async deserializeChar(charData: any): Promise<Char> {
-    const charId = new CharId(charData.id.clock, charData.id.client);
-    const char = new Char(charData.content, charId);
-
-    if (charData.next) {
-      char.next = new CharId(charData.next.clock, charData.next.client);
-    }
-    if (charData.prev) {
-      char.prev = new CharId(charData.prev.clock, charData.prev.client);
-    }
-
-    return char;
-  }
   async getDocument(): Promise<Workspace | null> {
     let doc = await this.workspaceModel.findOne();
     if (!doc) {
@@ -213,8 +105,8 @@ export class workSpaceService implements OnModuleInit {
 
   async handlePageInsert(payload: any): Promise<void> {
     // Page 레벨 Insert 구현
-    const newPage = await this.deserializePage(payload);
-    this.workspace.pageList.push(newPage);
+    // const newPage = await this.getWorkspace().getPage(payload).deserializePage(payload);
+    // this.workspace.pageList.push(newPage);
   }
 
   async handlePageDelete(payload: any): Promise<void> {
@@ -227,6 +119,7 @@ export class workSpaceService implements OnModuleInit {
 
   async handleBlockInsert(editorCRDT: EditorCRDT, payload: any): Promise<void> {
     // Block 레벨 Insert 구현
+    console.log(editorCRDT, payload, "???");
     editorCRDT.remoteInsert(payload);
   }
 

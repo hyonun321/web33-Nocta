@@ -28,7 +28,7 @@ export class Char {
   id: CharId;
 
   @Prop({ required: true })
-  content: string;
+  value: string;
 
   @Prop({
     type: {

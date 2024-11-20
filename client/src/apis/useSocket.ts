@@ -7,6 +7,7 @@ import {
   CursorPosition,
   WorkSpaceSerializedProps,
 } from "@noctaCrdt/Interfaces";
+import { PageSerializedProps } from "node_modules/@noctaCrdt/Page";
 
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
@@ -24,6 +25,7 @@ interface RemoteOperationHandlers {
 interface UseSocketReturn {
   socket: Socket | null;
   fetchWorkspaceData: () => WorkSpaceSerializedProps;
+  fetchPageData: () => PageSerializedProps;
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
@@ -115,6 +117,7 @@ export const useSocket = (): UseSocketReturn => {
     onRemoteCursor,
   }: RemoteOperationHandlers) => {
     if (!socketRef.current) return;
+    socketRef.current.on("fetch/page");
     socketRef.current.on("update/block", onRemoteBlockUpdate);
     socketRef.current.on("insert/block", onRemoteBlockInsert);
     socketRef.current.on("delete/block", onRemoteBlockDelete);
@@ -136,8 +139,11 @@ export const useSocket = (): UseSocketReturn => {
     return workspace!;
   };
 
+  const fetchPageData = (): PageSerializedProps => {};
+
   return {
     fetchWorkspaceData,
+    fetchPageData,
     socket: socketRef.current,
     sendBlockUpdateOperation,
     sendBlockInsertOperation,
