@@ -3,9 +3,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { BlockCRDT } from "@noctaCrdt/Crdt";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { memo, useRef } from "react";
+import { motion } from "framer-motion";
+import { memo, useEffect, useRef, useState } from "react";
+import { useBlockAnimation } from "../../hooks/useBlockAnimtaion";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
+import { blockAnimation } from "./Block.animation";
 import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
 
 interface BlockProps {
@@ -22,6 +25,7 @@ export const Block: React.FC<BlockProps> = memo(
     const textCRDT = useRef<BlockCRDT>(block.crdt);
     const blockRef = useRef<HTMLDivElement>(null);
 
+    const { isAnimationStart } = useBlockAnimation(blockRef);
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
       id,
       data: {
@@ -57,7 +61,7 @@ export const Block: React.FC<BlockProps> = memo(
     return (
       // TODO: eslint 규칙을 수정해야 할까?
       // TODO: ol일때 index 순서 처리
-      <div
+      <motion.div
         ref={setNodeRef}
         className={blockContainerStyle({ isActive })}
         style={{
@@ -65,9 +69,14 @@ export const Block: React.FC<BlockProps> = memo(
           transition,
           opacity: isDragging ? 0.5 : 1,
         }}
-        data-group // indent에 따른 마진
+        initial={block?.animation && blockAnimation.highlight.initial}
+        animate={isAnimationStart && block?.animation && blockAnimation.highlight.animate}
+        data-group
       >
-        <div className={contentWrapperStyle()} style={{ paddingLeft: `${block.indent * 12}px` }}>
+        <motion.div
+          className={contentWrapperStyle()}
+          style={{ paddingLeft: `${block.indent * 12}px` }}
+        >
           <MenuBlock attributes={attributes} listeners={listeners} />
           <IconBlock type={block.type} index={1} />
           <div
@@ -83,11 +92,9 @@ export const Block: React.FC<BlockProps> = memo(
           >
             {block.crdt.read()}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
-
-    // return React.createElement(nodeType, commonProps);
   },
 );
 

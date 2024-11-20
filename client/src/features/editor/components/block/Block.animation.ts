@@ -1,4 +1,4 @@
-export const highlight = {
+const highlight = {
   initial: {
     background: `linear-gradient(to right, 
           #BFBFFF95 0%, 
@@ -19,4 +19,8 @@ export const highlight = {
       ease: "linear",
     },
   },
+};
+
+export const blockAnimation = {
+  highlight,
 };
