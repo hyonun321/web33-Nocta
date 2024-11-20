@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useUserActions } from "@src/stores/useUserStore";
-import { unAuthorizationFetch } from "./axios";
+import { unAuthorizationFetch, fetch } from "./axios";
 
 export const useSignupMutation = (onSuccess: () => void) => {
   const fetcher = ({
@@ -44,8 +44,7 @@ export const useLogoutMutation = (onSuccess: () => void) => {
   const { removeUserInfo } = useUserActions();
 
   const fetcher = () => {
-    // TODO 추후 그냥 fetch로 변경 (access token 넣어줘야함)
-    return unAuthorizationFetch.post("/auth/logout");
+    return fetch.post("/auth/logout");
   };
 
   return useMutation({

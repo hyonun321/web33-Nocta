@@ -1,5 +1,5 @@
 import axios, { CreateAxiosDefaults } from "axios";
-import { useUserInfo } from "@src/stores/useUserStore";
+import { useUserStore } from "@src/stores/useUserStore";
 
 const baseConfig: CreateAxiosDefaults = {
   baseURL: `${import.meta.env.VITE_API_URL}`,
@@ -12,7 +12,7 @@ export const fetch = axios.create(baseConfig);
 
 fetch.interceptors.request.use(
   function (config) {
-    const { accessToken } = useUserInfo();
+    const { accessToken } = useUserStore.getState();
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
