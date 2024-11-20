@@ -8,7 +8,6 @@ import { AuthController } from "../auth.controller";
 import { JwtStrategy } from "../strategies/jwt.strategy";
 import { JwtRefreshTokenStrategy } from "../strategies/jwt-refresh-token.strategy";
 import { User, UserSchema } from "../schemas/user.schema";
-import { BlacklistedToken, BlacklistedTokenSchema } from "../schemas/blacklisted-token.schema";
 import { AuthModule } from "../auth.module";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { JwtRefreshTokenAuthGuard } from "../guards/jwt-refresh-token-auth.guard";
@@ -42,10 +41,7 @@ describe("AuthModule", () => {
           ],
         }),
         MongooseModule.forRoot(process.env.MONGO_URI),
-        MongooseModule.forFeature([
-          { name: User.name, schema: UserSchema },
-          { name: BlacklistedToken.name, schema: BlacklistedTokenSchema },
-        ]),
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         PassportModule,
         JwtModule.registerAsync({
           imports: [ConfigModule],

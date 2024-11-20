@@ -24,8 +24,8 @@ describe("AuthController", () => {
     findByEmail: jest.fn(),
     validateUser: jest.fn(),
     getProfile: jest.fn(),
-    blacklistToken: jest.fn(),
     refresh: jest.fn(),
+    increaseTokenVersion: jest.fn(),
   };
 
   const mockJwtService = {
@@ -104,33 +104,16 @@ describe("AuthController", () => {
         res: { setHeader: jest.fn() },
       } as unknown as ExpressRequest;
       mockAuthService.removeRefreshToken.mockResolvedValue(undefined);
-      mockAuthService.blacklistToken.mockResolvedValue(undefined);
       mockAuthService.clearCookie.mockResolvedValue(undefined);
 
       await authController.logout(req);
 
       expect(mockAuthService.removeRefreshToken).toHaveBeenCalledWith(req.user.id);
-      expect(mockAuthService.blacklistToken).toHaveBeenCalledWith("token", expect.any(Date));
       expect(mockAuthService.clearCookie).toHaveBeenCalledWith(req.res);
     });
 
     it("should throw UnauthorizedException if user is not found", async () => {
       const req = { user: null } as ExpressRequest;
-
-      await expect(authController.logout(req)).rejects.toThrow(UnauthorizedException);
-    });
-
-    it("should throw UnauthorizedException if authorization header is not found", async () => {
-      const req = { user: { id: "mockNanoId123" }, headers: {} } as ExpressRequest;
-
-      await expect(authController.logout(req)).rejects.toThrow(UnauthorizedException);
-    });
-
-    it("should throw UnauthorizedException if token is not found", async () => {
-      const req = {
-        user: { id: "mockNanoId123" },
-        headers: { authorization: "Bearer " },
-      } as ExpressRequest;
 
       await expect(authController.logout(req)).rejects.toThrow(UnauthorizedException);
     });
@@ -159,12 +142,13 @@ describe("AuthController", () => {
   describe("refresh", () => {
     it("should call authService.refresh and return the result", async () => {
       const req = { cookies: { refreshToken: "valid-refresh-token" } } as unknown as ExpressRequest;
+      const res = { setHeader: jest.fn() } as unknown as ExpressResponse;
       const newAccessToken = { accessToken: "new-access-token" };
       mockAuthService.refresh.mockResolvedValue(newAccessToken);
 
-      const result = await authController.refresh(req);
+      const result = await authController.refresh(req, res);
 
-      expect(mockAuthService.refresh).toHaveBeenCalledWith("valid-refresh-token");
+      expect(mockAuthService.refresh).toHaveBeenCalledWith("valid-refresh-token", res);
       expect(result).toEqual(newAccessToken);
     });
 
@@ -172,9 +156,10 @@ describe("AuthController", () => {
       const req = {
         cookies: { refreshToken: "invalid-refresh-token" },
       } as unknown as ExpressRequest;
+      const res = { setHeader: jest.fn() } as unknown as ExpressResponse;
       mockAuthService.refresh.mockRejectedValue(new UnauthorizedException("Invalid refresh token"));
 
-      await expect(authController.refresh(req)).rejects.toThrow(UnauthorizedException);
+      await expect(authController.refresh(req, res)).rejects.toThrow(UnauthorizedException);
     });
   });
 });

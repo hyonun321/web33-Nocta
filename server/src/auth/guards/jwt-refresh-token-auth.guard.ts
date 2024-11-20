@@ -14,12 +14,6 @@ export class JwtRefreshTokenAuthGuard extends AuthGuard("jwt-refresh") {
 
     const request = context.switchToHttp().getRequest();
 
-    // Refresh Token 블랙리스트 확인
-    const token = request.headers.authorization?.split(" ")[1];
-    if (token && (await this.authService.isTokenBlacklisted(token))) {
-      throw new UnauthorizedException("Token is blacklisted");
-    }
-
     // 사용자에게 등록된 Refresh Token와 일치 여부 확인
     const { refreshToken } = request.cookies;
     const isValid = await this.authService.validateRefreshToken(refreshToken);

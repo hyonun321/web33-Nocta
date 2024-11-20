@@ -98,16 +98,8 @@ export class AuthController {
     // DB에서 refresh token 삭제
     await this.authService.removeRefreshToken(user.id);
 
-    // TODO access token 블랙리스트 추가
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      throw new UnauthorizedException("Authorization header not found");
-    }
-    const [, token] = authHeader.split(" ");
-    if (!token) {
-      throw new UnauthorizedException("Token not found");
-    }
-    this.authService.blacklistToken(token, new Date());
+    // 사용자의 token version 증가
+    await this.authService.increaseTokenVersion(user.id);
 
     // 쿠키 삭제
     this.authService.clearCookie(req.res);
@@ -137,7 +129,10 @@ export class AuthController {
   @ApiCookieAuth("refreshToken")
   @ApiResponse({ status: 200, description: "The access token has been successfully refreshed." })
   @ApiResponse({ status: 401, description: "Unauthorized" })
-  async refresh(@Request() req: ExpressRequest) {
-    return this.authService.refresh(req.cookies.refreshToken);
+  async refresh(
+    @Request() req: ExpressRequest,
+    @Response({ passthrough: true }) res: ExpressResponse,
+  ) {
+    return this.authService.refresh(req.cookies.refreshToken, res);
   }
 }

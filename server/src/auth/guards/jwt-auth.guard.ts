@@ -14,12 +14,10 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const response = context.switchToHttp().getResponse();
     const token = request.headers.authorization?.split(" ")[1];
 
-    // JWT 토큰 블랙리스트 확인
-    if (token && (await this.authService.isTokenBlacklisted(token))) {
-      throw new UnauthorizedException("Token is blacklisted");
+    if (!token) {
+      throw new UnauthorizedException("Authorization header not found");
     }
 
     const canActivate = (await super.canActivate(context)) as boolean;

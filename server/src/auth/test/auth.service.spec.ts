@@ -3,7 +3,6 @@ import { AuthService } from "../auth.service";
 import { JwtService } from "@nestjs/jwt";
 import { getModelToken } from "@nestjs/mongoose";
 import { User } from "../schemas/user.schema";
-import { BlacklistedToken } from "../schemas/blacklisted-token.schema";
 import * as bcrypt from "bcrypt";
 import { Response as ExpressResponse } from "express";
 
@@ -35,11 +34,6 @@ describe("AuthService", () => {
     updateOne: jest.fn(),
   };
 
-  const mockBlacklistedTokenModel = {
-    create: jest.fn(),
-    findOne: jest.fn(),
-  };
-
   const mockJwtService = {
     sign: jest.fn().mockReturnValue("test-token"),
   };
@@ -51,10 +45,6 @@ describe("AuthService", () => {
         {
           provide: getModelToken(User.name),
           useValue: mockUserModel,
-        },
-        {
-          provide: getModelToken(BlacklistedToken.name),
-          useValue: mockBlacklistedTokenModel,
         },
         {
           provide: JwtService,
@@ -154,6 +144,7 @@ describe("AuthService", () => {
 
       const mockResponse = {
         cookie: jest.fn(),
+        header: jest.fn(),
       };
 
       const result = await service.login(user as User, mockResponse as unknown as ExpressResponse);
@@ -174,41 +165,7 @@ describe("AuthService", () => {
         id: user.id,
         email: user.email,
         name: "Test User",
-        accessToken: "test-token",
       });
-    });
-  });
-
-  describe("blacklistToken", () => {
-    it("should blacklist a token", async () => {
-      const token = "test-token";
-      const expiresAt = new Date();
-
-      await service.blacklistToken(token, expiresAt);
-
-      expect(mockBlacklistedTokenModel.create).toHaveBeenCalledWith({ token, expiresAt });
-    });
-  });
-
-  describe("isTokenBlacklisted", () => {
-    it("should return true if token is blacklisted", async () => {
-      const token = "test-token";
-      mockBlacklistedTokenModel.findOne.mockResolvedValue({ token });
-
-      const result = await service.isTokenBlacklisted(token);
-
-      expect(mockBlacklistedTokenModel.findOne).toHaveBeenCalledWith({ token });
-      expect(result).toBe(true);
-    });
-
-    it("should return false if token is not blacklisted", async () => {
-      const token = "test-token";
-      mockBlacklistedTokenModel.findOne.mockResolvedValue(null);
-
-      const result = await service.isTokenBlacklisted(token);
-
-      expect(mockBlacklistedTokenModel.findOne).toHaveBeenCalledWith({ token });
-      expect(result).toBe(false);
     });
   });
 
@@ -264,26 +221,40 @@ describe("AuthService", () => {
     it("should return new access token if refresh token is valid", async () => {
       mockUserModel.findOne.mockResolvedValue(mockUser);
 
-      const result = await service.refresh("valid-refresh-token");
+      const mockResponse = {
+        header: jest.fn(),
+      };
+
+      const result = await service.refresh(
+        "valid-refresh-token",
+        mockResponse as unknown as ExpressResponse,
+      );
 
       expect(mockUserModel.findOne).toHaveBeenCalledWith({ refreshToken: "valid-refresh-token" });
-      expect(mockJwtService.sign).toHaveBeenCalledWith({
+      expect(jwtService.sign).toHaveBeenCalledWith({
         sub: mockUser.id,
         email: mockUser.email,
         tokenVersion: 1,
       });
+      expect(mockResponse.header).toHaveBeenCalledWith("Authorization", `Bearer test-token`);
       expect(result).toEqual({
         id: mockUser.id,
         email: mockUser.email,
         name: mockUser.name,
-        accessToken: "test-token",
       });
     });
 
     it("should return null if refresh token is invalid", async () => {
       mockUserModel.findOne.mockResolvedValue(null);
 
-      const result = await service.refresh("invalid-refresh-token");
+      const mockResponse = {
+        header: jest.fn(),
+      };
+
+      const result = await service.refresh(
+        "invalid-refresh-token",
+        mockResponse as unknown as ExpressResponse,
+      );
 
       expect(mockUserModel.findOne).toHaveBeenCalledWith({ refreshToken: "invalid-refresh-token" });
       expect(result).toBeNull();

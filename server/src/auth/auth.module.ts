@@ -10,14 +10,10 @@ import { JwtRefreshTokenStrategy } from "./strategies/jwt-refresh-token.strategy
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { JwtRefreshTokenAuthGuard } from "./guards/jwt-refresh-token-auth.guard";
-import { BlacklistedToken, BlacklistedTokenSchema } from "./schemas/blacklisted-token.schema";
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: BlacklistedToken.name, schema: BlacklistedTokenSchema },
-    ]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     PassportModule,
     JwtModule.registerAsync({
       global: true,

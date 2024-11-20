@@ -5,7 +5,6 @@ import { User, UserDocument } from "./schemas/user.schema";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { Response } from "express";
-import { BlacklistedToken, BlacklistedTokenDocument } from "./schemas/blacklisted-token.schema";
 import { UserDto } from "./dto/user.dto";
 
 @Injectable()
@@ -13,8 +12,6 @@ export class AuthService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
-    @InjectModel(BlacklistedToken.name)
-    private blacklistedTokenModel: Model<BlacklistedTokenDocument>,
     private jwtService: JwtService,
   ) {}
 
@@ -88,18 +85,11 @@ export class AuthService {
     return tokenVersion;
   }
 
-  async blacklistToken(token: string, expiresAt: Date): Promise<void> {
-    await this.blacklistedTokenModel.create({ token, expiresAt });
-  }
-
-  async isTokenBlacklisted(token: string): Promise<boolean> {
-    const blacklistedToken = await this.blacklistedTokenModel.findOne({ token });
-    return !!blacklistedToken;
-  }
-
   async login(user: User, res: Response): Promise<UserDto> {
     const accessToken = await this.generateAccessToken(user);
     const refreshToken = await this.generateRefreshToken(user.id);
+
+    res.header("Authorization", `Bearer ${accessToken}`);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -113,7 +103,6 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
-      accessToken,
     };
   }
 
@@ -138,18 +127,20 @@ export class AuthService {
     });
   }
 
-  async refresh(refreshToken: string): Promise<UserDto | null> {
+  async refresh(refreshToken: string, res: Response): Promise<UserDto | null> {
     const user = await this.findByRefreshToken(refreshToken);
     if (!user) {
       return null;
     }
 
     const accessToken = await this.generateAccessToken(user);
+
+    res.header("Authorization", `Bearer ${accessToken}`);
+
     return {
       id: user.id,
       email: user.email,
       name: user.name,
-      accessToken,
     };
   }
 }
