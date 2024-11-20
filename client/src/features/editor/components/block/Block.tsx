@@ -4,7 +4,7 @@ import { BlockCRDT } from "@noctaCrdt/Crdt";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { motion } from "framer-motion";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useRef } from "react";
 import { useBlockAnimation } from "../../hooks/useBlockAnimtaion";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
