@@ -2,7 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { memo, useRef, useEffect } from "react";
+import { memo, useRef, useLayoutEffect } from "react";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
@@ -48,10 +48,10 @@ export const Block: React.FC<BlockProps> = memo(
       }
     };
 
-    requestAnimationFrame(() => {
+    useLayoutEffect(() => {
       // ✅ 추가
       setFocusAndCursor();
-    });
+    }, [isActive, block.crdt.currentCaret]);
 
     return (
       // TODO: eslint 규칙을 수정해야 할까?
