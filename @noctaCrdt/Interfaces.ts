@@ -1,6 +1,7 @@
 import { NodeId, BlockId, CharId } from "./NodeId";
 import { Block, Char } from "./Node";
 import { Page } from "./Page";
+import { EditorCRDT } from "./Crdt";
 
 export type ElementType = "p" | "h1" | "h2" | "h3" | "ul" | "ol" | "li" | "checkbox" | "blockquote";
 
@@ -15,7 +16,9 @@ export interface DeleteOperation {
 
 export interface RemoteBlockUpdateOperation {
   node: Block;
+  pageId: string;
 }
+
 export interface RemoteBlockInsertOperation {
   node: Block;
   pageId: string;
@@ -43,8 +46,7 @@ export interface CursorPosition {
   position: number;
 }
 
-export interface SerializedProps<T> {
-  // CRDT 직렬화라서 이름바꿔야함.
+export interface CRDTSerializedProps<T> {
   clock: number;
   client: number;
   LinkedList: {
@@ -53,6 +55,23 @@ export interface SerializedProps<T> {
   };
   currentBlock?: Block | null;
   currentCaret?: number | null;
+}
+
+export interface serializedEditorDataProps {
+  clock: number;
+  client: number;
+  LinkedList: {
+    head: NodeId | null;
+    nodeMap: { [key: string]: Block };
+  };
+  currentBlock: Block | null;
+}
+
+export interface serializedPageProps {
+  id: string;
+  title: string;
+  icon: string;
+  crdt: EditorCRDT;
 }
 
 export interface ReorderNodesProps {

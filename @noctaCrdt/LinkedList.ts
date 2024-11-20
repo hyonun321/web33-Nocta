@@ -27,6 +27,8 @@ export abstract class LinkedList<T extends Node<NodeId>> {
 
   deleteNode(id: T["id"]): void {
     const nodeToDelete = this.getNode(id);
+    console.log(this.nodeMap);
+    console.log("nodeToDelete", nodeToDelete, id);
     if (!nodeToDelete) return;
 
     if (this.head && id.equals(this.head)) {

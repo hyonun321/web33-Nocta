@@ -6,7 +6,7 @@ import {
   RemoteCharDeleteOperation,
   RemoteBlockInsertOperation,
   RemoteCharInsertOperation,
-  SerializedProps,
+  CRDTSerializedProps,
   RemoteReorderOperation,
 } from "./Interfaces";
 
@@ -49,7 +49,7 @@ export class CRDT<T extends Node<NodeId>> {
     return this.LinkedList.spread();
   }
 
-  serialize(): SerializedProps<T> {
+  serialize(): CRDTSerializedProps<T> {
     return {
       clock: this.clock,
       client: this.client,
@@ -92,7 +92,7 @@ export class EditorCRDT extends CRDT<Block> {
 
     const operation: RemoteBlockDeleteOperation = {
       targetId: nodeToDelete.id,
-      clock: this.clock + 1,
+      clock: this.clock,
       pageId,
     };
 
@@ -122,9 +122,10 @@ export class EditorCRDT extends CRDT<Block> {
   }
 
   remoteDelete(operation: RemoteBlockDeleteOperation): void {
+    const targetNodeId = new BlockId(operation.clock, operation.targetId.client);
     const { targetId, clock } = operation;
     if (targetId) {
-      this.LinkedList.deleteNode(targetId);
+      this.LinkedList.deleteNode(targetNodeId);
     }
     if (this.clock <= clock) {
       this.clock = clock + 1;
@@ -138,7 +139,7 @@ export class EditorCRDT extends CRDT<Block> {
   }): RemoteReorderOperation {
     const operation: RemoteReorderOperation = {
       ...params,
-      clock: this.clock + 1,
+      clock: this.clock,
       client: this.client,
     };
 
@@ -162,7 +163,7 @@ export class EditorCRDT extends CRDT<Block> {
     }
   }
 
-  serialize(): SerializedProps<Block> {
+  serialize(): CRDTSerializedProps<Block> {
     return {
       ...super.serialize(),
       currentBlock: this.currentBlock ? this.currentBlock.serialize() : null,
@@ -208,7 +209,7 @@ export class BlockCRDT extends CRDT<Char> {
 
     const operation: RemoteCharDeleteOperation = {
       targetId: nodeToDelete.id,
-      clock: this.clock + 1,
+      clock: this.clock,
       blockId,
     };
 
@@ -243,7 +244,7 @@ export class BlockCRDT extends CRDT<Char> {
     }
   }
 
-  serialize(): SerializedProps<Char> {
+  serialize(): CRDTSerializedProps<Char> {
     return {
       ...super.serialize(),
       currentCaret: this.currentCaret,
