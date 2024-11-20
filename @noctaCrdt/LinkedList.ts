@@ -21,7 +21,6 @@ export abstract class LinkedList<T extends Node<NodeId>> {
   }
 
   getNode(id: T["id"] | null): T | null {
-    console.log("id확인", id);
     if (!id) return null;
     return this.nodeMap[JSON.stringify(id)] || null;
   }
@@ -150,7 +149,7 @@ export abstract class LinkedList<T extends Node<NodeId>> {
   insertAtIndex(index: number, value: string, id: T["id"]): InsertOperation {
     try {
       const node = this.createNode(value, id);
-      // this.setNode(id, node);
+      this.setNode(id, node);
 
       if (!this.head || index <= 0) {
         node.next = this.head;
@@ -163,22 +162,21 @@ export abstract class LinkedList<T extends Node<NodeId>> {
         }
 
         this.head = id;
-      } else {
-        const prevNode = this.findByIndex(index - 1);
-        const nextNodeId = prevNode.next;
+        return { node };
+      }
 
-        node.next = nextNodeId;
-        node.prev = prevNode.id;
-        prevNode.next = id;
+      const prevNode = this.findByIndex(index - 1);
+      node.next = prevNode.next;
+      prevNode.next = id;
+      node.prev = prevNode.id;
 
-        if (nextNodeId) {
-          const nextNode = this.getNode(nextNodeId);
-          if (nextNode) {
-            nextNode.prev = id;
-          }
+      if (node.next) {
+        const nextNode = this.getNode(node.next);
+        if (nextNode) {
+          nextNode.prev = id;
         }
       }
-      this.setNode(id, node);
+
       return { node };
     } catch (e) {
       throw new Error(`InsertAtIndex failed: ${e}`);
@@ -254,8 +252,9 @@ export abstract class LinkedList<T extends Node<NodeId>> {
         break;
       }
       result.push(currentNode!);
-      currentNodeId = currentNode.next;
       prevNodeId = currentNodeId;
+      currentNodeId = currentNode.next;
+
       console.log("new currentNodeId", currentNodeId);
       if (count == 10) {
         break;

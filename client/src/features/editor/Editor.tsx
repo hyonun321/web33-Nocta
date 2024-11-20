@@ -60,6 +60,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     linkedList: editorCRDT.current.LinkedList,
     currentBlock: null as BlockId | null,
   });
+  console.log("clock", editorCRDT.current.clock);
 
   const { sensors, handleDragEnd } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
