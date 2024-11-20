@@ -16,14 +16,13 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
     const token = request.headers.authorization?.split(" ")[1];
-    let canActivate: boolean;
 
     // JWT 토큰 블랙리스트 확인
     if (token && (await this.authService.isTokenBlacklisted(token))) {
       throw new UnauthorizedException("Token is blacklisted");
     }
 
-    canActivate = (await super.canActivate(context)) as boolean;
+    const canActivate = (await super.canActivate(context)) as boolean;
 
     // Access Token의 tokenVersion과 사용자의 tokenVersion 일치 여부 확인
     const decodedToken = this.jwtService.decode(token) as { sub: string; tokenVersion: number };
