@@ -7,7 +7,6 @@ import {
   CursorPosition,
   WorkSpaceSerializedProps,
 } from "@noctaCrdt/Interfaces";
-import { PageSerializedProps } from "node_modules/@noctaCrdt/Page";
 
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
@@ -21,11 +20,15 @@ interface RemoteOperationHandlers {
   onRemoteCursor: (position: CursorPosition) => void;
 }
 
+interface PageOperationsHandlers {
+  onRemotePageCreate: (operation: string) => void;
+}
+
 // 훅의 반환 타입을 명시적으로 정의
 interface UseSocketReturn {
   socket: Socket | null;
   fetchWorkspaceData: () => WorkSpaceSerializedProps;
-  fetchPageData: () => PageSerializedProps;
+  sendPageCreateOperation: (operation: string) => void;
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
@@ -33,6 +36,7 @@ interface UseSocketReturn {
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => void;
   sendCursorPosition: (position: CursorPosition) => void;
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => (() => void) | undefined;
+  subscribeToPageOperations: (handlers: PageOperationsHandlers) => void;
 }
 
 // 반환 타입을 명시적으로 지정
@@ -81,6 +85,15 @@ export const useSocket = (): UseSocketReturn => {
     };
   }, []);
 
+  const fetchWorkspaceData = (): WorkSpaceSerializedProps => {
+    return workspace!;
+  };
+
+  const sendPageCreateOperation = (operation: string) => {
+    socketRef.current?.emit("create/page", operation);
+    console.log("페이지 만들기 송신", operation);
+  };
+
   const sendBlockInsertOperation = (operation: RemoteBlockInsertOperation) => {
     socketRef.current?.emit("insert/block", operation);
     console.log(operation);
@@ -117,7 +130,6 @@ export const useSocket = (): UseSocketReturn => {
     onRemoteCursor,
   }: RemoteOperationHandlers) => {
     if (!socketRef.current) return;
-    socketRef.current.on("fetch/page");
     socketRef.current.on("update/block", onRemoteBlockUpdate);
     socketRef.current.on("insert/block", onRemoteBlockInsert);
     socketRef.current.on("delete/block", onRemoteBlockDelete);
@@ -135,16 +147,15 @@ export const useSocket = (): UseSocketReturn => {
     };
   };
 
-  const fetchWorkspaceData = (): WorkSpaceSerializedProps => {
-    return workspace!;
+  const subscribeToPageOperations = ({ onRemotePageCreate }: PageOperationsHandlers) => {
+    if (!socketRef.current) return;
+    socketRef.current.on("create/page", onRemotePageCreate);
   };
 
-  const fetchPageData = (): PageSerializedProps => {};
-
   return {
-    fetchWorkspaceData,
-    fetchPageData,
     socket: socketRef.current,
+    fetchWorkspaceData,
+    sendPageCreateOperation,
     sendBlockUpdateOperation,
     sendBlockInsertOperation,
     sendCharInsertOperation,
@@ -152,5 +163,6 @@ export const useSocket = (): UseSocketReturn => {
     sendCharDeleteOperation,
     sendCursorPosition,
     subscribeToRemoteOperations,
+    subscribeToPageOperations,
   };
 };

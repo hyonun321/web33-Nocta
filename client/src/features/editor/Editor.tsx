@@ -10,6 +10,7 @@ import {
 } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSocket } from "@src/apis/useSocket.ts";
+import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 import { Block } from "./components/block/Block.tsx";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
@@ -28,6 +29,7 @@ export interface EditorStateProps {
 }
 // TODO: pageId, editorCRDT를 props로 받아와야함
 export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorProps) => {
+  /*
   const {
     sendCharInsertOperation,
     sendCharDeleteOperation,
@@ -36,6 +38,15 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
   } = useSocket();
+  */
+  const {
+    sendCharInsertOperation,
+    sendCharDeleteOperation,
+    subscribeToRemoteOperations,
+    sendBlockInsertOperation,
+    sendBlockDeleteOperation,
+    sendBlockUpdateOperation,
+  } = useSocketStore();
 
   const editorCRDTInstance = useMemo(() => {
     const editor = new EditorCRDT(serializedEditorData.client);
@@ -44,7 +55,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
   }, [serializedEditorData]);
 
   const editorCRDT = useRef<EditorCRDT>(editorCRDTInstance);
-
   const [editorState, setEditorState] = useState<EditorStateProps>({
     clock: editorCRDT.current.clock,
     linkedList: editorCRDT.current.LinkedList,

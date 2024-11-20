@@ -5,6 +5,7 @@ import { ErrorModal } from "@components/modal/ErrorModal";
 import { Sidebar } from "@components/sidebar/Sidebar";
 import { Page } from "@features/page/Page";
 import { useSocket } from "@src/apis/useSocket";
+import { useSocketStore } from "@src/stores/useSocketStore";
 import { workSpaceContainer, content } from "./WorkSpace.style";
 import { IntroScreen } from "./components/IntroScreen";
 import { usePagesManage } from "./hooks/usePagesManage";
@@ -13,24 +14,21 @@ import { useWorkspaceInit } from "./hooks/useWorkspaceInit";
 export const WorkSpace = () => {
   const [workspace, setWorkspace] = useState<WorkSpaceClass | null>(null);
   const { isLoading, isInitialized, error } = useWorkspaceInit();
-  const { socket, fetchWorkspaceData } = useSocket(); // TODO zustand로 변경
-
+  // const { socket, fetchWorkspaceData } = useSocket(); // TODO zustand로 변경
+  const { workspace: workspaceMetadata } = useSocketStore();
   const { pages, addPage, selectPage, closePage, updatePageTitle, initPages, initPagePosition } =
     usePagesManage();
   const visiblePages = pages.filter((page) => page.isVisible);
   useEffect(() => {
-    if (socket) {
-      const workspaceMetadata = fetchWorkspaceData();
-      if (workspaceMetadata) {
-        const newWorkspace = new WorkSpaceClass(workspaceMetadata.id, workspaceMetadata.pageList);
-        newWorkspace.deserialize(workspaceMetadata);
-        setWorkspace(newWorkspace);
+    if (workspaceMetadata) {
+      const newWorkspace = new WorkSpaceClass(workspaceMetadata.id, workspaceMetadata.pageList);
+      newWorkspace.deserialize(workspaceMetadata);
+      setWorkspace(newWorkspace);
 
-        initPages(newWorkspace.pageList);
-        initPagePosition();
-      }
+      initPages(newWorkspace.pageList);
+      initPagePosition();
     }
-  }, [socket]);
+  }, [workspaceMetadata]);
 
   // 에러화면
   if (error) {

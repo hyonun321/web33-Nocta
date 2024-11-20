@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSocket } from "@src/apis/useSocket";
+import { useSocketStore } from "@src/stores/useSocketStore";
 
 interface UseWorkspaceInitReturn {
   isLoading: boolean;
@@ -11,7 +11,7 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { socket } = useSocket();
+  const { socket } = useSocketStore();
 
   useEffect(() => {
     const initializeWorkspace = async () => {
