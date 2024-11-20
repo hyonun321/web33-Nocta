@@ -1,6 +1,12 @@
 import { EditorCRDT, BlockCRDT } from "@noctaCrdt/Crdt";
+import {
+  RemoteBlockInsertOperation,
+  RemoteBlockDeleteOperation,
+  RemoteBlockUpdateOperation,
+  RemoteCharInsertOperation,
+  RemoteCharDeleteOperation,
+} from "@noctaCrdt/Interfaces";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
-import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useCallback } from "react";
 import { EditorStateProps } from "@features/editor/Editor";
@@ -17,6 +23,11 @@ interface useMarkdownGrammerProps {
     }>
   >;
   pageId: string;
+  sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
+  sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => void;
+  sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => void;
+  sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
+  sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
 }
 
 export const useMarkdownGrammer = ({
@@ -24,14 +35,19 @@ export const useMarkdownGrammer = ({
   editorState,
   setEditorState,
   pageId,
+  sendBlockInsertOperation,
+  sendBlockDeleteOperation,
+  sendCharDeleteOperation,
+  sendCharInsertOperation,
+  sendBlockUpdateOperation,
 }: useMarkdownGrammerProps) => {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      const createNewBlock = (index: number): Block => {
-        const { node: newBlock } = editorCRDT.localInsert(index, "");
+      const createNewBlock = (index: number): RemoteBlockInsertOperation => {
+        const operation = editorCRDT.localInsert(index, "");
         // TODO: 블록 타입이 초기화가 안됨???
-        (newBlock as Block).type = "p";
-        return newBlock as Block;
+        operation.node.type = "p";
+        return operation;
       };
 
       const updateEditorState = (newBlockId: BlockId | null = null) => {
@@ -61,16 +77,22 @@ export const useMarkdownGrammer = ({
 
           if (!currentContent && currentBlock.type !== "p") {
             currentBlock.type = "p";
+            // TODO: Update요청
+            // remote update 보내기
+            sendBlockUpdateOperation({ node: currentBlock, pageId });
             updateEditorState();
             break;
           }
 
           if (!currentContent && currentBlock.type === "p") {
             // 새로운 기본 블록 생성
-            const newBlock = createNewBlock(currentIndex + 1);
-            newBlock.indent = currentBlock.indent;
-            newBlock.crdt = new BlockCRDT(editorCRDT.client);
-            updateEditorState(newBlock.id);
+            const operation = createNewBlock(currentIndex + 1);
+            operation.node.indent = currentBlock.indent;
+            operation.node.crdt = new BlockCRDT(editorCRDT.client);
+
+            sendBlockInsertOperation(operation);
+
+            updateEditorState(operation.node.id);
             break;
           }
 
@@ -78,27 +100,35 @@ export const useMarkdownGrammer = ({
           if (afterText) {
             // 캐럿 이후의 텍스트만 제거
             for (let i = currentContent.length - 1; i >= caretPosition; i--) {
-              currentBlock.crdt.localDelete(i, currentBlock.id);
+              // char remote delete 보내기
+              // currentBlock.crdt.localDelete(i, currentBlock.id);
+              sendCharDeleteOperation(currentBlock.crdt.localDelete(i, currentBlock.id));
             }
           }
 
           // 새 블록 생성
-          const newBlock = createNewBlock(currentIndex + 1);
-          newBlock.crdt = new BlockCRDT(editorCRDT.client);
-          newBlock.indent = currentBlock.indent;
+          const operation = createNewBlock(currentIndex + 1);
+          operation.node.crdt = new BlockCRDT(editorCRDT.client);
+          operation.node.indent = currentBlock.indent;
+          sendBlockInsertOperation(operation);
           // 캐럿 이후의 텍스트 있으면 새 블록에 추가
           if (afterText) {
             afterText.split("").forEach((char, i) => {
-              newBlock.crdt.localInsert(i, char, newBlock.id);
+              // char remote insert 보내기
+              // newBlock.crdt.localInsert(i, char, newBlock.id);
+              sendCharInsertOperation(operation.node.crdt.localInsert(i, char, operation.node.id));
             });
           }
 
           // 현재 블록이 li나 checkbox면 동일한 타입으로 생성
           if (["ul", "ol", "checkbox"].includes(currentBlock.type)) {
-            newBlock.type = currentBlock.type;
+            operation.node.type = currentBlock.type;
+            // TODO: Update요청
+            // remote update 보내기
+            sendBlockUpdateOperation({ node: operation.node, pageId });
           }
           // !! TODO socket.update
-          updateEditorState(newBlock.id);
+          updateEditorState(operation.node.id);
           break;
         }
 
@@ -108,6 +138,9 @@ export const useMarkdownGrammer = ({
             e.preventDefault();
             if (currentBlock.indent > 0) {
               currentBlock.indent -= 1;
+              // TODO: Update요청
+              // remote update 보내기
+              sendBlockUpdateOperation({ node: currentBlock, pageId });
               updateEditorState();
               break;
             }
@@ -115,6 +148,9 @@ export const useMarkdownGrammer = ({
             if (currentBlock.type !== "p") {
               // 마지막 블록이면 기본 블록으로 변경
               currentBlock.type = "p";
+              // TODO: Update요청
+              // remote update 보내기
+              sendBlockUpdateOperation({ node: currentBlock, pageId });
               updateEditorState();
               break;
             }
@@ -122,7 +158,9 @@ export const useMarkdownGrammer = ({
             const prevBlock =
               currentIndex > 0 ? editorCRDT.LinkedList.findByIndex(currentIndex - 1) : null;
             if (prevBlock) {
-              editorCRDT.localDelete(currentIndex, undefined, pageId);
+              // remote delete 보내기
+              // editorCRDT.localDelete(currentIndex, undefined, pageId);
+              sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
               prevBlock.crdt.currentCaret = prevBlock.crdt.read().length;
               editorCRDT.currentBlock = prevBlock;
               updateEditorState(prevBlock.id);
@@ -133,11 +171,17 @@ export const useMarkdownGrammer = ({
             if (currentCaret === 0) {
               if (currentBlock.indent > 0) {
                 currentBlock.indent -= 1;
+                // TODO: Update요청
+                // remote update 보내기
+                sendBlockUpdateOperation({ node: currentBlock, pageId });
                 updateEditorState();
                 break;
               }
               if (currentBlock.type !== "p") {
                 currentBlock.type = "p";
+                // TODO: Update요청
+                // remote update 보내기
+                sendBlockUpdateOperation({ node: currentBlock, pageId });
                 updateEditorState();
                 // FIX: 서윤님 피드백 반영
               } else {
@@ -146,10 +190,19 @@ export const useMarkdownGrammer = ({
                 if (prevBlock) {
                   const prevBlockEndCaret = prevBlock.crdt.read().length;
                   currentContent.split("").forEach((char) => {
-                    prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char, prevBlock.id);
+                    // char remote insert 보내기
+                    // prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char, prevBlock.id);
+                    sendCharInsertOperation(
+                      prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char, prevBlock.id),
+                    );
+                    sendCharDeleteOperation(
+                      currentBlock.crdt.localDelete(currentCaret, currentBlock.id),
+                    );
                   });
                   prevBlock.crdt.currentCaret = prevBlockEndCaret;
-                  editorCRDT.localDelete(currentIndex, undefined, pageId);
+                  // remote delete 보내기
+                  // editorCRDT.localDelete(currentIndex, undefined, pageId);
+                  sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
                   updateEditorState(prevBlock.id);
                   e.preventDefault();
                 }
@@ -167,6 +220,9 @@ export const useMarkdownGrammer = ({
               // shift + tab: 들여쓰기 감소
               if (currentBlock.indent > 0) {
                 currentBlock.indent -= 1;
+                // TODO: Update요청
+                // remote update 보내기
+                sendBlockUpdateOperation({ node: currentBlock, pageId });
                 updateEditorState(currentBlock.id);
               }
             } else {
@@ -175,6 +231,9 @@ export const useMarkdownGrammer = ({
               const maxIndent = 3;
               if (currentBlock.indent < maxIndent) {
                 currentBlock.indent += 1;
+                // TODO: Update요청
+                // remote update 보내기
+                sendBlockUpdateOperation({ node: currentBlock, pageId });
                 updateEditorState(currentBlock.id);
               }
             }
@@ -191,9 +250,14 @@ export const useMarkdownGrammer = ({
             currentBlock.type = markdownElement.type;
             let deleteCount = 0;
             while (deleteCount < markdownElement.length) {
-              currentBlock.crdt.localDelete(0, currentBlock.id);
+              // char remote delete 보내기
+              // currentBlock.crdt.localDelete(0, currentBlock.id);
+              sendCharDeleteOperation(currentBlock.crdt.localDelete(0, currentBlock.id));
               deleteCount += 1;
             }
+            // TODO: Update요청
+            // remote update 보내기
+            sendBlockUpdateOperation({ node: currentBlock, pageId });
             // !!TODO emit 송신
             currentBlock.crdt.currentCaret = 0;
             updateEditorState(currentBlock.id);
@@ -229,13 +293,13 @@ export const useMarkdownGrammer = ({
           const { currentCaret } = currentBlock.crdt;
           const textLength = currentBlock.crdt.read().length;
           if (e.key === "ArrowLeft" && currentCaret > 0) {
-            currentBlock.crdt.currentCaret = currentCaret - 1;
-            updateEditorState();
+            // currentBlock.crdt.currentCaret = currentCaret - 1;
+            currentBlock.crdt.currentCaret -= 1;
             break;
           }
           if (e.key === "ArrowRight" && currentCaret < textLength) {
-            currentBlock.crdt.currentCaret = currentCaret + 1;
-            updateEditorState();
+            // currentBlock.crdt.currentCaret = currentCaret + 1;
+            currentBlock.crdt.currentCaret += 1;
             break;
           }
           if (e.key === "ArrowLeft" && currentCaret === 0 && currentIndex > 0) {

@@ -4,7 +4,10 @@ import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { RemoteCharInsertOperation } from "node_modules/@noctaCrdt/Interfaces.ts";
+import {
+  RemoteCharInsertOperation,
+  serializedEditorDataProps,
+} from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSocket } from "@src/apis/useSocket.ts";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
@@ -15,7 +18,7 @@ import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 interface EditorProps {
   onTitleChange: (title: string) => void;
   pageId: string;
-  crdt: EditorCRDT;
+  serializedEditorData: serializedEditorDataProps;
 }
 
 export interface EditorStateProps {
@@ -24,15 +27,24 @@ export interface EditorStateProps {
   currentBlock: BlockId | null;
 }
 // TODO: pageId, editorCRDT를 props로 받아와야함
-export const Editor = ({ onTitleChange, pageId, crdt }: EditorProps) => {
-  const { sendCharInsertOperation, sendCharDeleteOperation, subscribeToRemoteOperations } =
-    useSocket();
+export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorProps) => {
+  const {
+    sendCharInsertOperation,
+    sendCharDeleteOperation,
+    subscribeToRemoteOperations,
+    sendBlockInsertOperation,
+    sendBlockDeleteOperation,
+    sendBlockUpdateOperation,
+  } = useSocket();
+
   const editorCRDTInstance = useMemo(() => {
-    const editor = new EditorCRDT(crdt.client);
-    editor.deserialize(crdt);
+    const editor = new EditorCRDT(serializedEditorData.client);
+    editor.deserialize(serializedEditorData);
     return editor;
-  }, [crdt]);
+  }, [serializedEditorData]);
+
   const editorCRDT = useRef<EditorCRDT>(editorCRDTInstance);
+
   const [editorState, setEditorState] = useState<EditorStateProps>({
     clock: editorCRDT.current.clock,
     linkedList: editorCRDT.current.LinkedList,
@@ -50,6 +62,11 @@ export const Editor = ({ onTitleChange, pageId, crdt }: EditorProps) => {
     editorState,
     setEditorState,
     pageId,
+    sendBlockInsertOperation,
+    sendBlockDeleteOperation,
+    sendBlockUpdateOperation,
+    sendCharDeleteOperation,
+    sendCharInsertOperation,
   });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,6 +178,7 @@ export const Editor = ({ onTitleChange, pageId, crdt }: EditorProps) => {
       },
 
       onRemoteCharInsert: (operation) => {
+        console.log(operation, "char : 입력 확인합니다이");
         if (!editorCRDT.current) return;
         const targetBlock =
           editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
@@ -187,7 +205,14 @@ export const Editor = ({ onTitleChange, pageId, crdt }: EditorProps) => {
       },
 
       onRemoteBlockUpdate: (operation) => {
-        console.log(operation, "새 블럭 업데이트 수신 ");
+        console.log(operation, "block : 업데이트 확인합니다이");
+        if (!editorCRDT.current) return;
+        editorCRDT.current.remoteUpdate(operation.node);
+        setEditorState((prev) => ({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+          currentBlock: prev.currentBlock,
+        }));
       },
       onRemoteCursor: (position) => {
         console.log(position, "커서위치 수신");
@@ -200,9 +225,13 @@ export const Editor = ({ onTitleChange, pageId, crdt }: EditorProps) => {
     };
   }, []);
 
-  console.log("editorState:", editorState);
   const tempBlock = () => {
-    editorCRDT.current.localInsert(editorCRDT.current.clock, "");
+    const index = editorCRDT.current.LinkedList.spread().length;
+
+    // 로컬 삽입을 수행하고 연산 객체를 반환받음
+    const operation = editorCRDT.current.localInsert(index, "");
+    sendBlockInsertOperation({ node: operation.node, pageId });
+
     setEditorState((prev) => ({
       clock: editorCRDT.current.clock,
       linkedList: editorCRDT.current.LinkedList,
