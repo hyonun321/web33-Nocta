@@ -23,7 +23,7 @@ export class CRDT<T extends Node<NodeId>> {
 
   localInsert(index: number, value: string, blockId?: BlockId) {}
 
-  localDelete(index: number, blockId?: BlockId) {}
+  localDelete(index: number, blockId?: BlockId, pageId?: string) {}
 
   remoteInsert(operation: RemoteBlockInsertOperation | RemoteCharInsertOperation) {}
 
@@ -47,6 +47,37 @@ export class CRDT<T extends Node<NodeId>> {
       },
     };
   }
+
+  deserialize(data: any): void {
+    this.clock = data.clock;
+    this.client = data.client;
+    this.LinkedList = this.deserializeLinkedList(data.LinkedList);
+  }
+
+  protected deserializeLinkedList(listData: any): LinkedList<T> {
+    const list = new LinkedList<T>();
+
+    if (listData.head) {
+      list.head = this.deserializeNodeId(listData.head);
+    }
+
+    list.nodeMap = {};
+    if (listData.nodeMap && typeof listData.nodeMap === "object") {
+      for (const [key, nodeData] of Object.entries(listData.nodeMap)) {
+        list.nodeMap[key] = this.deserializeNode(nodeData);
+      }
+    }
+
+    return list;
+  }
+
+  protected deserializeNodeId(idData: any): NodeId {
+    return new NodeId(idData.clock, idData.client);
+  }
+
+  protected deserializeNode(nodeData: any): T {
+    throw new Error("deserializeNode must be implemented in derived class");
+  }
 }
 
 export class EditorCRDT extends CRDT<Block> {
@@ -64,7 +95,7 @@ export class EditorCRDT extends CRDT<Block> {
     return { node: remoteInsertion.node } as RemoteBlockInsertOperation;
   }
 
-  localDelete(index: number): RemoteBlockDeleteOperation {
+  localDelete(index: number, blockId: undefined, pageId: string): RemoteBlockDeleteOperation {
     if (index < 0 || index >= this.LinkedList.spread().length) {
       throw new Error(`Invalid index: ${index}`);
     }
@@ -77,6 +108,7 @@ export class EditorCRDT extends CRDT<Block> {
     const operation: RemoteBlockDeleteOperation = {
       targetId: nodeToDelete.id,
       clock: this.clock + 1,
+      pageId,
     };
 
     this.LinkedList.deleteNode(nodeToDelete.id);
@@ -143,6 +175,45 @@ export class EditorCRDT extends CRDT<Block> {
     if (this.clock <= clock) {
       this.clock = clock + 1;
     }
+  }
+
+  override deserialize(editorData: any): void {
+    super.deserialize(editorData);
+
+    if (editorData.currentBlock) {
+      this.currentBlock = this.deserializeNode(editorData.currentBlock);
+    }
+  }
+
+  protected override deserializeNodeId(idData: any): BlockId {
+    return new BlockId(idData.clock, idData.client);
+  }
+
+  protected override deserializeNode(blockData: any): Block {
+    const blockId = new BlockId(blockData.id.clock, blockData.id.client);
+    const block = new Block("", blockId);
+
+    // BlockCRDT 복원
+    const blockCRDT = new BlockCRDT(blockData.crdt.client);
+    blockCRDT.deserialize(blockData.crdt);
+    block.crdt = blockCRDT;
+
+    // 연결 정보 복원
+    if (blockData.next) {
+      block.next = this.deserializeNodeId(blockData.next);
+    }
+    if (blockData.prev) {
+      block.prev = this.deserializeNodeId(blockData.prev);
+    }
+
+    // 추가 속성 복원
+    block.animation = blockData.animation || "none";
+    block.style = Array.isArray(blockData.style) ? blockData.style : [];
+    block.icon = blockData.icon || "";
+    block.type = blockData.type || "p";
+    block.indent = blockData.indent || 0;
+
+    return block;
   }
 }
 
@@ -211,5 +282,28 @@ export class BlockCRDT extends CRDT<Char> {
     if (this.clock <= clock) {
       this.clock = clock + 1;
     }
+  }
+
+  override deserialize(crdtData: any): void {
+    super.deserialize(crdtData);
+    this.currentCaret = crdtData.currentCaret;
+  }
+
+  protected override deserializeNodeId(idData: any): CharId {
+    return new CharId(idData.clock, idData.client);
+  }
+
+  protected override deserializeNode(charData: any): Char {
+    const charId = new CharId(charData.id.clock, charData.id.client);
+    const char = new Char(charData.value, charId);
+
+    if (charData.next) {
+      char.next = this.deserializeNodeId(charData.next);
+    }
+    if (charData.prev) {
+      char.prev = this.deserializeNodeId(charData.prev);
+    }
+
+    return char;
   }
 }

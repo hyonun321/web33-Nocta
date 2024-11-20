@@ -1,5 +1,6 @@
 import { NodeId, BlockId, CharId } from "./NodeId";
 import { Block, Char } from "./Node";
+import { Page } from "./Page";
 
 export type ElementType = "p" | "h1" | "h2" | "h3" | "ul" | "ol" | "li" | "checkbox" | "blockquote";
 
@@ -17,6 +18,7 @@ export interface RemoteBlockUpdateOperation {
 }
 export interface RemoteBlockInsertOperation {
   node: Block;
+  pageId: string;
 }
 
 export interface RemoteCharInsertOperation {
@@ -27,6 +29,7 @@ export interface RemoteCharInsertOperation {
 export interface RemoteBlockDeleteOperation {
   targetId: BlockId;
   clock: number;
+  pageId: string;
 }
 
 export interface RemoteCharDeleteOperation {
@@ -56,6 +59,11 @@ export interface ReorderNodesProps {
   afterId: BlockId | null;
 }
 
+export interface WorkSpaceSerializedProps {
+  id: string;
+  pageList: Page[];
+  authUser: Map<string, string>;
+}
 export interface RemoteReorderOperation {
   targetId: BlockId;
   beforeId: BlockId | null;

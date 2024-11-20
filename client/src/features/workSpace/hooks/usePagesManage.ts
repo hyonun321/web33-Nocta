@@ -1,10 +1,11 @@
+import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { useEffect, useState } from "react";
 import { Page } from "@src/types/page";
 
 const INIT_ICON = "📄";
 const PAGE_OFFSET = 60;
 
-export const usePagesManage = () => {
+export const usePagesManage = (list: CRDTPage[]) => {
   const [pages, setPages] = useState<Page[]>([]);
 
   const getZIndex = () => {
@@ -65,7 +66,27 @@ export const usePagesManage = () => {
     );
   };
 
+  const initPages = (list: CRDTPage[]) => {
+    const pageList: Page[] = [];
+    list.forEach((page) => {
+      const newPage = {
+        id: page.id,
+        title: page.title,
+        icon: page.icon,
+        x: 0,
+        y: 0,
+        zIndex: 0,
+        isActive: false,
+        isVisible: false,
+        editorCRDT: page.crdt,
+      };
+      pageList.push(newPage);
+    });
+    setPages((prev) => [...prev, ...pageList]);
+  };
+
   useEffect(() => {
+    initPages(list);
     initPagePosition();
   }, []);
 
@@ -75,5 +96,6 @@ export const usePagesManage = () => {
     selectPage,
     closePage,
     updatePageTitle,
+    initPages,
   };
 };

@@ -1,9 +1,9 @@
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { EditorCRDT } from "@noctaCrdt/Crdt";
-import { BlockLinkedList } from "@noctaCrdt/LinkedList";
+import { BlockCRDT, EditorCRDT } from "@noctaCrdt/Crdt";
+import { BlockLinkedList, TextLinkedList, LinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
-import { BlockId } from "@noctaCrdt/NodeId";
+import { BlockId, CharId } from "@noctaCrdt/NodeId";
 import { RemoteCharInsertOperation } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useSocket } from "@src/apis/useSocket.ts";
@@ -14,7 +14,8 @@ import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
-  isActive: boolean;
+  pageId: string;
+  editorCRDT: EditorCRDT;
 }
 
 export interface EditorStateProps {
@@ -23,24 +24,26 @@ export interface EditorStateProps {
   currentBlock: BlockId | null;
 }
 
-export const Editor = ({ onTitleChange, isActive }: EditorProps) => {
-  const editorCRDT = useRef<EditorCRDT>(new EditorCRDT(0));
+// TODO: pageId, editorCRDT를 props로 받아와야함
+export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
   const { sendCharInsertOperation, sendCharDeleteOperation, subscribeToRemoteOperations } =
     useSocket();
-  const [editorState, setEditorState] = useState<EditorStateProps>({
-    clock: editorCRDT.current.clock,
-    linkedList: editorCRDT.current.LinkedList,
-    currentBlock: null as BlockId | null,
+  const [editorState, setEditorState] = useState<EditorCRDT>(() => {
+    const editor = new EditorCRDT(editorCRDT.client);
+    editor.deserialize(editorCRDT);
+    return editor;
   });
 
+  console.log("처음 editorstate:", editorState, typeof editorCRDT);
+
   const { sensors, handleDragEnd } = useBlockDragAndDrop({
-    editorCRDT: editorCRDT.current,
+    editorCRDT,
     editorState,
     setEditorState,
   });
 
   const { handleKeyDown } = useMarkdownGrammer({
-    editorCRDT: editorCRDT.current,
+    editorCRDT,
     editorState,
     setEditorState,
   });
@@ -50,7 +53,7 @@ export const Editor = ({ onTitleChange, isActive }: EditorProps) => {
   };
 
   const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
-    const block = editorState.linkedList.getNode(blockId);
+    const block = editorState.LinkedList.getNode(blockId);
     if (!block) return;
 
     // 클릭된 요소 내에서의 위치를 가져오기 위해
@@ -109,48 +112,13 @@ export const Editor = ({ onTitleChange, isActive }: EditorProps) => {
       }
 
       setEditorState((prev) => ({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
+        clock: editorCRDT.clock,
+        linkedList: editorCRDT.LinkedList,
         currentBlock: prev.currentBlock,
       }));
     },
     [editorState.linkedList, sendCharInsertOperation, sendCharDeleteOperation],
   );
-
-  useEffect(() => {
-    if (isActive && editorState.currentBlock) {
-      const currentBlock = editorState.linkedList.getNode(editorState.currentBlock);
-      if (!currentBlock) return;
-
-      // currentBlock에 대한 Range 생성하고 캐럿 설정
-      const range = document.createRange();
-      const selection = window.getSelection();
-
-      if (selection) {
-        try {
-          const textNode = document.createTextNode(currentBlock.crdt.read());
-          range.setStart(textNode, currentBlock.crdt.currentCaret);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        } catch (error) {
-          console.error("Failed to set caret position:", error);
-        }
-      }
-    }
-  }, [isActive]);
-
-  useEffect(() => {
-    const initialBlock = new CRDTBlock("", new BlockId(0, 0));
-    editorCRDT.current.currentBlock = initialBlock;
-    editorCRDT.current.LinkedList.insertById(initialBlock);
-
-    setEditorState({
-      clock: editorCRDT.current.clock,
-      linkedList: editorCRDT.current.LinkedList,
-      currentBlock: initialBlock.id,
-    });
-  }, []);
 
   const subscriptionRef = useRef(false);
 
@@ -160,51 +128,29 @@ export const Editor = ({ onTitleChange, isActive }: EditorProps) => {
 
     const unsubscribe = subscribeToRemoteOperations({
       onRemoteBlockInsert: (operation) => {
-        console.log(operation, "block : 입력 확인합니다이");
-        if (!editorCRDT.current) return;
-        editorCRDT.current.remoteInsert(operation);
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
+        if (!editorCRDT) return;
+        editorCRDT.remoteInsert(operation);
+        setEditorState(editorCRDT);
       },
 
       onRemoteBlockDelete: (operation) => {
-        console.log(operation, "block : 삭제 확인합니다이");
-        if (!editorCRDT.current) return;
-        editorCRDT.current.remoteDelete(operation);
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
+        if (!editorCRDT) return;
+        editorCRDT.remoteDelete(operation);
+        setEditorState(editorCRDT);
       },
 
       onRemoteCharInsert: (operation) => {
-        if (!editorCRDT.current) return;
-        const targetBlock =
-          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+        if (!editorCRDT) return;
+        const targetBlock = editorCRDT.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteInsert(operation);
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
+        setEditorState(editorCRDT);
       },
 
       onRemoteCharDelete: (operation) => {
-        console.log(operation, "char : 삭제 확인합니다이");
-        if (!editorCRDT.current) return;
-        const targetBlock =
-          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
-
+        if (!editorCRDT) return;
+        const targetBlock = editorCRDT.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteDelete({ targetId: operation.targetId, clock: operation.clock });
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
+        setEditorState(editorCRDT);
       },
 
       onRemoteBlockUpdate: (operation) => {
@@ -221,8 +167,6 @@ export const Editor = ({ onTitleChange, isActive }: EditorProps) => {
     };
   }, []);
 
-  // console.log("block list", editorState.linkedList.spread());
-
   return (
     <div className={editorContainer}>
       <div className={editorTitleContainer}>
@@ -234,17 +178,17 @@ export const Editor = ({ onTitleChange, isActive }: EditorProps) => {
         />
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <SortableContext
-            items={editorState.linkedList
-              .spread()
-              .map((block) => `${block.id.client}-${block.id.clock}`)}
+            items={editorState.LinkedList.spread().map(
+              (block) => `${block.id.client}-${block.id.clock}`,
+            )}
             strategy={verticalListSortingStrategy}
           >
-            {editorState.linkedList.spread().map((block) => (
+            {editorState.LinkedList.spread().map((block) => (
               <Block
                 key={`${block.id.client}-${block.id.clock}`}
                 id={`${block.id.client}-${block.id.clock}`}
                 block={block}
-                isActive={block.id === editorState.currentBlock}
+                isActive={block.id === editorState.currentBlock?.id}
                 onInput={handleBlockInput}
                 onKeyDown={handleKeyDown}
                 onClick={handleBlockClick}

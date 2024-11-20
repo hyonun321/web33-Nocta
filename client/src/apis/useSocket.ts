@@ -5,10 +5,10 @@ import {
   RemoteCharDeleteOperation,
   RemoteBlockUpdateOperation,
   CursorPosition,
-  SerializedProps,
+  WorkSpaceSerializedProps,
 } from "@noctaCrdt/Interfaces";
-import { Block, Char } from "@noctaCrdt/Node";
-import { useEffect, useRef } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 // 구독 핸들러들의 타입 정의
 interface RemoteOperationHandlers {
@@ -23,6 +23,7 @@ interface RemoteOperationHandlers {
 // 훅의 반환 타입을 명시적으로 정의
 interface UseSocketReturn {
   socket: Socket | null;
+  fetchWorkspaceData: () => WorkSpaceSerializedProps;
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
@@ -35,7 +36,7 @@ interface UseSocketReturn {
 // 반환 타입을 명시적으로 지정
 export const useSocket = (): UseSocketReturn => {
   const socketRef = useRef<Socket | null>(null);
-
+  const [workspace, setWorkspace] = useState<WorkSpaceSerializedProps | null>(null);
   useEffect(() => {
     const SERVER_URL =
       process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://api.nocta.site";
@@ -52,9 +53,9 @@ export const useSocket = (): UseSocketReturn => {
       console.log("Assigned client ID:", clientId);
     });
 
-    socketRef.current.on("document", (document: SerializedProps<Block> | SerializedProps<Char>) => {
-      // 추후 확인 필요
-      console.log("Received initial document state:", document);
+    socketRef.current.on("workspace", (workspace: WorkSpaceSerializedProps) => {
+      console.log("Received initial workspace state:", workspace);
+      setWorkspace(workspace);
     });
 
     socketRef.current.on("connect", () => {
@@ -68,6 +69,8 @@ export const useSocket = (): UseSocketReturn => {
     socketRef.current.on("error", (error: Error) => {
       console.error("Socket error:", error);
     });
+
+    console.log("소켓 이벤트 on");
 
     return () => {
       if (socketRef.current) {
@@ -129,7 +132,12 @@ export const useSocket = (): UseSocketReturn => {
     };
   };
 
+  const fetchWorkspaceData = (): WorkSpaceSerializedProps => {
+    return workspace!;
+  };
+
   return {
+    fetchWorkspaceData,
     socket: socketRef.current,
     sendBlockUpdateOperation,
     sendBlockInsertOperation,

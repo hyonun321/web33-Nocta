@@ -1,5 +1,7 @@
+import { EditorCRDT } from "@noctaCrdt/Crdt";
+
 export interface Page {
-  id: number;
+  id: string;
   title: string;
   icon: string;
   x: number;
@@ -7,6 +9,7 @@ export interface Page {
   zIndex: number;
   isActive: boolean;
   isVisible: boolean;
+  editorCRDT: EditorCRDT;
 }
 
 export interface Position {

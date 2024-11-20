@@ -9,7 +9,7 @@ import {
   WsException,
 } from "@nestjs/websockets";
 import { Socket, Server } from "socket.io";
-import { CrdtService } from "./crdt.service";
+import { workSpaceService } from "./crdt.service";
 import {
   RemoteBlockDeleteOperation,
   RemoteCharDeleteOperation,
@@ -19,7 +19,6 @@ import {
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
 import { NodeId } from "@noctaCrdt/NodeId";
-import { Block, Char } from "@noctaCrdt/Node";
 
 // 클라이언트 맵 타입 정의
 interface ClientInfo {
@@ -45,7 +44,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private clientMap: Map<string, ClientInfo> = new Map();
   private guestMap;
   private guestIdCounter;
-  constructor(private readonly crdtService: CrdtService) {}
+  constructor(private readonly workSpaceService: workSpaceService) {}
 
   afterInit(server: Server) {
     this.server = server;
@@ -65,12 +64,13 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       // 클라이언트에게 ID 할당
       client.emit("assignId", assignedId);
-
       // 현재 문서 상태 전송
-      const currentCRDT = await this.crdtService.getCRDT().serialize();
-      client.emit("document", currentCRDT);
+      const currentWorkSpace = await this.workSpaceService.getWorkspace().serialize();
+      console.log(currentWorkSpace);
+      client.emit("workspace", currentWorkSpace);
 
       // 다른 클라이언트들에게 새 사용자 입장 알림
+
       client.broadcast.emit("userJoined", { clientId: assignedId });
 
       this.logger.log(`클라이언트 연결 성공 - Socket ID: ${client.id}, Client ID: ${assignedId}`);
@@ -123,9 +123,15 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
       // 클라이언트의 char 변경을 보고 char변경이 일어난 block정보를 나머지 client에게 broadcast한다.
 
-      await this.crdtService.handleInsert(data);
+      // block정보만 들어옴. block에는 Prev,next 정보가 다 있어서 어디에 들어갈지 안다.
+      // await this.workSpaceService.getWorkspace().handleInsert(data);
+      // 서버의 editorCRDT의 linkedList에 들어가야한다.
+      // EditorCRDT가 반영이 되야한다~
+      // 어디 workspace인지, 어디 페이지인지 확인한 후 블럭을 삽입해야 한다.
+
       console.log("블럭입니다", data);
-      const block = this.crdtService.getCRDT().LinkedList.getNode(data.node.id); // 변경이 일어난 block
+      // const block = this.workSpaceService.getCRDT().LinkedList.getNode(data.node.id); // 변경이 일어난 block
+      const block = "";
       client.broadcast.emit("insert/block", {
         operation: data,
         node: block,
@@ -156,14 +162,19 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      await this.crdtService.handleInsert(data);
+      // blockId 는 수신 받음
+      // 원하는 block에 char node 를 삽입해야함 이제.
+
+      const targetBlockCRDT = this.workSpaceService.getWorkspace();
+      // await this.workSpaceService.handleCharInsert(data);
       console.log("char:", data);
-      const char = this.crdtService.getCRDT().LinkedList.getNode(data.node.id); // 변경이 일어난 block
+      // const char = this.workSpaceService.getCRDT().LinkedList.getNode(data.node.id); // 변경이 일어난 block
       // !! TODO 블록 찾기
 
       // BlockCRDT
 
       // server는 EditorCRDT 없습니다. - BlockCRDT 로 사용되고있음.
+      const char = "";
       client.broadcast.emit("insert/char", {
         operation: data,
         node: char,
@@ -196,7 +207,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
 
       const deleteNode = new NodeId(data.clock, data.targetId.client);
-      await this.crdtService.handleDelete({ targetId: deleteNode, clock: data.clock });
+      // await this.workSpaceService.handleDelete({ targetId: deleteNode, clock: data.clock });
 
       client.broadcast.emit("delete", {
         ...data,
@@ -228,7 +239,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
 
       const deleteNode = new NodeId(data.clock, data.targetId.client);
-      await this.crdtService.handleDelete({ targetId: deleteNode, clock: data.clock }); // 얘도안됨
+      // await this.workSpaceService.handleDelete({ targetId: deleteNode, clock: data.clock }); // 얘도안됨
 
       client.broadcast.emit("delete/char", {
         ...data,
