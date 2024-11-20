@@ -10,7 +10,6 @@ export class WorkSpace {
     this.id = id;
     this.pageList = pageList;
     this.authUser = new Map();
-    // 직렬화, 역직렬화 메서드 추가
   }
 
   serialize(): WorkSpaceSerializedProps {
@@ -20,7 +19,19 @@ export class WorkSpace {
       authUser: this.authUser,
     };
   }
-  deserialize(): void {
-    return;
+
+  deserialize(data: WorkSpaceSerializedProps): void {
+    this.id = data.id;
+    this.pageList = data.pageList.map((pageData) => {
+      const page = new Page();
+      page.deserialize(pageData);
+      return page;
+    });
+    this.authUser = new Map(data.authUser);
+  }
+
+  getPage(data: string) {
+    const page = this.pageList.find((page) => page.id === data);
+    return page;
   }
 }
