@@ -23,34 +23,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
       throw new UnauthorizedException("Token is blacklisted");
     }
 
-    try {
-      // JWT 토큰 유효성 인증
-      canActivate = (await super.canActivate(context)) as boolean;
-    } catch (error) {
-      if (!(error.name === "TokenExpiredError" || request.body.refreshToken)) {
-        throw new UnauthorizedException("Invalid access token");
-      }
-
-      // Access Token 만료 시 Refresh Token으로 새로운 Access Token 발급
-      const { refreshToken } = request.cookies;
-      const isValid = await this.authService.validateRefreshToken(refreshToken);
-
-      if (!isValid) {
-        throw new UnauthorizedException("Invalid refresh token");
-      }
-
-      const user = await this.authService.findByRefreshToken(refreshToken);
-      const newAccessToken = this.authService.generateAccessToken(user);
-
-      // 응답 헤더에 새로운 Access Token 설정
-      response.setHeader("Authorization", `Bearer ${newAccessToken}`);
-
-      // 요청 헤더에 새로운 Access Token 설정
-      request.headers.authorization = `Bearer ${newAccessToken}`;
-
-      // 새로운 Access Token으로 다시 인증 시도
-      return (await super.canActivate(context)) as boolean;
-    }
+    canActivate = (await super.canActivate(context)) as boolean;
 
     // Access Token의 tokenVersion과 사용자의 tokenVersion 일치 여부 확인
     const decodedToken = this.jwtService.decode(token) as { sub: string; tokenVersion: number };
