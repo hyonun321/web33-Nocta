@@ -44,6 +44,7 @@ export const useMarkdownGrammer = ({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const createNewBlock = (index: number): RemoteBlockInsertOperation => {
+        console.log("createNewBlock");
         const operation = editorCRDT.localInsert(index, "");
         // TODO: 블록 타입이 초기화가 안됨???
         operation.node.type = "p";

@@ -2,6 +2,7 @@ import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useSocket } from "@src/apis/useSocket";
 import { Page } from "@src/types/page";
 
 const INIT_ICON = "📄";
@@ -9,6 +10,7 @@ const PAGE_OFFSET = 60;
 
 export const usePagesManage = () => {
   const [pages, setPages] = useState<Page[]>([]);
+  // const { sendPageOperation } = useSocket();
 
   const getZIndex = () => {
     return Math.max(0, ...pages.map((page) => page.zIndex)) + 1;

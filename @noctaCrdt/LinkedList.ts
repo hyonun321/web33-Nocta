@@ -21,6 +21,7 @@ export abstract class LinkedList<T extends Node<NodeId>> {
   }
 
   getNode(id: T["id"] | null): T | null {
+    console.log("id확인", id);
     if (!id) return null;
     return this.nodeMap[JSON.stringify(id)] || null;
   }
@@ -149,7 +150,7 @@ export abstract class LinkedList<T extends Node<NodeId>> {
   insertAtIndex(index: number, value: string, id: T["id"]): InsertOperation {
     try {
       const node = this.createNode(value, id);
-      this.setNode(id, node);
+      // this.setNode(id, node);
 
       if (!this.head || index <= 0) {
         node.next = this.head;
@@ -162,21 +163,22 @@ export abstract class LinkedList<T extends Node<NodeId>> {
         }
 
         this.head = id;
-        return { node };
-      }
+      } else {
+        const prevNode = this.findByIndex(index - 1);
+        const nextNodeId = prevNode.next;
 
-      const prevNode = this.findByIndex(index - 1);
-      node.next = prevNode.next;
-      prevNode.next = id;
-      node.prev = prevNode.id;
+        node.next = nextNodeId;
+        node.prev = prevNode.id;
+        prevNode.next = id;
 
-      if (node.next) {
-        const nextNode = this.getNode(node.next);
-        if (nextNode) {
-          nextNode.prev = id;
+        if (nextNodeId) {
+          const nextNode = this.getNode(nextNodeId);
+          if (nextNode) {
+            nextNode.prev = id;
+          }
         }
       }
-
+      this.setNode(id, node);
       return { node };
     } catch (e) {
       throw new Error(`InsertAtIndex failed: ${e}`);
@@ -236,16 +238,52 @@ export abstract class LinkedList<T extends Node<NodeId>> {
   }
 
   spread(): T[] {
+    let count = 0;
+    let currentNodeId = this.head;
+    console.log("nodemap", this.nodeMap);
+    const result: T[] = [];
+    let prevNodeId = null;
+    while (currentNodeId !== null) {
+      count += 1;
+      console.log("currentNodeId", currentNodeId);
+      const currentNode = this.getNode(currentNodeId);
+      console.log(currentNode);
+      if (!currentNode) break;
+      if (prevNodeId === currentNodeId) {
+        console.log("Loop detected:", currentNodeId, prevNodeId);
+        break;
+      }
+      result.push(currentNode!);
+      currentNodeId = currentNode.next;
+      prevNodeId = currentNodeId;
+      console.log("new currentNodeId", currentNodeId);
+      if (count == 10) {
+        break;
+      }
+    }
+    return result;
+  }
+
+  /*
+  spread(): T[] {
+    const visited = new Set<string>();
     let currentNodeId = this.head;
     const result: T[] = [];
+    
     while (currentNodeId !== null) {
+      const nodeKey = JSON.stringify(currentNodeId);
+      if (visited.has(nodeKey)) break; // 순환 감지
+      
+      visited.add(nodeKey);
       const currentNode = this.getNode(currentNodeId);
       if (!currentNode) break;
+      
       result.push(currentNode);
       currentNodeId = currentNode.next;
     }
     return result;
-  }
+}
+  */
 
   serialize(): any {
     return {
