@@ -1,17 +1,19 @@
 // hooks/useBlockDragAndDrop.ts
 import { DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-
-interface EditorState {
-  editor: EditorCRDT;
-}
+import { EditorStateProps } from "../Editor";
 
 interface UseBlockDragAndDropProps {
-  editorState: EditorState;
-  setEditorState: React.Dispatch<React.SetStateAction<EditorState>>;
+  editorCRDT: EditorCRDT;
+  editorState: EditorStateProps;
+  setEditorState: React.Dispatch<React.SetStateAction<EditorStateProps>>;
 }
 
-export const useBlockDragAndDrop = ({ editorState, setEditorState }: UseBlockDragAndDropProps) => {
+export const useBlockDragAndDrop = ({
+  editorCRDT,
+  editorState,
+  setEditorState,
+}: UseBlockDragAndDropProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -26,7 +28,7 @@ export const useBlockDragAndDrop = ({ editorState, setEditorState }: UseBlockDra
     if (!over || active.id === over.id) return;
 
     try {
-      const nodes = editorState.editor.LinkedList.spread();
+      const nodes = editorState.linkedList.spread();
 
       // ID 문자열에서 client와 clock 추출
       const parseNodeId = (idString: string): { client: number; clock: number } => {
@@ -71,14 +73,18 @@ export const useBlockDragAndDrop = ({ editorState, setEditorState }: UseBlockDra
       }
 
       // EditorCRDT의 현재 상태로 작업
-      editorState.editor.localReorder({
+      editorCRDT.localReorder({
         targetId: targetNode.id,
         beforeId: beforeNode?.id || null,
         afterId: afterNode?.id || null,
       });
 
       // EditorState 업데이트
-      setEditorState({ editor: editorState.editor });
+      setEditorState({
+        clock: editorCRDT.clock,
+        linkedList: editorCRDT.LinkedList,
+        currentBlock: editorState.currentBlock,
+      });
     } catch (error) {
       console.error("Failed to reorder blocks:", error);
     }

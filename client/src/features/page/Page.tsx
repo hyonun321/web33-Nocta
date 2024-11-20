@@ -66,7 +66,7 @@ export const Page = ({
             onPageMinimize={pageMinimize}
           />
         </div>
-        <Editor onTitleChange={onTitleChange} pageId="" editorCRDT={editorCRDT} />
+        <Editor onTitleChange={onTitleChange} pageId="" crdt={editorCRDT} />
         <motion.div
           className={resizeHandle}
           onMouseDown={pageResize}

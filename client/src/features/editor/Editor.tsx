@@ -5,7 +5,7 @@ import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { RemoteCharInsertOperation } from "node_modules/@noctaCrdt/Interfaces.ts";
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSocket } from "@src/apis/useSocket.ts";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 import { Block } from "./components/block/Block.tsx";
@@ -15,7 +15,7 @@ import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 interface EditorProps {
   onTitleChange: (title: string) => void;
   pageId: string;
-  editorCRDT: EditorCRDT;
+  crdt: EditorCRDT;
 }
 
 export interface EditorStateProps {
@@ -23,31 +23,30 @@ export interface EditorStateProps {
   linkedList: BlockLinkedList;
   currentBlock: BlockId | null;
 }
-
-interface EditorState {
-  editor: EditorCRDT;
-}
-
 // TODO: pageId, editorCRDT를 props로 받아와야함
-export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
+export const Editor = ({ onTitleChange, pageId, crdt }: EditorProps) => {
   const { sendCharInsertOperation, sendCharDeleteOperation, subscribeToRemoteOperations } =
     useSocket();
-  const [editorState, setEditorState] = useState<EditorState>(() => ({
-    editor: (() => {
-      const editor = new EditorCRDT(editorCRDT.client);
-      editor.deserialize(editorCRDT);
-      return editor;
-    })(),
-  }));
-
-  console.log("처음 editorstate:", editorState, typeof editorCRDT);
+  const editorCRDTInstance = useMemo(() => {
+    const editor = new EditorCRDT(crdt.client);
+    editor.deserialize(crdt);
+    return editor;
+  }, [crdt]);
+  const editorCRDT = useRef<EditorCRDT>(editorCRDTInstance);
+  const [editorState, setEditorState] = useState<EditorStateProps>({
+    clock: editorCRDT.current.clock,
+    linkedList: editorCRDT.current.LinkedList,
+    currentBlock: null as BlockId | null,
+  });
 
   const { sensors, handleDragEnd } = useBlockDragAndDrop({
+    editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
   });
 
   const { handleKeyDown } = useMarkdownGrammer({
+    editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
     pageId,
@@ -59,7 +58,7 @@ export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
 
   const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
     try {
-      const block = editorState.editor.LinkedList.getNode(blockId);
+      const block = editorState.linkedList.getNode(blockId);
       if (!block) {
         console.warn("Block not found:", blockId);
         return;
@@ -81,7 +80,10 @@ export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
       const caretPosition = selection.focusOffset;
       block.crdt.currentCaret = caretPosition;
 
-      setEditorState({ editor: editorState.editor });
+      setEditorState((prev) => ({
+        ...prev,
+        currentBlock: blockId,
+      }));
     } catch (error) {
       console.error("Error handling block click:", error);
     }
@@ -90,7 +92,6 @@ export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
   const handleBlockInput = useCallback(
     (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => {
       if (!block) return;
-
       let operationNode;
       const element = e.currentTarget;
       const newContent = element.textContent || "";
@@ -118,15 +119,16 @@ export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
         // 문자가 삭제된 경우
         operationNode = block.crdt.localDelete(caretPosition, block.id);
         block.crdt.currentCaret = caretPosition;
-        console.log("로컬 삭제 연산 송신", operationNode);
         sendCharDeleteOperation(operationNode);
       }
 
-      editorState.editor.clock = editorCRDT.clock;
-      editorState.editor.LinkedList.nodeMap[JSON.stringify(block.id)] = block;
-      setEditorState({ editor: editorState.editor });
+      setEditorState((prev) => ({
+        clock: editorCRDT.current.clock,
+        linkedList: editorCRDT.current.LinkedList,
+        currentBlock: prev.currentBlock,
+      }));
     },
-    [editorState.editor, sendCharInsertOperation, sendCharDeleteOperation, editorCRDT.clock],
+    [sendCharInsertOperation, sendCharDeleteOperation],
   );
 
   const subscriptionRef = useRef(false);
@@ -137,31 +139,51 @@ export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
 
     const unsubscribe = subscribeToRemoteOperations({
       onRemoteBlockInsert: (operation) => {
-        if (!editorCRDT) return;
-        editorState.editor.remoteInsert(operation);
-        setEditorState({ editor: editorCRDT });
+        console.log(operation, "block : 입력 확인합니다이");
+        if (!editorCRDT.current) return;
+        editorCRDT.current.remoteInsert(operation);
+        setEditorState((prev) => ({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+          currentBlock: prev.currentBlock,
+        }));
       },
 
       onRemoteBlockDelete: (operation) => {
-        if (!editorCRDT) return;
-        editorState.editor.remoteDelete(operation);
-        setEditorState({ editor: editorCRDT });
+        console.log(operation, "block : 삭제 확인합니다이");
+        if (!editorCRDT.current) return;
+        editorCRDT.current.remoteDelete(operation);
+        setEditorState((prev) => ({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+          currentBlock: prev.currentBlock,
+        }));
       },
 
       onRemoteCharInsert: (operation) => {
-        if (!editorCRDT) return;
+        if (!editorCRDT.current) return;
         const targetBlock =
-          editorState.editor.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteInsert(operation);
-        setEditorState({ editor: editorCRDT });
+        setEditorState((prev) => ({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+          currentBlock: prev.currentBlock,
+        }));
       },
 
       onRemoteCharDelete: (operation) => {
-        if (!editorCRDT) return;
+        console.log(operation, "char : 삭제 확인합니다이");
+        if (!editorCRDT.current) return;
         const targetBlock =
-          editorState.editor.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+
         targetBlock.crdt.remoteDelete({ targetId: operation.targetId, clock: operation.clock });
-        setEditorState({ editor: editorCRDT });
+        setEditorState((prev) => ({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+          currentBlock: prev.currentBlock,
+        }));
       },
 
       onRemoteBlockUpdate: (operation) => {
@@ -180,8 +202,12 @@ export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
 
   console.log("editorState:", editorState);
   const tempBlock = () => {
-    editorState.editor.localInsert(editorState.editor.LinkedList.spread().length, "");
-    setEditorState({ editor: editorState.editor });
+    editorCRDT.current.localInsert(editorCRDT.current.clock, "");
+    setEditorState((prev) => ({
+      clock: editorCRDT.current.clock,
+      linkedList: editorCRDT.current.LinkedList,
+      currentBlock: prev.currentBlock,
+    }));
   };
 
   return (
@@ -195,17 +221,17 @@ export const Editor = ({ onTitleChange, pageId, editorCRDT }: EditorProps) => {
         />
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <SortableContext
-            items={editorState.editor.LinkedList.spread().map(
-              (block) => `${block.id.client}-${block.id.clock}`,
-            )}
+            items={editorState.linkedList
+              .spread()
+              .map((block) => `${block.id.client}-${block.id.clock}`)}
             strategy={verticalListSortingStrategy}
           >
-            {editorState.editor.LinkedList.spread().map((block) => (
+            {editorState.linkedList.spread().map((block) => (
               <Block
                 key={`${block.id.client}-${block.id.clock}`}
                 id={`${block.id.client}-${block.id.clock}`}
                 block={block}
-                isActive={block.id === editorState.editor.currentBlock?.id}
+                isActive={block.id === editorState.currentBlock}
                 onInput={handleBlockInput}
                 onKeyDown={handleKeyDown}
                 onClick={handleBlockClick}
