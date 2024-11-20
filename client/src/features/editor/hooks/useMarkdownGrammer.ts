@@ -75,7 +75,7 @@ export const useMarkdownGrammer = ({
           if (afterText) {
             // 캐럿 이후의 텍스트만 제거
             for (let i = currentContent.length - 1; i >= caretPosition; i--) {
-              currentBlock.crdt.localDelete(i);
+              currentBlock.crdt.localDelete(i, currentBlock.id);
             }
           }
 
@@ -86,7 +86,7 @@ export const useMarkdownGrammer = ({
           // 캐럿 이후의 텍스트 있으면 새 블록에 추가
           if (afterText) {
             afterText.split("").forEach((char, i) => {
-              newBlock.crdt.localInsert(i, char);
+              newBlock.crdt.localInsert(i, char, newBlock.id);
             });
           }
 
@@ -94,6 +94,8 @@ export const useMarkdownGrammer = ({
           if (["ul", "ol", "checkbox"].includes(currentBlock.type)) {
             newBlock.type = currentBlock.type;
           }
+          // !! TODO socket.update
+
           updateEditorState(newBlock.id);
           break;
         }
@@ -142,7 +144,7 @@ export const useMarkdownGrammer = ({
                 if (prevBlock) {
                   const prevBlockEndCaret = prevBlock.crdt.read().length;
                   currentContent.split("").forEach((char) => {
-                    prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char);
+                    prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char, prevBlock.id);
                   });
                   prevBlock.crdt.currentCaret = prevBlockEndCaret;
                   editorCRDT.localDelete(currentIndex);
@@ -187,12 +189,14 @@ export const useMarkdownGrammer = ({
             currentBlock.type = markdownElement.type;
             let deleteCount = 0;
             while (deleteCount < markdownElement.length) {
-              currentBlock.crdt.localDelete(0);
+              currentBlock.crdt.localDelete(0, currentBlock.id);
               deleteCount += 1;
             }
+            // !!TODO emit 송신
             currentBlock.crdt.currentCaret = 0;
             updateEditorState(currentBlock.id);
           }
+
           break;
         }
 

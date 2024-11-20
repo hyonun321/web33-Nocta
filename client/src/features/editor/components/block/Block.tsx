@@ -12,7 +12,7 @@ interface BlockProps {
   id: string;
   block: CRDTBlock;
   isActive: boolean;
-  onInput: (e: React.FormEvent<HTMLDivElement>, blockId: BlockId) => void;
+  onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
 }
@@ -31,7 +31,7 @@ export const Block: React.FC<BlockProps> = memo(
     });
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
-      onInput(e, block.id);
+      onInput(e, block);
     };
 
     const setFocusAndCursor = () => {
