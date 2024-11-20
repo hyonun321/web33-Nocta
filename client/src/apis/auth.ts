@@ -2,6 +2,11 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useUserActions } from "@src/stores/useUserStore";
 import { unAuthorizationFetch, fetch } from "./axios";
 
+const authKey = {
+  all: ["auth"] as const,
+  refresh: () => [...authKey.all, "refresh"] as const,
+};
+
 export const useSignupMutation = (onSuccess: () => void) => {
   const fetcher = ({ name, email, password }: { name: string; email: string; password: string }) =>
     unAuthorizationFetch.post("/auth/register", { name, email, password });
@@ -50,7 +55,7 @@ export const useRefreshQuery = () => {
   const fetcher = () => fetch.get("/auth/refresh");
 
   return useQuery({
-    queryKey: ["refresh"],
+    queryKey: authKey.refresh(),
     queryFn: async () => {
       const response = await fetcher();
       const { accessToken } = response.data;
