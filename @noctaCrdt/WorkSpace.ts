@@ -27,7 +27,7 @@ export class WorkSpace {
       page.deserialize(pageData);
       return page;
     });
-    this.authUser = new Map(data.authUser);
+    this.authUser = new Map(Object.entries(data.authUser));
   }
 
   getPage(data: string) {
