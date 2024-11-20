@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useUserActions } from "@src/stores/useUserStore";
 import { unAuthorizationFetch, fetch } from "./axios";
 
@@ -34,6 +34,7 @@ export const useLoginMutation = (onSuccess: () => void) => {
     mutationFn: fetcher,
     onSuccess: (response) => {
       const { id, name, accessToken } = response.data;
+      console.log(accessToken);
       setUserInfo(id, name, accessToken);
       onSuccess();
     },
@@ -56,23 +57,18 @@ export const useLogoutMutation = (onSuccess: () => void) => {
   });
 };
 
-export const useRefreshMutation = () => {
-  const { updateAccessToken, removeUserInfo } = useUserActions();
+export const useRefreshQuery = () => {
+  const { updateAccessToken } = useUserActions();
 
-  const fetcher = () => {
-    // TODO 추후 그냥 fetch로 변경 (access token 넣어줘야함)
-    return unAuthorizationFetch.post("/auth/refresh");
-    // return fetch.post("/auth/refresh"); // refresh token은 알아서 보내질거임
-  };
-
-  return useMutation({
-    mutationFn: fetcher,
-    onSuccess: (response) => {
+  return useQuery({
+    queryKey: ["refresh"],
+    queryFn: () => fetch.get("/auth/refresh"),
+    enabled: false,
+    select: (response) => {
       const { accessToken } = response.data;
+      console.log(accessToken);
       updateAccessToken(accessToken);
-    },
-    onError: () => {
-      removeUserInfo();
+      return response.data;
     },
   });
 };
