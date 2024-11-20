@@ -83,7 +83,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get("logout")
+  @Post("logout")
   @ApiOperation({ summary: "Logout a user" })
   @ApiBearerAuth()
   @ApiCookieAuth("refreshToken")

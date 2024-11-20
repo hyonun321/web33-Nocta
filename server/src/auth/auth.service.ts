@@ -63,9 +63,11 @@ export class AuthService {
   }
 
   async generateAccessToken(user: User): Promise<string> {
-    const tokenVersion = user.tokenVersion + 1;
-    await this.userModel.updateOne({ id: user.id }, { tokenVersion });
-    return this.jwtService.sign({ sub: user.id, email: user.email, tokenVersion });
+    return this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      tokenVersion: await this.increaseTokenVersion(user),
+    });
   }
 
   async generateRefreshToken(id: string): Promise<string> {
@@ -78,6 +80,12 @@ export class AuthService {
     );
     await this.userModel.updateOne({ id }, { refreshToken });
     return refreshToken;
+  }
+
+  async increaseTokenVersion(user: User): Promise<number> {
+    const tokenVersion = user.tokenVersion + 1;
+    await this.userModel.updateOne({ id: user.id }, { tokenVersion });
+    return tokenVersion;
   }
 
   async blacklistToken(token: string, expiresAt: Date): Promise<void> {

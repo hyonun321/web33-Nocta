@@ -40,8 +40,7 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
       }
 
       const user = await this.authService.findByRefreshToken(refreshToken);
-
-      const newAccessToken = this.jwtService.sign({ id: user.id, email: user.email });
+      const newAccessToken = this.authService.generateAccessToken(user);
 
       // 응답 헤더에 새로운 Access Token 설정
       response.setHeader("Authorization", `Bearer ${newAccessToken}`);
