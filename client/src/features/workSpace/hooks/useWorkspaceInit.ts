@@ -1,5 +1,4 @@
-import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSocket } from "@src/apis/useSocket";
 
 interface UseWorkspaceInitReturn {

@@ -1,3 +1,4 @@
+import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 import { motion, AnimatePresence } from "framer-motion";
 import { Editor } from "@features/editor/Editor";
 import { Page as PageType } from "@src/types/page";
@@ -12,6 +13,7 @@ interface PageProps extends PageType {
   handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
   handlePageClose: (pageId: string) => void;
   handleTitleChange: (pageId: string, newTitle: string) => void;
+  serializedEditorData: serializedEditorDataProps;
 }
 
 export const Page = ({
@@ -24,7 +26,7 @@ export const Page = ({
   handlePageSelect,
   handlePageClose,
   handleTitleChange,
-  editorCRDT,
+  serializedEditorData,
 }: PageProps) => {
   const { position, size, pageDrag, pageResize, pageMinimize, pageMaximize } = usePage({ x, y });
 
@@ -66,7 +68,11 @@ export const Page = ({
             onPageMinimize={pageMinimize}
           />
         </div>
-        <Editor onTitleChange={onTitleChange} pageId="" crdt={editorCRDT} />
+        <Editor
+          onTitleChange={onTitleChange}
+          pageId={id}
+          serializedEditorData={serializedEditorData}
+        />
         <motion.div
           className={resizeHandle}
           onMouseDown={pageResize}

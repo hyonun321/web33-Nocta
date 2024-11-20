@@ -1,4 +1,4 @@
-import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
+import { WorkSpace as WorkSpaceClass } from "@noctaCrdt/WorkSpace";
 import { useState, useEffect } from "react";
 import { BottomNavigator } from "@components/bottomNavigator/BottomNavigator";
 import { ErrorModal } from "@components/modal/ErrorModal";
@@ -11,21 +11,33 @@ import { usePagesManage } from "./hooks/usePagesManage";
 import { useWorkspaceInit } from "./hooks/useWorkspaceInit";
 
 export const WorkSpace = () => {
+  const [workspace, setWorkspace] = useState<WorkSpaceClass | null>(null);
   const { isLoading, isInitialized, error } = useWorkspaceInit();
-  const { pages, addPage, selectPage, closePage, updatePageTitle, initPages } = usePagesManage([]);
-  const { socket, fetchWorkspaceData } = useSocket();
-  const visiblePages = pages.filter((page) => page.isVisible);
-  const workspace = fetchWorkspaceData();
-  useEffect(() => {
-    if (socket && workspace) {
-      initPages(workspace.pageList);
-    }
-  }, [socket, workspace]);
+  const { socket, fetchWorkspaceData } = useSocket(); // TODO zustand로 변경
 
+  const { pages, addPage, selectPage, closePage, updatePageTitle, initPages, initPagePosition } =
+    usePagesManage();
+  const visiblePages = pages.filter((page) => page.isVisible);
+  useEffect(() => {
+    if (socket) {
+      const workspaceMetadata = fetchWorkspaceData();
+      if (workspaceMetadata) {
+        const newWorkspace = new WorkSpaceClass(workspaceMetadata.id, workspaceMetadata.pageList);
+        newWorkspace.deserialize(workspaceMetadata);
+        setWorkspace(newWorkspace);
+
+        initPages(newWorkspace.pageList);
+        initPagePosition();
+      }
+    }
+  }, [socket]);
+
+  // 에러화면
   if (error) {
-    return <ErrorModal errorMessage="test" />;
+    return <ErrorModal errorMessage="서버와 연결할 수 없습니다." />;
   }
 
+  // 정상화면
   return (
     <>
       {isLoading && <IntroScreen />}
@@ -44,7 +56,6 @@ export const WorkSpace = () => {
               handlePageSelect={selectPage}
               handlePageClose={closePage}
               handleTitleChange={updatePageTitle}
-              editorCRDT={page.editorCRDT}
             />
           ))}
         </div>

@@ -1,4 +1,4 @@
-import { EditorCRDT } from "@noctaCrdt/Crdt";
+import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 
 export interface Page {
   id: string;
@@ -9,7 +9,7 @@ export interface Page {
   zIndex: number;
   isActive: boolean;
   isVisible: boolean;
-  editorCRDT: EditorCRDT;
+  serializedEditorData: serializedEditorDataProps;
 }
 
 export interface Position {

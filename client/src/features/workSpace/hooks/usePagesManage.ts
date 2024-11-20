@@ -7,7 +7,7 @@ import { Page } from "@src/types/page";
 const INIT_ICON = "📄";
 const PAGE_OFFSET = 60;
 
-export const usePagesManage = (list: CRDTPage[]) => {
+export const usePagesManage = () => {
   const [pages, setPages] = useState<Page[]>([]);
 
   const getZIndex = () => {
@@ -16,10 +16,11 @@ export const usePagesManage = (list: CRDTPage[]) => {
 
   const addPage = () => {
     const newPageIndex = pages.length;
-    const crdt = new EditorCRDT(pages[0].editorCRDT.client);
-    const newPage = new CRDTPage(crdt);
-    // TODO: 생성한 페이지 서버로 전송
-    // uuid 수정 -> 지금은 id로 똑같이 들어와서 에러 발생함
+    const crdt = new EditorCRDT(0); // 0 등의 아무값이여도 상관없음.
+    const newPage = new CRDTPage(uuidv4(), "Untitled", INIT_ICON, crdt);
+    const serializedEditorData = crdt.serialize();
+    // const {page} = sendPageOperation
+
     setPages((prevPages) => [
       ...prevPages.map((page) => ({ ...page, isActive: false })),
       {
@@ -31,8 +32,8 @@ export const usePagesManage = (list: CRDTPage[]) => {
         zIndex: getZIndex(),
         isActive: true,
         isVisible: true,
-        editorCRDT: crdt,
-      },
+        serializedEditorData,
+      } as Page,
     ]);
   };
 
@@ -73,26 +74,25 @@ export const usePagesManage = (list: CRDTPage[]) => {
   };
 
   const initPages = (list: CRDTPage[]) => {
-    const pageList: Page[] = [];
-    list.forEach((page) => {
-      const newPage = {
-        id: page.id,
-        title: page.title,
-        icon: page.icon,
-        x: 0,
-        y: 0,
-        zIndex: 0,
-        isActive: false,
-        isVisible: false,
-        editorCRDT: page.crdt,
-      };
-      pageList.push(newPage);
-    });
-    setPages((prev) => [...prev, ...pageList]);
+    const pageList: Page[] = list.map(
+      (crdtPage, index) =>
+        ({
+          id: crdtPage.id,
+          title: crdtPage.title,
+          icon: crdtPage.icon || INIT_ICON,
+          x: PAGE_OFFSET * index,
+          y: PAGE_OFFSET * index,
+          zIndex: index,
+          isActive: index === 0, // 첫 번째 페이지를 활성화
+          isVisible: true,
+          serializedEditorData: crdtPage.crdt.serialize(),
+        }) as Page,
+    );
+    setPages(pageList);
   };
 
   useEffect(() => {
-    initPages(list);
+    initPages([]);
     initPagePosition();
   }, []);
 
@@ -103,5 +103,6 @@ export const usePagesManage = (list: CRDTPage[]) => {
     closePage,
     updatePageTitle,
     initPages,
+    initPagePosition,
   };
 };
