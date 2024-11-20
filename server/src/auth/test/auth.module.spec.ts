@@ -27,6 +27,9 @@ describe("AuthModule", () => {
     if (!process.env.JWT_SECRET) {
       process.env.JWT_SECRET = "test-secret";
     }
+    if (!process.env.JWT_REFRESH_SECRET) {
+      process.env.JWT_REFRESH_SECRET = "test-secret";
+    }
 
     testingModule = await Test.createTestingModule({
       imports: [
