@@ -1,7 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { EditorCRDT } from "node_modules/@noctaCrdt/Crdt";
 import { Editor } from "@features/editor/Editor";
-import { useSocket } from "@src/apis/useSocket";
 import { Page as PageType } from "@src/types/page";
 import { pageAnimation, resizeHandleAnimation } from "./Page.animation";
 import { pageContainer, pageHeader, resizeHandle } from "./Page.style";

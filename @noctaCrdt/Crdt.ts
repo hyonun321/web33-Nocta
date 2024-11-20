@@ -1,4 +1,4 @@
-import { LinkedList } from "./LinkedList";
+import { LinkedList, BlockLinkedList, TextLinkedList } from "./LinkedList";
 import { CharId, BlockId, NodeId } from "./NodeId";
 import { Node, Char, Block } from "./Node";
 import {
@@ -15,19 +15,31 @@ export class CRDT<T extends Node<NodeId>> {
   client: number;
   LinkedList: LinkedList<T>;
 
-  constructor(client: number) {
+  constructor(client: number, LinkedListClass: new () => LinkedList<T>) {
     this.clock = 0;
     this.client = client;
-    this.LinkedList = new LinkedList<T>();
+    this.LinkedList = new LinkedListClass();
   }
 
-  localInsert(index: number, value: string, blockId?: BlockId) {}
+  localInsert(index: number, value: string, blockId?: BlockId): any {
+    // 기본 CRDT에서는 구현하지 않고, 하위 클래스에서 구현
+    throw new Error("Method not implemented.");
+  }
 
-  localDelete(index: number, blockId?: BlockId, pageId?: string) {}
+  localDelete(index: number, blockId?: BlockId, pageId?: string): any {
+    // 기본 CRDT에서는 구현하지 않고, 하위 클래스에서 구현
+    throw new Error("Method not implemented.");
+  }
 
-  remoteInsert(operation: RemoteBlockInsertOperation | RemoteCharInsertOperation) {}
+  remoteInsert(operation: any): void {
+    // 기본 CRDT에서는 구현하지 않고, 하위 클래스에서 구현
+    throw new Error("Method not implemented.");
+  }
 
-  remoteDelete(operation: RemoteBlockDeleteOperation | RemoteCharDeleteOperation) {}
+  remoteDelete(operation: any): void {
+    // 기본 CRDT에서는 구현하지 않고, 하위 클래스에서 구현
+    throw new Error("Method not implemented.");
+  }
 
   read(): string {
     return this.LinkedList.stringify();
@@ -41,50 +53,23 @@ export class CRDT<T extends Node<NodeId>> {
     return {
       clock: this.clock,
       client: this.client,
-      LinkedList: {
-        head: this.LinkedList.head,
-        nodeMap: this.LinkedList.nodeMap || {},
-      },
+      LinkedList: this.LinkedList.serialize(),
     };
   }
 
   deserialize(data: any): void {
     this.clock = data.clock;
     this.client = data.client;
-    this.LinkedList = this.deserializeLinkedList(data.LinkedList);
-  }
-
-  protected deserializeLinkedList(listData: any): LinkedList<T> {
-    const list = new LinkedList<T>();
-
-    if (listData.head) {
-      list.head = this.deserializeNodeId(listData.head);
-    }
-
-    list.nodeMap = {};
-    if (listData.nodeMap && typeof listData.nodeMap === "object") {
-      for (const [key, nodeData] of Object.entries(listData.nodeMap)) {
-        list.nodeMap[key] = this.deserializeNode(nodeData);
-      }
-    }
-
-    return list;
-  }
-
-  protected deserializeNodeId(idData: any): NodeId {
-    return new NodeId(idData.clock, idData.client);
-  }
-
-  protected deserializeNode(nodeData: any): T {
-    throw new Error("deserializeNode must be implemented in derived class");
+    this.LinkedList.deserialize(data.LinkedList);
   }
 }
 
+// EditorCRDT 클래스: 블록을 관리
 export class EditorCRDT extends CRDT<Block> {
   currentBlock: Block | null;
 
   constructor(client: number) {
-    super(client);
+    super(client, BlockLinkedList);
     this.currentBlock = null;
   }
 
@@ -177,51 +162,25 @@ export class EditorCRDT extends CRDT<Block> {
     }
   }
 
-  override deserialize(editorData: any): void {
-    super.deserialize(editorData);
-
-    if (editorData.currentBlock) {
-      this.currentBlock = this.deserializeNode(editorData.currentBlock);
-    }
+  serialize(): SerializedProps<Block> {
+    return {
+      ...super.serialize(),
+      currentBlock: this.currentBlock ? this.currentBlock.serialize() : null,
+    };
   }
 
-  protected override deserializeNodeId(idData: any): BlockId {
-    return new BlockId(idData.clock, idData.client);
-  }
-
-  protected override deserializeNode(blockData: any): Block {
-    const blockId = new BlockId(blockData.id.clock, blockData.id.client);
-    const block = new Block("", blockId);
-
-    // BlockCRDT 복원
-    const blockCRDT = new BlockCRDT(blockData.crdt.client);
-    blockCRDT.deserialize(blockData.crdt);
-    block.crdt = blockCRDT;
-
-    // 연결 정보 복원
-    if (blockData.next) {
-      block.next = this.deserializeNodeId(blockData.next);
-    }
-    if (blockData.prev) {
-      block.prev = this.deserializeNodeId(blockData.prev);
-    }
-
-    // 추가 속성 복원
-    block.animation = blockData.animation || "none";
-    block.style = Array.isArray(blockData.style) ? blockData.style : [];
-    block.icon = blockData.icon || "";
-    block.type = blockData.type || "p";
-    block.indent = blockData.indent || 0;
-
-    return block;
+  deserialize(data: any): void {
+    super.deserialize(data);
+    this.currentBlock = data.currentBlock ? Block.deserialize(data.currentBlock) : null;
   }
 }
 
+// BlockCRDT 클래스: 문자(Char)를 관리
 export class BlockCRDT extends CRDT<Char> {
   currentCaret: number;
 
   constructor(client: number) {
-    super(client);
+    super(client, TextLinkedList);
     this.currentCaret = 0;
   }
 
@@ -284,26 +243,23 @@ export class BlockCRDT extends CRDT<Char> {
     }
   }
 
-  override deserialize(crdtData: any): void {
-    super.deserialize(crdtData);
-    this.currentCaret = crdtData.currentCaret;
+  serialize(): SerializedProps<Char> {
+    return {
+      ...super.serialize(),
+      currentCaret: this.currentCaret,
+    };
   }
 
-  protected override deserializeNodeId(idData: any): CharId {
-    return new CharId(idData.clock, idData.client);
+  static deserialize(data: any): BlockCRDT {
+    const crdt = new BlockCRDT(data.client);
+    crdt.clock = data.clock;
+    crdt.LinkedList.deserialize(data.LinkedList);
+    crdt.currentCaret = data.currentCaret;
+    return crdt;
   }
 
-  protected override deserializeNode(charData: any): Char {
-    const charId = new CharId(charData.id.clock, charData.id.client);
-    const char = new Char(charData.value, charId);
-
-    if (charData.next) {
-      char.next = this.deserializeNodeId(charData.next);
-    }
-    if (charData.prev) {
-      char.prev = this.deserializeNodeId(charData.prev);
-    }
-
-    return char;
+  deserialize(data: any): void {
+    super.deserialize(data);
+    this.currentCaret = data.currentCaret;
   }
 }

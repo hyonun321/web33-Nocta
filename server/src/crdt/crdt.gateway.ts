@@ -18,7 +18,7 @@ import {
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
-import { NodeId } from "@noctaCrdt/NodeId";
+import { BlockId, CharId } from "@noctaCrdt/NodeId";
 
 // 클라이언트 맵 타입 정의
 interface ClientInfo {
@@ -206,7 +206,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const deleteNode = new NodeId(data.clock, data.targetId.client);
+      const deleteNode = new BlockId(data.clock, data.targetId.client);
       // await this.workSpaceService.handleDelete({ targetId: deleteNode, clock: data.clock });
 
       client.broadcast.emit("delete", {
@@ -238,7 +238,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const deleteNode = new NodeId(data.clock, data.targetId.client);
+      const deleteNode = new CharId(data.clock, data.targetId.client);
       // await this.workSpaceService.handleDelete({ targetId: deleteNode, clock: data.clock }); // 얘도안됨
 
       client.broadcast.emit("delete/char", {

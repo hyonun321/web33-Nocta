@@ -1,52 +1,48 @@
 import { EditorCRDT, BlockCRDT } from "@noctaCrdt/Crdt";
-import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useCallback } from "react";
-import { EditorStateProps } from "@features/editor/Editor";
 import { checkMarkdownPattern } from "@src/features/editor/utils/markdownPatterns";
 
-interface useMarkdownGrammerProps {
-  editorCRDT: EditorCRDT;
-  editorState: EditorStateProps;
-  setEditorState: React.Dispatch<
-    React.SetStateAction<{
-      clock: number;
-      linkedList: BlockLinkedList;
-      currentBlock: BlockId | null;
-    }>
-  >;
+interface EditorState {
+  editor: EditorCRDT;
 }
+
+interface UseMarkdownGrammerProps {
+  editorState: EditorState;
+  setEditorState: React.Dispatch<React.SetStateAction<EditorState>>;
+  pageId: string; // pageId 추가
+}
+
 export const useMarkdownGrammer = ({
-  editorCRDT,
   editorState,
   setEditorState,
-}: useMarkdownGrammerProps) => {
+  pageId,
+}: UseMarkdownGrammerProps) => {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const createNewBlock = (index: number): Block => {
-        const { node: newBlock } = editorCRDT.localInsert(index, "");
+        const { node: newBlock } = editorState.editor.localInsert(index, "");
         // TODO: 블록 타입이 초기화가 안됨???
         (newBlock as Block).type = "p";
         return newBlock as Block;
       };
 
       const updateEditorState = (newBlockId: BlockId | null = null) => {
-        setEditorState((prev) => ({
-          clock: editorCRDT.clock,
-          linkedList: editorCRDT.LinkedList,
-          currentBlock: newBlockId || prev.currentBlock,
-        }));
+        if (newBlockId) {
+          editorState.editor.currentBlock = editorState.editor.LinkedList.getNode(newBlockId);
+        }
+        setEditorState({ editor: editorState.editor });
       };
 
-      const currentBlockId = editorState.currentBlock;
+      const currentBlockId = editorState.editor.currentBlock;
       if (!currentBlockId) return;
 
-      const currentBlock = editorCRDT.LinkedList.getNode(currentBlockId);
+      const { currentBlock } = editorState.editor;
       if (!currentBlock) return;
 
-      const currentIndex = editorCRDT.LinkedList.spread().findIndex((block) =>
-        block.id.equals(currentBlockId),
+      const currentIndex = editorState.editor.LinkedList.spread().findIndex((block) =>
+        block.id.equals(currentBlock.id),
       );
 
       switch (e.key) {
@@ -66,7 +62,7 @@ export const useMarkdownGrammer = ({
             // 새로운 기본 블록 생성
             const newBlock = createNewBlock(currentIndex + 1);
             newBlock.indent = currentBlock.indent;
-            newBlock.crdt = new BlockCRDT(editorCRDT.client);
+            newBlock.crdt = new BlockCRDT(editorState.editor.client);
             updateEditorState(newBlock.id);
             break;
           }
@@ -81,7 +77,7 @@ export const useMarkdownGrammer = ({
 
           // 새 블록 생성
           const newBlock = createNewBlock(currentIndex + 1);
-          newBlock.crdt = new BlockCRDT(editorCRDT.client);
+          newBlock.crdt = new BlockCRDT(editorState.editor.client);
           newBlock.indent = currentBlock.indent;
           // 캐럿 이후의 텍스트 있으면 새 블록에 추가
           if (afterText) {
@@ -95,7 +91,6 @@ export const useMarkdownGrammer = ({
             newBlock.type = currentBlock.type;
           }
           // !! TODO socket.update
-
           updateEditorState(newBlock.id);
           break;
         }
@@ -118,11 +113,11 @@ export const useMarkdownGrammer = ({
             }
 
             const prevBlock =
-              currentIndex > 0 ? editorCRDT.LinkedList.findByIndex(currentIndex - 1) : null;
+              currentIndex > 0 ? editorState.editor.LinkedList.findByIndex(currentIndex - 1) : null;
             if (prevBlock) {
-              editorCRDT.localDelete(currentIndex);
+              editorState.editor.localDelete(currentIndex, undefined, pageId);
               prevBlock.crdt.currentCaret = prevBlock.crdt.read().length;
-              editorCRDT.currentBlock = prevBlock;
+              editorState.editor.currentBlock = prevBlock;
               updateEditorState(prevBlock.id);
             }
             break;
@@ -140,14 +135,16 @@ export const useMarkdownGrammer = ({
                 // FIX: 서윤님 피드백 반영
               } else {
                 const prevBlock =
-                  currentIndex > 0 ? editorCRDT.LinkedList.findByIndex(currentIndex - 1) : null;
+                  currentIndex > 0
+                    ? editorState.editor.LinkedList.findByIndex(currentIndex - 1)
+                    : null;
                 if (prevBlock) {
                   const prevBlockEndCaret = prevBlock.crdt.read().length;
                   currentContent.split("").forEach((char) => {
                     prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char, prevBlock.id);
                   });
                   prevBlock.crdt.currentCaret = prevBlockEndCaret;
-                  editorCRDT.localDelete(currentIndex);
+                  editorState.editor.localDelete(currentIndex, undefined, pageId);
                   updateEditorState(prevBlock.id);
                   e.preventDefault();
                 }
@@ -203,7 +200,7 @@ export const useMarkdownGrammer = ({
         case "ArrowUp":
         case "ArrowDown": {
           e.preventDefault();
-          const blocks = editorCRDT.LinkedList.spread();
+          const blocks = editorState.editor.LinkedList.spread();
           // 이전/다음 블록 존재 여부 확인
           const hasPrevBlock = currentIndex > 0;
           const hasNextBlock = currentIndex < blocks.length - 1;
@@ -237,7 +234,7 @@ export const useMarkdownGrammer = ({
             break;
           }
           if (e.key === "ArrowLeft" && currentCaret === 0 && currentIndex > 0) {
-            const prevBlock = editorCRDT.LinkedList.findByIndex(currentIndex - 1);
+            const prevBlock = editorState.editor.LinkedList.findByIndex(currentIndex - 1);
             if (prevBlock) {
               prevBlock.crdt.currentCaret = prevBlock.crdt.read().length;
               updateEditorState(prevBlock.id);
@@ -246,7 +243,7 @@ export const useMarkdownGrammer = ({
           }
           if (e.key === "ArrowRight" && currentCaret === textLength) {
             // TODO: 다음 블록 없을 때 처리 crdt에 추가
-            const nextBlock = editorCRDT.LinkedList.findByIndex(currentIndex + 1);
+            const nextBlock = editorState.editor.LinkedList.findByIndex(currentIndex + 1);
             if (nextBlock) {
               nextBlock.crdt.currentCaret = 0;
               updateEditorState(nextBlock.id);
@@ -256,7 +253,7 @@ export const useMarkdownGrammer = ({
         }
       }
     },
-    [editorCRDT, editorState, setEditorState],
+    [editorState, setEditorState, pageId],
   );
 
   return { handleKeyDown };

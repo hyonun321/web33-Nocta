@@ -1,5 +1,7 @@
+import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { Page } from "@src/types/page";
 
 const INIT_ICON = "📄";
@@ -14,23 +16,27 @@ export const usePagesManage = (list: CRDTPage[]) => {
 
   const addPage = () => {
     const newPageIndex = pages.length;
-
+    const crdt = new EditorCRDT(pages[0].editorCRDT.client);
+    const newPage = new CRDTPage(crdt);
+    // TODO: 생성한 페이지 서버로 전송
+    // uuid 수정 -> 지금은 id로 똑같이 들어와서 에러 발생함
     setPages((prevPages) => [
       ...prevPages.map((page) => ({ ...page, isActive: false })),
       {
-        id: newPageIndex,
-        title: `Page ${newPageIndex + 1}`,
-        icon: INIT_ICON,
+        id: uuidv4(),
+        title: newPage.title,
+        icon: newPage.icon || INIT_ICON,
         x: PAGE_OFFSET * newPageIndex,
         y: PAGE_OFFSET * newPageIndex,
         zIndex: getZIndex(),
         isActive: true,
         isVisible: true,
+        editorCRDT: crdt,
       },
     ]);
   };
 
-  const selectPage = ({ pageId }: { pageId: number }) => {
+  const selectPage = ({ pageId }: { pageId: string }) => {
     setPages((prevPages) =>
       prevPages.map((page) => ({
         ...page,
@@ -43,13 +49,13 @@ export const usePagesManage = (list: CRDTPage[]) => {
     );
   };
 
-  const closePage = (pageId: number) => {
+  const closePage = (pageId: string) => {
     setPages((prevPages) =>
       prevPages.map((page) => (page.id === pageId ? { ...page, isVisible: false } : page)),
     );
   };
 
-  const updatePageTitle = (pageId: number, newTitle: string) => {
+  const updatePageTitle = (pageId: string, newTitle: string) => {
     setPages((prevPages) =>
       prevPages.map((page) => (page.id === pageId ? { ...page, title: newTitle } : page)),
     );

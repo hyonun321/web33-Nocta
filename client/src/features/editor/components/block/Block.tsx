@@ -1,9 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { BlockCRDT } from "@noctaCrdt/Crdt";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { memo, useRef } from "react";
+import { memo, useRef, useEffect } from "react";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
@@ -19,7 +18,7 @@ interface BlockProps {
 
 export const Block: React.FC<BlockProps> = memo(
   ({ id, block, isActive, onInput, onKeyDown, onClick }: BlockProps) => {
-    const textCRDT = useRef<BlockCRDT>(block.crdt);
+    // const textCRDT = useRef<BlockCRDT>(block.crdt);
     const blockRef = useRef<HTMLDivElement>(null);
 
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -41,7 +40,7 @@ export const Block: React.FC<BlockProps> = memo(
         const range = document.createRange();
         const content =
           blockRef.current.firstChild || blockRef.current.appendChild(document.createTextNode(""));
-        const position = Math.min(textCRDT.current.currentCaret, content.textContent?.length || 0);
+        const position = Math.min(block.crdt.currentCaret, content.textContent?.length || 0);
         range.setStart(content, position);
         range.collapse(true);
         selection.removeAllRanges();

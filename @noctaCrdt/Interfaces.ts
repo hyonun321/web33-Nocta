@@ -51,6 +51,8 @@ export interface SerializedProps<T> {
     head: NodeId | null;
     nodeMap: { [key: string]: T };
   };
+  currentBlock?: Block | null;
+  currentCaret?: number | null;
 }
 
 export interface ReorderNodesProps {
