@@ -1,5 +1,5 @@
-import { useUserActions } from "@stores/useUserStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useUserActions } from "@stores/useUserStore";
 import { unAuthorizationFetch, fetch } from "./axios";
 
 const authKey = {
@@ -28,7 +28,8 @@ export const useLoginMutation = (onSuccess: () => void) => {
   return useMutation({
     mutationFn: fetcher,
     onSuccess: (response) => {
-      const { id, name, accessToken } = response.data;
+      const { id, name } = response.data;
+      const [, accessToken] = response.headers.authorization.split(" ");
       setUserInfo(id, name, accessToken);
       onSuccess();
     },
@@ -58,8 +59,10 @@ export const useRefreshQuery = () => {
     queryKey: authKey.refresh(),
     queryFn: async () => {
       const response = await fetcher();
-      const { accessToken } = response.data;
+
+      const [, accessToken] = response.headers.authorization.split(" ");
       updateAccessToken(accessToken);
+
       return response.data;
     },
     enabled: false,

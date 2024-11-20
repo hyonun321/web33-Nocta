@@ -1,6 +1,6 @@
+import axios, { AxiosError, CreateAxiosDefaults, InternalAxiosRequestConfig } from "axios";
 import { useErrorStore } from "@stores/useErrorStore";
 import { useUserStore } from "@stores/useUserStore";
-import axios, { AxiosError, CreateAxiosDefaults, InternalAxiosRequestConfig } from "axios";
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -82,7 +82,8 @@ fetch.interceptors.response.use(
         // 이때 refresh token만 있기에 unAuthorizationFetch를 사용.
         // 만약 fetch를 사용하면 401 에러가 무한으로 발생함.
         const response = await unAuthorizationFetch.get("/auth/refresh");
-        const { accessToken } = response.data;
+
+        const [, accessToken] = response.headers.authorization.split(" ");
 
         useUserStore.setState({ accessToken });
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;

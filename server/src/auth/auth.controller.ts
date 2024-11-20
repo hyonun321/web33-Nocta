@@ -99,7 +99,7 @@ export class AuthController {
     await this.authService.removeRefreshToken(user.id);
 
     // 사용자의 token version 증가
-    await this.authService.increaseTokenVersion(user.id);
+    await this.authService.increaseTokenVersion(user);
 
     // 쿠키 삭제
     this.authService.clearCookie(req.res);
