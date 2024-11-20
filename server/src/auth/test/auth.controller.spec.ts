@@ -3,7 +3,7 @@ import { AuthController } from "../auth.controller";
 import { AuthService } from "../auth.service";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { JwtRefreshTokenAuthGuard } from "../guards/jwt-refresh-token-auth.guard";
-import { UnauthorizedException, ConflictException } from "@nestjs/common";
+import { UnauthorizedException, ConflictException, BadRequestException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
@@ -26,6 +26,7 @@ describe("AuthController", () => {
     getProfile: jest.fn(),
     refresh: jest.fn(),
     increaseTokenVersion: jest.fn(),
+    isValidEmail: jest.fn(),
   };
 
   const mockJwtService = {
@@ -53,6 +54,7 @@ describe("AuthController", () => {
   describe("register", () => {
     it("should call authService.register and return the result", async () => {
       const dto = { email: "test@example.com", password: "password", name: "Test User" };
+      mockAuthService.isValidEmail.mockReturnValue(true);
       mockAuthService.findByEmail.mockResolvedValue(null);
       mockAuthService.register.mockResolvedValue(undefined);
 
@@ -62,8 +64,16 @@ describe("AuthController", () => {
       expect(mockAuthService.register).toHaveBeenCalledWith(dto.email, dto.password, dto.name);
     });
 
+    it("should throw BadRequestException if email format is invalid", async () => {
+      const dto = { email: "invalid-email", password: "password", name: "Test User" };
+      mockAuthService.isValidEmail.mockReturnValue(false);
+
+      await expect(authController.register(dto)).rejects.toThrow(BadRequestException);
+    });
+
     it("should throw ConflictException if email already exists", async () => {
       const dto = { email: "test@example.com", password: "password", name: "Test User" };
+      mockAuthService.isValidEmail.mockReturnValue(true);
       mockAuthService.findByEmail.mockResolvedValue({ id: "mockNanoId123", email: dto.email });
 
       await expect(authController.register(dto)).rejects.toThrow(ConflictException);

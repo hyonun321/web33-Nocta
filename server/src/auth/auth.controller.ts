@@ -8,6 +8,7 @@ import {
   Response,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
 } from "@nestjs/common";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 import { AuthService } from "./auth.service";
@@ -44,10 +45,14 @@ export class AuthController {
     status: 201,
     description: "The user has been successfully created.",
   })
-  @ApiResponse({ status: 400, description: "Bad Request" })
+  @ApiResponse({ status: 400, description: "Bad Request: Invalid email format" })
   @ApiResponse({ status: 409, description: "Conflict: Email already exists" })
   async register(@Body() body: { email: string; password: string; name: string }): Promise<void> {
     const { email, password, name } = body;
+
+    if (!this.authService.isValidEmail(email)) {
+      throw new BadRequestException("Invalid email format");
+    }
 
     const existingUser = await this.authService.findByEmail(email);
     if (existingUser) {

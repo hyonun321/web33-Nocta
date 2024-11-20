@@ -15,6 +15,11 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   async register(email: string, password: string, name: string): Promise<User> {
     const hashedPassword = await bcrypt.hash(password, 10);
     return this.userModel.create({
