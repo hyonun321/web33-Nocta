@@ -1,5 +1,5 @@
+import { useUserActions } from "@stores/useUserStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useUserActions } from "@src/stores/useUserStore";
 import { unAuthorizationFetch, fetch } from "./axios";
 
 const authKey = {

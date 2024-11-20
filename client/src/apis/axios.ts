@@ -1,6 +1,6 @@
+import { useErrorStore } from "@stores/useErrorStore";
+import { useUserStore } from "@stores/useUserStore";
 import axios, { AxiosError, CreateAxiosDefaults, InternalAxiosRequestConfig } from "axios";
-import { useErrorStore } from "@src/stores/useErrorStore";
-import { useUserStore } from "@src/stores/useUserStore";
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;

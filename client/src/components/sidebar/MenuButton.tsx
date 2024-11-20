@@ -1,4 +1,4 @@
-import { useUserInfo } from "@src/stores/useUserStore";
+import { useUserInfo } from "@stores/useUserStore";
 import { menuItemWrapper, imageBox, textBox } from "./MenuButton.style";
 
 export const MenuButton = () => {

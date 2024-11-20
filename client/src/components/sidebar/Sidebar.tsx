@@ -1,10 +1,10 @@
+import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
 import { MAX_VISIBLE_PAGE } from "@src/constants/page";
 import { AuthButton } from "@src/features/auth/AuthButton";
-import { useIsSidebarOpen, useSidebarActions } from "@src/stores/useSidebarStore";
 import { Page } from "@src/types/page";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";

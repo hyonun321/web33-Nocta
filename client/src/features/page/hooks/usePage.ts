@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { PAGE, SIDE_BAR } from "@constants/size";
 import { SPACING } from "@constants/spacing";
-import { useIsSidebarOpen } from "@src/stores/useSidebarStore";
+import { useIsSidebarOpen } from "@stores/useSidebarStore";
 import { Position, Size } from "@src/types/page";
 
 const PADDING = SPACING.MEDIUM * 2;

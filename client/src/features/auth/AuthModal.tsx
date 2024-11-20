@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { useLoginMutation, useSignupMutation } from "@apis/auth";
 import { useState } from "react";
 import Lock from "@assets/icons/lock.svg?react";
 import Mail from "@assets/icons/mail.svg?react";
 import User from "@assets/icons/user.svg?react";
+import { InputField } from "@components/inputField/InputField";
 import { Modal } from "@components/modal/modal";
-import { useLoginMutation, useSignupMutation } from "@src/apis/auth";
-import { InputField } from "@src/components/inputField/InputField";
 import { container, formContainer, title, toggleButton } from "./AuthModal.style";
 
 interface AuthModalProps {
