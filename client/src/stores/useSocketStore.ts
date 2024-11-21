@@ -57,7 +57,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     }
 
     const SERVER_URL =
-      process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://api.nocta.site";
+      process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://nocta.site";
 
     const socket = io(SERVER_URL, {
       path: "/api/socket.io",
