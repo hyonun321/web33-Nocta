@@ -1,9 +1,10 @@
+import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
 import { MAX_VISIBLE_PAGE } from "@src/constants/page";
-import { useIsSidebarOpen, useSidebarActions } from "@src/stores/useSidebarStore";
+import { AuthButton } from "@src/features/auth/AuthButton";
 import { Page } from "@src/types/page";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";
@@ -17,16 +18,16 @@ export const Sidebar = ({
 }: {
   pages: Page[];
   handlePageAdd: () => void;
-  handlePageSelect: ({ pageId }: { pageId: number }) => void;
+  handlePageSelect: ({ pageId }: { pageId: string }) => void;
 }) => {
   const visiblePages = pages.filter((page) => page.isVisible);
   const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
-
+  console.log(pages, visiblePages, "체크용");
   const isSidebarOpen = useIsSidebarOpen();
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
 
-  const handlePageItemClick = (id: number) => {
+  const handlePageItemClick = (id: string) => {
     if (isMaxVisiblePage) {
       openModal();
       return;
@@ -35,6 +36,7 @@ export const Sidebar = ({
   };
 
   const handleAddPageButtonClick = () => {
+    console.log(isMaxVisiblePage, "체크");
     if (isMaxVisiblePage) {
       openModal();
       return;
@@ -69,6 +71,7 @@ export const Sidebar = ({
       </motion.nav>
       <motion.div className={plusIconBox} variants={contentVariants}>
         <IconButton icon="➕" onClick={handleAddPageButtonClick} size="sm" />
+        <AuthButton />
       </motion.div>
       <Modal isOpen={isOpen} primaryButtonLabel="확인" primaryButtonOnClick={closeModal}>
         <p>
