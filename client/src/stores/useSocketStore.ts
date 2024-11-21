@@ -1,4 +1,5 @@
 import {
+  RemotePageCreateOperation,
   RemoteBlockInsertOperation,
   RemoteBlockDeleteOperation,
   RemoteCharInsertOperation,
@@ -12,11 +13,12 @@ import { create } from "zustand";
 
 interface SocketStore {
   socket: Socket | null;
+  clientId: number | null;
   workspace: WorkSpaceSerializedProps | null;
   init: () => void;
   cleanup: () => void;
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
-  sendPageCreateOperation: (operation: string) => void;
+  sendPageCreateOperation: (operation: RemotePageCreateOperation) => void;
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
@@ -24,7 +26,7 @@ interface SocketStore {
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => void;
   sendCursorPosition: (position: CursorPosition) => void;
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => (() => void) | undefined;
-  subscribeToPageOperations: (handlers: PageOperationsHandlers) => void;
+  subscribeToPageOperations: (handlers: PageOperationsHandlers) => (() => void) | undefined;
   setWorkspace: (workspace: WorkSpaceSerializedProps) => void;
 }
 
@@ -38,11 +40,12 @@ interface RemoteOperationHandlers {
 }
 
 interface PageOperationsHandlers {
-  onRemotePageCreate: (operation: string) => void;
+  onRemotePageCreate: (operation: RemotePageCreateOperation) => void;
 }
 
 export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
+  clientId: null,
   workspace: null,
 
   init: () => {
@@ -65,8 +68,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       autoConnect: false,
     });
 
-    socket.on("assignId", (clientId: number) => {
+    socket.on("assign/clientId", (clientId: number) => {
       console.log("Assigned client ID:", clientId);
+      set({ clientId });
     });
 
     socket.on("workspace", (workspace: WorkSpaceSerializedProps) => {
@@ -95,7 +99,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     if (socket) {
       socket.removeAllListeners();
       socket.disconnect();
-      set({ socket: null, workspace: null });
+      set({ socket: null, workspace: null, clientId: null });
     }
   },
 
@@ -103,7 +107,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
   setWorkspace: (workspace: WorkSpaceSerializedProps) => set({ workspace }),
 
-  sendPageCreateOperation: (operation: string) => {
+  sendPageCreateOperation: (operation: RemotePageCreateOperation) => {
     const { socket } = get();
     socket?.emit("create/page", operation);
     console.log("페이지 만들기 송신", operation);
@@ -167,5 +171,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const { socket } = get();
     if (!socket) return;
     socket.on("create/page", handlers.onRemotePageCreate);
+    return () => {
+      socket.off("create/page", handlers.onRemotePageCreate);
+    };
   },
 }));

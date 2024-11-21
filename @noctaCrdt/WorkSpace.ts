@@ -1,5 +1,6 @@
 import { Page } from "./Page";
 import { WorkSpaceSerializedProps } from "./Interfaces";
+import { EditorCRDT } from "./Crdt";
 
 export class WorkSpace {
   id: string;
@@ -28,6 +29,15 @@ export class WorkSpace {
       return page;
     });
     this.authUser = new Map(Object.entries(data.authUser));
+  }
+
+  remotePageCreate(operation: { page: Page; workspaceId: string; clientId: number }): Page {
+    const { page } = operation;
+    const newEditorCRDT = new EditorCRDT(operation.clientId);
+    const newPage = new Page(page.id, page.title, page.icon, newEditorCRDT);
+
+    this.pageList.push(newPage);
+    return newPage;
   }
 
   getPage(data: string) {

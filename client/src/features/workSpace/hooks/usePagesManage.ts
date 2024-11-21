@@ -1,31 +1,59 @@
-import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { Page as CRDTPage } from "@noctaCrdt/Page";
-import { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { WorkSpace } from "@noctaCrdt/WorkSpace";
+import { useEffect, useState, useRef } from "react";
+import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page } from "@src/types/page";
 
 const INIT_ICON = "📄";
 const PAGE_OFFSET = 60;
 
-export const usePagesManage = () => {
+export const usePagesManage = (workspace: WorkSpace | null, clientId: number | null) => {
   const [pages, setPages] = useState<Page[]>([]);
-  // const { sendPageOperation } = useSocket();
+  const { subscribeToPageOperations, sendPageCreateOperation } = useSocketStore();
+  const subscriptionRef = useRef(false);
+  useEffect(() => {
+    if (!workspace) return;
+    if (subscriptionRef.current) return;
+    subscriptionRef.current = true;
+
+    const unsubscribe = subscribeToPageOperations({
+      onRemotePageCreate: (operation) => {
+        console.log(operation, "page : 생성 확인합니다이");
+        const newPage = workspace.remotePageCreate({
+          page: operation.page!,
+          workspaceId: operation.workspaceId,
+          clientId: operation.clientId,
+        });
+        addPage(newPage);
+      },
+    });
+
+    return () => {
+      subscriptionRef.current = false;
+      unsubscribe?.();
+    };
+  }, []);
 
   const getZIndex = () => {
     return Math.max(0, ...pages.map((page) => page.zIndex)) + 1;
   };
 
-  const addPage = () => {
-    const newPageIndex = pages.length;
-    const crdt = new EditorCRDT(0); // 0 등의 아무값이여도 상관없음.
-    const newPage = new CRDTPage(uuidv4(), "Untitled", INIT_ICON, crdt);
-    const serializedEditorData = crdt.serialize();
-    // const {page} = sendPageOperation
+  const fetchPage = () => {
+    const operation = {
+      workspaceId: workspace!.id!,
+      clientId: clientId!,
+    };
+    sendPageCreateOperation(operation);
+  };
 
+  const addPage = (newPage: CRDTPage) => {
+    const newPageIndex = pages.length;
+    // ???
+    const serializedEditorData = newPage.crdt.serialize();
     setPages((prevPages) => [
       ...prevPages.map((page) => ({ ...page, isActive: false })),
       {
-        id: uuidv4(),
+        id: newPage.id, // 여기
         title: newPage.title,
         icon: newPage.icon || INIT_ICON,
         x: PAGE_OFFSET * newPageIndex,
@@ -99,7 +127,7 @@ export const usePagesManage = () => {
 
   return {
     pages,
-    addPage,
+    fetchPage,
     selectPage,
     closePage,
     updatePageTitle,

@@ -150,6 +150,10 @@ export const useSocket = (): UseSocketReturn => {
   const subscribeToPageOperations = ({ onRemotePageCreate }: PageOperationsHandlers) => {
     if (!socketRef.current) return;
     socketRef.current.on("create/page", onRemotePageCreate);
+
+    return () => {
+      socketRef.current?.off("create/page", onRemotePageCreate);
+    };
   };
 
   return {

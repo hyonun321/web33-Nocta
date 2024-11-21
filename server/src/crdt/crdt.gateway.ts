@@ -16,11 +16,15 @@ import {
   RemoteBlockInsertOperation,
   RemoteCharInsertOperation,
   RemoteBlockUpdateOperation,
+  RemotePageCreateOperation,
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
 import { Block } from "@noctaCrdt/Node";
 import { BlockId, CharId } from "@noctaCrdt/NodeId";
+import { nanoid } from "nanoid";
+import { Page } from "@noctaCrdt/Page";
+import { EditorCRDT } from "@noctaCrdt/Crdt";
 
 // 클라이언트 맵 타입 정의
 interface ClientInfo {
@@ -39,7 +43,6 @@ interface ClientInfo {
   path: "/api/socket.io",
   transports: ["websocket", "polling"],
 })
-
 export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(CrdtGateway.name);
   private server: Server;
@@ -66,14 +69,14 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.clientMap.set(client.id, clientInfo);
 
       // 클라이언트에게 ID 할당
-      client.emit("assignId", assignedId);
+      client.emit("assign/clientId", assignedId);
       // 현재 문서 상태 전송
       const currentWorkSpace = await this.workSpaceService.getWorkspace().serialize();
 
-      console.log("mongoDB에서 받아온 다음의 상태 : ",currentWorkSpace); // clinet 0 clock 1 이미 저장되어있음 
+      console.log("mongoDB에서 받아온 다음의 상태 : ", currentWorkSpace); // clinet 0 clock 1 이미 저장되어있음
       // client의 인스턴스는 얘를 받잖아요 . clock 1 로 동기화가 돼야하는데
-      // 동기화가 안돼서 0 인상태라서 
-      // 새로 입력하면 1, 1 충돌나는거죠. 
+      // 동기화가 안돼서 0 인상태라서
+      // 새로 입력하면 1, 1 충돌나는거죠.
       client.emit("workspace", currentWorkSpace);
 
       client.broadcast.emit("userJoined", { clientId: assignedId });
@@ -112,7 +115,46 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
   }
 
+  /**
+   * 블록 삽입 연산 처리
+   */
+  @SubscribeMessage("create/page")
+  async handlePageCreate(
+    @MessageBody() data: RemotePageCreateOperation,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `Page create 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+      // TODO 클라이언트로부터 받은 page 서버의 인스턴스에 저장한다.
+      // TODO: 워크스페이스 여러개일 때 처리 해야함
+      
+      const currentWorkspace = this.workSpaceService.getWorkspace();
+      // 여기서 page ID를 만들고 , 서버 인스턴스에 page 만들고, 클라이언트에 operation으로 전달 
+      const newEditorCRDT = new EditorCRDT(data.clientId);
+      const newPage = new Page(nanoid(), "새로운 페이지", "📄", newEditorCRDT);
+      // 서버 인스턴스에 page 추가
+      currentWorkspace.pageList.push(newPage);
 
+      const operation = {
+        workspaceId: data.workspaceId,
+        clientId: data.clientId,
+        page: newPage.serialize(),
+      };
+      console.log("클라이언트에 보낸 operation page",operation);
+      // 클라이언트 인스턴스에 page 추가
+      client.broadcast.emit("create/page", operation);
+    } catch (error) {
+      this.logger.error(
+        `Page Create 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Page Create 연산 실패: ${error.message}`);
+    }
+  }
   /**
    * 블록 업데이트 연산 처리
    */
@@ -131,13 +173,13 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const workspace = this.workSpaceService.getWorkspace();
 
       // delete할때 이 삭제되는 node의 클락을 +1하지말고 보내고
-      // 그다음 client를 node를 보낸 다으멩 클락을 +1 을 하자 . 
+      // 그다음 client를 node를 보낸 다으멩 클락을 +1 을 하자 .
       // server의 clock상태와
       // client의 clock상태를 계속 볼수있게 콘솔을 찍어놓고
-      // 얘네가 생성될때 
+      // 얘네가 생성될때
 
-      // 초기값은 client = client 0 clock 0 , server = clinet 0 clock 0 
-      // 여기서 입력이 발생하면 clinet 가 입력해야 clinet 0 clock 1, server = client0 clock 1 
+      // 초기값은 client = client 0 clock 0 , server = clinet 0 clock 0
+      // 여기서 입력이 발생하면 clinet 가 입력해야 clinet 0 clock 1, server = client0 clock 1
       // 2. 해당 페이지 가져오기
       const currentPage = workspace.pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
@@ -160,7 +202,6 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
   }
 
-
   /**
    * 블록 삽입 연산 처리
    */
@@ -175,12 +216,12 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         `Insert 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-      // TODO 클라이언트로부터 받은 정보를 서버의 인스턴스에 저장한다. 
-      
-      console.log("블럭입니다", data);
-      
-      // 몇번 page의 editorCRDT에 추가가 되냐 
-      const currentPage = this.workSpaceService.getWorkspace().pageList.find((p) => p.id === data.pageId);
+      // TODO 클라이언트로부터 받은 정보를 서버의 인스턴스에 저장한다.
+
+      // 몇번 page의 editorCRDT에 추가가 되냐
+      const currentPage = this.workSpaceService
+        .getWorkspace()
+        .pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
@@ -191,8 +232,6 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         pageId: data.pageId,
       };
       client.broadcast.emit("insert/block", operation);
-      
-      
     } catch (error) {
       this.logger.error(
         `Block Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -220,14 +259,14 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       // 원하는 block에 char node 를 삽입해야함 이제.
 
       // !! TODO 블록 찾기
-      const currentPage = this.workSpaceService.getWorkspace().pageList.find((p) => p.id === data.pageId);
+      const currentPage = this.workSpaceService
+        .getWorkspace()
+        .pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
-      console.log("블록아이디", data.blockId);
       const currentBlock = currentPage.crdt.LinkedList.nodeMap[JSON.stringify(data.blockId)];
       //currentBlock 이 block 인스턴스가 아님
-      console.log("블록", currentBlock, currentBlock instanceof Block);
       if (!currentBlock) {
         throw new Error(`Block with id ${data.blockId} not found`);
       }
@@ -261,7 +300,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const currentPage = this.workSpaceService.getWorkspace().pageList.find((p) => p.id === data.pageId);
+      const currentPage = this.workSpaceService
+        .getWorkspace()
+        .pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
@@ -271,7 +312,6 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         clock: data.clock,
         pageId: data.pageId,
       };
-      console.log("블럭 삭제", operation);
       client.broadcast.emit("delete/block", operation);
     } catch (error) {
       this.logger.error(
@@ -297,7 +337,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const currentPage = this.workSpaceService.getWorkspace().pageList.find((p) => p.id === data.pageId);
+      const currentPage = this.workSpaceService
+        .getWorkspace()
+        .pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }

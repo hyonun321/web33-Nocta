@@ -14,6 +14,12 @@ export interface DeleteOperation {
   clock: number;
 }
 
+export interface RemotePageCreateOperation {
+  clientId: number;
+  workspaceId: string;
+  page?: Page;
+}
+
 export interface RemoteBlockUpdateOperation {
   node: Block;
   pageId: string;
