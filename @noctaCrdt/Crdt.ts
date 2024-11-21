@@ -106,8 +106,14 @@ export class EditorCRDT extends CRDT<Block> {
   }
 
   remoteUpdate(block: Block, pageId: string): RemoteBlockUpdateOperation {
-    this.LinkedList.nodeMap[JSON.stringify(block.id)] = block;
-    return { node: block, pageId };
+    const updatedBlock = this.LinkedList.nodeMap[JSON.stringify(block.id)];
+    updatedBlock.animation = block.animation;
+    updatedBlock.icon = block.icon;
+    updatedBlock.indent = block.indent;
+    updatedBlock.style = block.style;
+    updatedBlock.type = block.type;
+    // this.LinkedList.nodeMap[JSON.stringify(block.id)] = block;
+    return { node: updatedBlock, pageId };
   }
 
   remoteInsert(operation: RemoteBlockInsertOperation): void {

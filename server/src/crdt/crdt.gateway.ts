@@ -226,7 +226,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
       console.log("블록아이디", data.blockId);
       const currentBlock = currentPage.crdt.LinkedList.nodeMap[JSON.stringify(data.blockId)];
-      console.log("블록", currentBlock);
+      //currentBlock 이 block 인스턴스가 아님
+      console.log("블록", currentBlock, currentBlock instanceof Block);
       if (!currentBlock) {
         throw new Error(`Block with id ${data.blockId} not found`);
       }
