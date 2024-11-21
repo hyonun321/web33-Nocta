@@ -1,9 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { BlockCRDT } from "@noctaCrdt/Crdt";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { memo, useRef, useLayoutEffect, useMemo } from "react";
+import { memo, useRef, useLayoutEffect } from "react";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
