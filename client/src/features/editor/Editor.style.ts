@@ -13,8 +13,9 @@ export const editorContainer = css({
 });
 
 export const editorTitleContainer = css({
+  display: "flex",
+  flexDirection: "column",
   width: "full",
-  marginBottom: "30px",
   padding: "spacing.sm",
 });
 
