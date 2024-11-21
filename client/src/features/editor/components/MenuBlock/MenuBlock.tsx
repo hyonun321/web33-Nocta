@@ -10,6 +10,8 @@ export interface MenuBlockProps {
   listeners?: Record<string, any>;
   onAnimationSelect: (animation: AnimationType) => void;
   onTypeSelect: (type: ElementType) => void;
+  onCopySelect: () => void;
+  onDeleteSelect: () => void;
 }
 
 export const MenuBlock = ({
@@ -17,6 +19,8 @@ export const MenuBlock = ({
   listeners,
   onAnimationSelect,
   onTypeSelect,
+  onCopySelect,
+  onDeleteSelect,
 }: MenuBlockProps) => {
   const menuBlockRef = useRef<HTMLDivElement>(null);
 
@@ -74,11 +78,11 @@ export const MenuBlock = ({
       <OptionModal
         isOpen={isOpen}
         onClose={closeModal}
+        menuBlockPosition={menuBlockPosition}
         onAnimationSelect={onAnimationSelect}
         onTypeSelect={onTypeSelect}
-        menuBlockPosition={menuBlockPosition}
-        onDeleteSelect={() => {}}
-        onDuplicateSelect={() => {}}
+        onDeleteSelect={onDeleteSelect}
+        onCopySelect={onCopySelect}
       />
     </div>
   );

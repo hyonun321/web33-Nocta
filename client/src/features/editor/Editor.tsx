@@ -56,15 +56,16 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     pageId,
   });
 
-  const { handleTypeSelect, handleAnimationSelect } = useBlockOptionSelect({
-    editorCRDT: editorCRDT.current,
-    editorState,
-    setEditorState,
-    pageId,
-    sendBlockUpdateOperation,
-    sendBlockDeleteOperation,
-    sendBlockInsertOperation,
-  });
+  const { handleTypeSelect, handleAnimationSelect, handleCopySelect, handleDeleteSelect } =
+    useBlockOptionSelect({
+      editorCRDT: editorCRDT.current,
+      editorState,
+      setEditorState,
+      pageId,
+      sendBlockUpdateOperation,
+      sendBlockDeleteOperation,
+      sendBlockInsertOperation,
+    });
 
   const { handleKeyDown } = useMarkdownGrammer({
     editorCRDT: editorCRDT.current,
@@ -288,6 +289,8 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
                 onClick={handleBlockClick}
                 onAnimationSelect={handleAnimationSelect}
                 onTypeSelect={handleTypeSelect}
+                onCopySelect={handleCopySelect}
+                onDeleteSelect={handleDeleteSelect}
               />
             ))}
           </SortableContext>

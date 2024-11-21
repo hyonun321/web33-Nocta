@@ -15,7 +15,7 @@ interface OptionModalProps {
   onClose: () => void;
   onAnimationSelect: (id: AnimationType) => void;
   onTypeSelect: (label: ElementType) => void;
-  onDuplicateSelect: () => void;
+  onCopySelect: () => void;
   onDeleteSelect: () => void;
   menuBlockPosition: { top: number; right: number };
 }
@@ -25,7 +25,7 @@ export const OptionModal = ({
   onClose,
   onAnimationSelect,
   onTypeSelect,
-  onDuplicateSelect,
+  onCopySelect,
   onDeleteSelect,
   menuBlockPosition,
 }: OptionModalProps) => {
@@ -44,7 +44,7 @@ export const OptionModal = ({
   const handleCategoryClick = (category: OptionCategory) => {
     if (!OPTION_CATEGORIES[category].options) {
       if (category === "DUPLICATE") {
-        onDuplicateSelect();
+        onCopySelect();
       } else if (category === "DELETE") {
         onDeleteSelect();
       }

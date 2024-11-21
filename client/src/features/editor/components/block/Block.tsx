@@ -20,6 +20,8 @@ interface BlockProps {
   onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
   onTypeSelect: (blockId: BlockId, type: ElementType) => void;
+  onCopySelect: () => void;
+  onDeleteSelect: (blockId: BlockId) => void;
 }
 
 export const Block: React.FC<BlockProps> = memo(
@@ -32,6 +34,8 @@ export const Block: React.FC<BlockProps> = memo(
     onClick,
     onAnimationSelect,
     onTypeSelect,
+    onCopySelect,
+    onDeleteSelect,
   }: BlockProps) => {
     console.log("블록 초기화 상태", block);
     const blockRef = useRef<HTMLDivElement>(null);
@@ -83,6 +87,14 @@ export const Block: React.FC<BlockProps> = memo(
       onTypeSelect(block.id, type);
     };
 
+    const handleCopySelect = () => {
+      onCopySelect();
+    };
+
+    const handleDeleteSelect = () => {
+      onDeleteSelect(block.id);
+    };
+
     return (
       // TODO: eslint 규칙을 수정해야 할까?
       // TODO: ol일때 index 순서 처리
@@ -107,6 +119,8 @@ export const Block: React.FC<BlockProps> = memo(
             listeners={listeners}
             onAnimationSelect={handleAnimationSelect}
             onTypeSelect={handleTypeSelect}
+            onCopySelect={handleCopySelect}
+            onDeleteSelect={handleDeleteSelect}
           />
           <IconBlock type={block.type} index={1} />
           <div

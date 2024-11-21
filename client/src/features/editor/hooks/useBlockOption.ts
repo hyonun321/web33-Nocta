@@ -32,6 +32,8 @@ export const useBlockOptionSelect = ({
   setEditorState,
   pageId,
   sendBlockUpdateOperation,
+  sendBlockDeleteOperation,
+  sendBlockInsertOperation,
 }: useBlockOptionSelectProps) => {
   const handleTypeSelect = (blockId: BlockId, type: ElementType) => {
     const block = editorState.linkedList.getNode(blockId);
@@ -71,8 +73,26 @@ export const useBlockOptionSelect = ({
     }));
   };
 
+  // TODO 복제
+  const handleCopySelect = () => {};
+
+  const handleDeleteSelect = (blockId: BlockId) => {
+    const currentIndex = editorCRDT.LinkedList.spread().findIndex((block) =>
+      block.id.equals(blockId),
+    );
+    sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
+
+    setEditorState((prev) => ({
+      clock: editorCRDT.clock,
+      linkedList: editorCRDT.LinkedList,
+      currentBlock: prev.currentBlock,
+    }));
+  };
+
   return {
     handleTypeSelect,
     handleAnimationSelect,
+    handleCopySelect,
+    handleDeleteSelect,
   };
 };
