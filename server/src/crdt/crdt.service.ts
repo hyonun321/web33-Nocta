@@ -4,10 +4,6 @@ import { Workspace, WorkspaceDocument } from "./schemas/workspace.schema";
 import { WorkSpace as CRDTWorkSpace } from "@noctaCrdt/WorkSpace";
 import { Model } from "mongoose";
 import { EditorCRDT, BlockCRDT } from "@noctaCrdt/Crdt";
-import { BlockId, CharId } from "@noctaCrdt/NodeId";
-import { Block, Char } from "@noctaCrdt/Node";
-
-import { BlockLinkedList, TextLinkedList } from "@noctaCrdt/LinkedList";
 import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
 

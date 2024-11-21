@@ -20,8 +20,6 @@ import {
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
-import { Block } from "@noctaCrdt/Node";
-import { BlockId, CharId } from "@noctaCrdt/NodeId";
 import { nanoid } from "nanoid";
 import { Page } from "@noctaCrdt/Page";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
@@ -266,7 +264,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         throw new Error(`Page with id ${data.pageId} not found`);
       }
       const currentBlock = currentPage.crdt.LinkedList.nodeMap[JSON.stringify(data.blockId)];
-      //currentBlock 이 block 인스턴스가 아님
+      // currentBlock 이 block 인스턴스가 아님
       if (!currentBlock) {
         throw new Error(`Block with id ${data.blockId} not found`);
       }
