@@ -18,6 +18,7 @@ export const optionButton = css({
   textAlign: "left",
   _hover: {
     backgroundColor: "gray.100/40",
+    cursor: "pointer",
   },
 });
 
