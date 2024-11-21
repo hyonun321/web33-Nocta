@@ -5,6 +5,7 @@ import {
   RemoteCharInsertOperation,
   RemoteCharDeleteOperation,
   RemoteBlockUpdateOperation,
+  RemoteBlockReorderOperation,
   CursorPosition,
   WorkSpaceSerializedProps,
 } from "@noctaCrdt/Interfaces";
@@ -24,6 +25,7 @@ interface SocketStore {
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
   sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => void;
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => void;
+  sendBlockReorderOperation: (operation: RemoteBlockReorderOperation) => void;
   sendCursorPosition: (position: CursorPosition) => void;
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => (() => void) | undefined;
   subscribeToPageOperations: (handlers: PageOperationsHandlers) => (() => void) | undefined;
@@ -34,6 +36,7 @@ interface RemoteOperationHandlers {
   onRemoteBlockUpdate: (operation: RemoteBlockUpdateOperation) => void;
   onRemoteBlockInsert: (operation: RemoteBlockInsertOperation) => void;
   onRemoteBlockDelete: (operation: RemoteBlockDeleteOperation) => void;
+  onRemoteBlockReorder: (operation: RemoteBlockReorderOperation) => void;
   onRemoteCharInsert: (operation: RemoteCharInsertOperation) => void;
   onRemoteCharDelete: (operation: RemoteCharDeleteOperation) => void;
   onRemoteCursor: (position: CursorPosition) => void;
@@ -146,6 +149,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket?.emit("cursor", position);
   },
 
+  sendBlockReorderOperation: (operation: RemoteBlockReorderOperation) => {
+    const { socket } = get();
+    socket?.emit("reorder/block", operation);
+  },
+
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => {
     const { socket } = get();
     if (!socket) return;
@@ -153,6 +161,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket.on("update/block", handlers.onRemoteBlockUpdate);
     socket.on("insert/block", handlers.onRemoteBlockInsert);
     socket.on("delete/block", handlers.onRemoteBlockDelete);
+    socket.on("reorder/block", handlers.onRemoteBlockReorder);
     socket.on("insert/char", handlers.onRemoteCharInsert);
     socket.on("delete/char", handlers.onRemoteCharDelete);
     socket.on("cursor", handlers.onRemoteCursor);
@@ -161,6 +170,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("update/block", handlers.onRemoteBlockUpdate);
       socket.off("insert/block", handlers.onRemoteBlockInsert);
       socket.off("delete/block", handlers.onRemoteBlockDelete);
+      socket.off("reorder/block", handlers.onRemoteBlockReorder);
       socket.off("insert/char", handlers.onRemoteCharInsert);
       socket.off("delete/char", handlers.onRemoteCharDelete);
       socket.off("cursor", handlers.onRemoteCursor);
