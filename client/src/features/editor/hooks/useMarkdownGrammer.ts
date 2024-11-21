@@ -91,7 +91,7 @@ export const useMarkdownGrammer = ({
             operation.node.indent = currentBlock.indent;
             operation.node.crdt = new BlockCRDT(editorCRDT.client);
 
-            sendBlockInsertOperation(operation);
+            sendBlockInsertOperation({ node: operation.node, pageId });
 
             updateEditorState(operation.node.id);
             break;
@@ -103,7 +103,7 @@ export const useMarkdownGrammer = ({
             for (let i = currentContent.length - 1; i >= caretPosition; i--) {
               // char remote delete 보내기
               // currentBlock.crdt.localDelete(i, currentBlock.id);
-              sendCharDeleteOperation(currentBlock.crdt.localDelete(i, currentBlock.id));
+              sendCharDeleteOperation(currentBlock.crdt.localDelete(i, currentBlock.id, pageId));
             }
           }
 
@@ -111,13 +111,15 @@ export const useMarkdownGrammer = ({
           const operation = createNewBlock(currentIndex + 1);
           operation.node.crdt = new BlockCRDT(editorCRDT.client);
           operation.node.indent = currentBlock.indent;
-          sendBlockInsertOperation(operation);
+          sendBlockInsertOperation({ node: operation.node, pageId });
           // 캐럿 이후의 텍스트 있으면 새 블록에 추가
           if (afterText) {
             afterText.split("").forEach((char, i) => {
               // char remote insert 보내기
               // newBlock.crdt.localInsert(i, char, newBlock.id);
-              sendCharInsertOperation(operation.node.crdt.localInsert(i, char, operation.node.id));
+              sendCharInsertOperation(
+                operation.node.crdt.localInsert(i, char, operation.node.id, pageId),
+              );
             });
           }
 
@@ -194,10 +196,15 @@ export const useMarkdownGrammer = ({
                     // char remote insert 보내기
                     // prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char, prevBlock.id);
                     sendCharInsertOperation(
-                      prevBlock.crdt.localInsert(prevBlock.crdt.read().length, char, prevBlock.id),
+                      prevBlock.crdt.localInsert(
+                        prevBlock.crdt.read().length,
+                        char,
+                        prevBlock.id,
+                        pageId,
+                      ),
                     );
                     sendCharDeleteOperation(
-                      currentBlock.crdt.localDelete(currentCaret, currentBlock.id),
+                      currentBlock.crdt.localDelete(currentCaret, currentBlock.id, pageId),
                     );
                   });
                   prevBlock.crdt.currentCaret = prevBlockEndCaret;
@@ -253,7 +260,7 @@ export const useMarkdownGrammer = ({
             while (deleteCount < markdownElement.length) {
               // char remote delete 보내기
               // currentBlock.crdt.localDelete(0, currentBlock.id);
-              sendCharDeleteOperation(currentBlock.crdt.localDelete(0, currentBlock.id));
+              sendCharDeleteOperation(currentBlock.crdt.localDelete(0, currentBlock.id, pageId));
               deleteCount += 1;
             }
             // TODO: Update요청

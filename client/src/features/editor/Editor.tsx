@@ -47,7 +47,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
   } = useSocketStore();
-
+  console.log("서버에서 받아온 workspace 직렬화된 데이터 : ", serializedEditorData);
   const editorCRDTInstance = useMemo(() => {
     const editor = new EditorCRDT(serializedEditorData.client);
     editor.deserialize(serializedEditorData);
@@ -60,8 +60,8 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     linkedList: editorCRDT.current.LinkedList,
     currentBlock: null as BlockId | null,
   });
-  console.log("clock", editorCRDT.current.clock);
-
+  console.log("클라이언트 인스턴스 클락:", editorCRDT.current.clock);
+  console.log("표시용 클라이언트 state 클락:", editorState.clock);
   const { sensors, handleDragEnd } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
     editorState,
@@ -131,21 +131,21 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         let charNode: RemoteCharInsertOperation;
         if (caretPosition === 0) {
           const [addedChar] = newContent;
-          charNode = block.crdt.localInsert(0, addedChar, block.id);
+          charNode = block.crdt.localInsert(0, addedChar, block.id, pageId);
           block.crdt.currentCaret = 1;
         } else if (caretPosition > currentContent.length) {
           const addedChar = newContent[newContent.length - 1];
-          charNode = block.crdt.localInsert(currentContent.length, addedChar, block.id);
+          charNode = block.crdt.localInsert(currentContent.length, addedChar, block.id, pageId);
           block.crdt.currentCaret = caretPosition;
         } else {
           const addedChar = newContent[caretPosition - 1];
-          charNode = block.crdt.localInsert(caretPosition - 1, addedChar, block.id);
+          charNode = block.crdt.localInsert(caretPosition - 1, addedChar, block.id, pageId);
           block.crdt.currentCaret = caretPosition;
         }
-        sendCharInsertOperation({ node: charNode.node, blockId: block.id });
+        sendCharInsertOperation({ node: charNode.node, blockId: block.id, pageId });
       } else if (newContent.length < currentContent.length) {
         // 문자가 삭제된 경우
-        operationNode = block.crdt.localDelete(caretPosition, block.id);
+        operationNode = block.crdt.localDelete(caretPosition, block.id, pageId);
         block.crdt.currentCaret = caretPosition;
         sendCharDeleteOperation(operationNode);
       }
@@ -206,8 +206,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         if (!editorCRDT.current) return;
         const targetBlock =
           editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
-
-        targetBlock.crdt.remoteDelete({ targetId: operation.targetId, clock: operation.clock });
+        targetBlock.crdt.remoteDelete(operation);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -242,12 +241,13 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     // 로컬 삽입을 수행하고 연산 객체를 반환받음
     const operation = editorCRDT.current.localInsert(index, "");
     sendBlockInsertOperation({ node: operation.node, pageId });
-
+    console.log("operation clock", operation.node);
     setEditorState((prev) => ({
-      clock: editorCRDT.current.clock,
+      clock: operation.node.id.clock,
       linkedList: editorCRDT.current.LinkedList,
-      currentBlock: prev.currentBlock,
+      currentBlock: operation.node.id,
     }));
+    console.log("임시블록으로 추가하고 난다음 client의 인스턴스 상태 : ", editorState);
   };
 
   return (

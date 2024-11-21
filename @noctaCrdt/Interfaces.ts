@@ -27,6 +27,7 @@ export interface RemoteBlockInsertOperation {
 export interface RemoteCharInsertOperation {
   node: Char;
   blockId: BlockId;
+  pageId: string;
 }
 
 export interface RemoteBlockDeleteOperation {
@@ -39,6 +40,7 @@ export interface RemoteCharDeleteOperation {
   targetId: CharId;
   clock: number;
   blockId?: BlockId;
+  pageId: string;
 }
 
 export interface CursorPosition {

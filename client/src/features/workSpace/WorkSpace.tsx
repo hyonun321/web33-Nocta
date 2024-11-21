@@ -34,6 +34,12 @@ export const WorkSpace = () => {
   if (error) {
     return <ErrorModal errorMessage="서버와 연결할 수 없습니다." />;
   }
+  // 0. 몽고 다 제거 
+  // 1. 클라이언트 연결하고 tempblock으로 클라이언트 블럭 생성한다.
+  // 2. 클라이언트를 새로고침한다
+  // 3. 추가된 블럭의 콘솔로그 정보를 본다.
+  // 4. 클라이언트 인스턴스의 clock정보를 본다. 
+  
 
   // 정상화면
   return (

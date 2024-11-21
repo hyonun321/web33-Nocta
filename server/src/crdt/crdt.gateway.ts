@@ -65,11 +65,15 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       // 클라이언트에게 ID 할당
       client.emit("assignId", assignedId);
+
       // 현재 문서 상태 전송
       const currentWorkSpace = await this.workSpaceService.getWorkspace().serialize();
-      client.emit("workspace", currentWorkSpace);
 
-      // 다른 클라이언트들에게 새 사용자 입장 알림
+      console.log("mongoDB에서 받아온 다음의 상태 : ",currentWorkSpace); // clinet 0 clock 1 이미 저장되어있음 
+      // client의 인스턴스는 얘를 받잖아요 . clock 1 로 동기화가 돼야하는데
+      // 동기화가 안돼서 0 인상태라서 
+      // 새로 입력하면 1, 1 충돌나는거죠. 
+      client.emit("workspace", currentWorkSpace);
 
       client.broadcast.emit("userJoined", { clientId: assignedId });
 
@@ -124,6 +128,18 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       // 1. 워크스페이스 가져오기
       const workspace = this.workSpaceService.getWorkspace();
 
+      // delete할때 이 삭제되는 node의 클락을 +1하지말고 보내고
+      // 그다음 client를 node를 보낸 다으멩 클락을 +1 을 하자 . 
+      // server의 clock상태와
+      // client의 clock상태를 계속 볼수있게 콘솔을 찍어놓고
+      // 얘네가 생성될때 
+
+      // 초기값은 client = client 0 clock 0 , server = clinet 0 clock 0 
+      // 여기서 입력이 발생하면 clinet 가 입력해야 clinet 0 clock 1, server = client0 clock 1 
+      // 
+
+
+
       // 2. 해당 페이지 가져오기
       const pageId = data.pageId;
       const page = workspace.pageList.find((p) => p.id === pageId);
@@ -173,8 +189,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         throw new Error(`Page with id ${data.pageId} not found`);
       }
 
-      currentPage.crdt.LinkedList.insertById(data.node);
-
+      currentPage.crdt.remoteInsert(data);
       const operation = {
         node: data.node,
         pageId: data.pageId,
@@ -209,12 +224,18 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       // blockId 는 수신 받음
       // 원하는 block에 char node 를 삽입해야함 이제.
 
-      const targetBlockCRDT = this.workSpaceService.getWorkspace();
-      // await this.workSpaceService.handleCharInsert(data);getNode(data.node.id); // 변경이 일어난 block
       // !! TODO 블록 찾기
 
-      // BlockCRDT
+      const currentPage = this.workSpaceService.getWorkspace().pageList.find((p) => p.id === data.pageId);
+      if (!currentPage) {
+        throw new Error(`Page with id ${data.pageId} not found`);
+      }
+      const currentBlock = currentPage.crdt.LinkedList.nodeMap[JSON.stringify(data.blockId)];
+      if (!currentBlock) {
+        throw new Error(`Block with id ${data.blockId} not found`);
+      }
 
+      currentBlock.crdt.remoteInsert(data);
       // server는 EditorCRDT 없습니다. - BlockCRDT 로 사용되고있음.
       const operation = {
         node: data.node,
@@ -229,7 +250,6 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       throw new WsException(`Insert 연산 실패: ${error.message}`);
     }
   }
-
   /**
    * 삭제 연산 처리
    */
@@ -245,8 +265,11 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const deleteNode = new BlockId(data.clock, data.targetId.client);
-      // await this.workSpaceService.handleDelete({ targetId: deleteNode, clock: data.clock });
+      const currentPage = this.workSpaceService.getWorkspace().pageList.find((p) => p.id === data.pageId);
+      if (!currentPage) {
+        throw new Error(`Page with id ${data.pageId} not found`);
+      }
+      currentPage.crdt.remoteDelete(data);
       const operation = {
         targetId: data.targetId,
         clock: data.clock,
@@ -278,8 +301,16 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const deleteNode = new CharId(data.clock, data.targetId.client);
-      // await this.workSpaceService.handleDelete({ targetId: deleteNode, clock: data.clock }); // 얘도안됨
+      const currentPage = this.workSpaceService.getWorkspace().pageList.find((p) => p.id === data.pageId);
+      if (!currentPage) {
+        throw new Error(`Page with id ${data.pageId} not found`);
+      }
+      const currentBlock = currentPage.crdt.LinkedList.nodeMap[JSON.stringify(data.blockId)];
+      if (!currentBlock) {
+        throw new Error(`Block with id ${data.blockId} not found`);
+      }
+      currentBlock.crdt.remoteDelete(data);
+
       const operation = {
         targetId: data.targetId,
         clock: data.clock,

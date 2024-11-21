@@ -236,29 +236,13 @@ export abstract class LinkedList<T extends Node<NodeId>> {
   }
 
   spread(): T[] {
-    let count = 0;
     let currentNodeId = this.head;
-    console.log("nodemap", this.nodeMap);
     const result: T[] = [];
-    let prevNodeId = null;
     while (currentNodeId !== null) {
-      count += 1;
-      console.log("currentNodeId", currentNodeId);
       const currentNode = this.getNode(currentNodeId);
-      console.log(currentNode);
       if (!currentNode) break;
-      if (prevNodeId === currentNodeId) {
-        console.log("Loop detected:", currentNodeId, prevNodeId);
-        break;
-      }
       result.push(currentNode!);
-      prevNodeId = currentNodeId;
       currentNodeId = currentNode.next;
-
-      console.log("new currentNodeId", currentNodeId);
-      if (count == 10) {
-        break;
-      }
     }
     return result;
   }

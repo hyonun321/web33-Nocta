@@ -33,7 +33,7 @@ export class workSpaceService implements OnModuleInit {
           authUser: doc.authUser,
         } as WorkSpaceSerializedProps);
       }
-      console.log(doc, "잘됐나?");
+      console.log("init 이후 서버 인스턴스 확인", this.workspace);
     } catch (error) {
       console.error("Error during CrdtService initialization:", error);
       throw error;

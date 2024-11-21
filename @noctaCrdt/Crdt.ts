@@ -21,7 +21,7 @@ export class CRDT<T extends Node<NodeId>> {
     this.LinkedList = new LinkedListClass();
   }
 
-  localInsert(index: number, value: string, blockId?: BlockId): any {
+  localInsert(index: number, value: string, blockId?: BlockId, pageId?: string): any {
     // 기본 CRDT에서는 구현하지 않고, 하위 클래스에서 구현
     throw new Error("Method not implemented.");
   }
@@ -86,6 +86,7 @@ export class EditorCRDT extends CRDT<Block> {
     }
 
     const nodeToDelete = this.LinkedList.findByIndex(index);
+    console.log("삭제할 블록", nodeToDelete);
     if (!nodeToDelete) {
       throw new Error(`Node not found at index: ${index}`);
     }
@@ -116,20 +117,26 @@ export class EditorCRDT extends CRDT<Block> {
 
     this.LinkedList.insertById(newNode);
 
+    this.clock = Math.max(this.clock, operation.node.id.clock) + 1;
+    /*
     if (this.clock <= newNode.id.clock) {
       this.clock = newNode.id.clock + 1;
     }
+      */
   }
 
   remoteDelete(operation: RemoteBlockDeleteOperation): void {
-    const targetNodeId = new BlockId(operation.clock, operation.targetId.client);
     const { targetId, clock } = operation;
     if (targetId) {
+      const targetNodeId = new BlockId(operation.targetId.clock, operation.targetId.client);
       this.LinkedList.deleteNode(targetNodeId);
     }
+    this.clock = Math.max(this.clock, clock) + 1;
+    /*
     if (this.clock <= clock) {
       this.clock = clock + 1;
     }
+      */
   }
 
   localReorder(params: {
@@ -185,19 +192,26 @@ export class BlockCRDT extends CRDT<Char> {
     this.currentCaret = 0;
   }
 
-  localInsert(index: number, value: string, blockId: BlockId): RemoteCharInsertOperation {
+  localInsert(
+    index: number,
+    value: string,
+    blockId: BlockId,
+    pageId: string,
+  ): RemoteCharInsertOperation {
     const id = new CharId(this.clock + 1, this.client);
     const { node } = this.LinkedList.insertAtIndex(index, value, id);
     this.clock += 1;
     const operation: RemoteCharInsertOperation = {
       node,
       blockId,
+      pageId,
     };
 
     return operation;
   }
 
-  localDelete(index: number, blockId: BlockId): RemoteCharDeleteOperation {
+  localDelete(index: number, blockId: BlockId, pageId: string): RemoteCharDeleteOperation {
+    console.log("index", index, "length", this.LinkedList.spread().length);
     if (index < 0 || index >= this.LinkedList.spread().length) {
       throw new Error(`Invalid index: ${index}`);
     }
@@ -211,6 +225,7 @@ export class BlockCRDT extends CRDT<Char> {
       targetId: nodeToDelete.id,
       clock: this.clock,
       blockId,
+      pageId,
     };
 
     this.LinkedList.deleteNode(nodeToDelete.id);
