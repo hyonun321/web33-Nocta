@@ -28,16 +28,6 @@ export interface EditorStateProps {
 }
 // TODO: pageId, editorCRDT를 props로 받아와야함
 export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorProps) => {
-  /*
-  const {
-    sendCharInsertOperation,
-    sendCharDeleteOperation,
-    subscribeToRemoteOperations,
-    sendBlockInsertOperation,
-    sendBlockDeleteOperation,
-    sendBlockUpdateOperation,
-  } = useSocket();
-  */
   const {
     sendCharInsertOperation,
     sendCharDeleteOperation,
@@ -62,6 +52,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
+    pageId,
   });
 
   const { handleKeyDown } = useMarkdownGrammer({
@@ -222,6 +213,18 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
           currentBlock: prev.currentBlock,
         }));
       },
+
+      onRemoteBlockReorder: (operation) => {
+        console.log(operation, "block : 재정렬 확인합니다이");
+        if (!editorCRDT.current) return;
+        editorCRDT.current.remoteReorder(operation);
+        setEditorState((prev) => ({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+          currentBlock: prev.currentBlock,
+        }));
+      },
+
       onRemoteCursor: (position) => {
         console.log(position, "커서위치 수신");
       },

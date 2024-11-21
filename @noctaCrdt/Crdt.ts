@@ -7,7 +7,7 @@ import {
   RemoteBlockInsertOperation,
   RemoteCharInsertOperation,
   CRDTSerializedProps,
-  RemoteReorderOperation,
+  RemoteBlockReorderOperation,
   RemoteBlockUpdateOperation,
 } from "./Interfaces";
 
@@ -149,20 +149,25 @@ export class EditorCRDT extends CRDT<Block> {
     targetId: BlockId;
     beforeId: BlockId | null;
     afterId: BlockId | null;
-  }): RemoteReorderOperation {
-    const operation: RemoteReorderOperation = {
+    pageId: string;
+  }): RemoteBlockReorderOperation {
+    const operation: RemoteBlockReorderOperation = {
       ...params,
       clock: this.clock,
       client: this.client,
     };
 
-    this.LinkedList.reorderNodes(params);
+    this.LinkedList.reorderNodes({
+      targetId: params.targetId,
+      beforeId: params.beforeId,
+      afterId: params.afterId,
+    });
     this.clock += 1;
 
     return operation;
   }
 
-  remoteReorder(operation: RemoteReorderOperation): void {
+  remoteReorder(operation: RemoteBlockReorderOperation): void {
     const { targetId, beforeId, afterId, clock } = operation;
 
     this.LinkedList.reorderNodes({
@@ -171,9 +176,7 @@ export class EditorCRDT extends CRDT<Block> {
       afterId,
     });
 
-    if (this.clock <= clock) {
-      this.clock = clock + 1;
-    }
+    this.clock = Math.max(this.clock, clock) + 1;
   }
 
   serialize(): CRDTSerializedProps<Block> {
