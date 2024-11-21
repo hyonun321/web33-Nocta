@@ -13,6 +13,7 @@ import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 import { Block } from "./components/block/Block.tsx";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
+import { useBlockOptionSelect } from "./hooks/useBlockOption.ts";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 
 interface EditorProps {
@@ -54,6 +55,17 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     setEditorState,
     pageId,
   });
+
+  const { handleTypeSelect, handleAnimationSelect, handleCopySelect, handleDeleteSelect } =
+    useBlockOptionSelect({
+      editorCRDT: editorCRDT.current,
+      editorState,
+      setEditorState,
+      pageId,
+      sendBlockUpdateOperation,
+      sendBlockDeleteOperation,
+      sendBlockInsertOperation,
+    });
 
   const { handleKeyDown } = useMarkdownGrammer({
     editorCRDT: editorCRDT.current,
@@ -275,6 +287,8 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
                 onInput={handleBlockInput}
                 onKeyDown={handleKeyDown}
                 onClick={handleBlockClick}
+                onAnimationSelect={handleAnimationSelect}
+                onTypeSelect={handleTypeSelect}
               />
             ))}
           </SortableContext>
