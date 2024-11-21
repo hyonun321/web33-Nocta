@@ -376,7 +376,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
       // 1. 워크스페이스 가져오기
       const workspace = this.workSpaceService.getWorkspace();
-      
+
       const currentPage = workspace.pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
@@ -388,7 +388,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         targetId: data.targetId,
         beforeId: data.beforeId,
         afterId: data.afterId,
-        pageId: data.pageId
+        pageId: data.pageId,
       } as RemoteBlockReorderOperation;
       client.broadcast.emit("reorder/block", operation);
     } catch (error) {
