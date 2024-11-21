@@ -131,9 +131,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
       // TODO 클라이언트로부터 받은 page 서버의 인스턴스에 저장한다.
       // TODO: 워크스페이스 여러개일 때 처리 해야함
-      
+
       const currentWorkspace = this.workSpaceService.getWorkspace();
-      // 여기서 page ID를 만들고 , 서버 인스턴스에 page 만들고, 클라이언트에 operation으로 전달 
+      // 여기서 page ID를 만들고 , 서버 인스턴스에 page 만들고, 클라이언트에 operation으로 전달
       const newEditorCRDT = new EditorCRDT(data.clientId);
       const newPage = new Page(nanoid(), "새로운 페이지", "📄", newEditorCRDT);
       // 서버 인스턴스에 page 추가
@@ -144,8 +144,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         clientId: data.clientId,
         page: newPage.serialize(),
       };
-      console.log("클라이언트에 보낸 operation page",operation);
       // 클라이언트 인스턴스에 page 추가
+      client.emit("create/page", operation);
       client.broadcast.emit("create/page", operation);
     } catch (error) {
       this.logger.error(
