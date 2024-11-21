@@ -1,17 +1,15 @@
-import { useModal } from "@components/modal/useModal";
-import { AuthModal } from "@src/features/auth/AuthModal";
+import { useUserInfo } from "@stores/useUserStore";
 import { menuItemWrapper, imageBox, textBox } from "./MenuButton.style";
 
 export const MenuButton = () => {
-  const { isOpen, openModal, closeModal } = useModal();
+  const { name } = useUserInfo();
 
   return (
     <>
-      <button className={menuItemWrapper} onClick={openModal}>
+      <button className={menuItemWrapper}>
         <div className={imageBox}></div>
-        <p className={textBox}>Noctturn</p>
+        <p className={textBox}>{name ?? "Nocta"}</p>
       </button>
-      <AuthModal isOpen={isOpen} onClose={closeModal} />
     </>
   );
 };

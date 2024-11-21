@@ -10,6 +10,8 @@ export const createSwaggerDocument = (app: INestApplication): void => {
     .setTitle("Nocta API Docs")
     .setDescription("Nocta API description")
     .setVersion("1.0.0")
+    .addBearerAuth()
+    .addCookieAuth("refreshToken")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
