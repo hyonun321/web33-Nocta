@@ -18,16 +18,16 @@ export const Sidebar = ({
 }: {
   pages: Page[];
   handlePageAdd: () => void;
-  handlePageSelect: ({ pageId }: { pageId: number }) => void;
+  handlePageSelect: ({ pageId }: { pageId: string }) => void;
 }) => {
   const visiblePages = pages.filter((page) => page.isVisible);
   const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
-
+  console.log(pages, visiblePages, "체크용");
   const isSidebarOpen = useIsSidebarOpen();
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
 
-  const handlePageItemClick = (id: number) => {
+  const handlePageItemClick = (id: string) => {
     if (isMaxVisiblePage) {
       openModal();
       return;
@@ -36,6 +36,7 @@ export const Sidebar = ({
   };
 
   const handleAddPageButtonClick = () => {
+    console.log(isMaxVisiblePage, "체크");
     if (isMaxVisiblePage) {
       openModal();
       return;
