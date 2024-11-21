@@ -32,8 +32,6 @@ export const useBlockOptionSelect = ({
   setEditorState,
   pageId,
   sendBlockUpdateOperation,
-  sendBlockDeleteOperation,
-  sendBlockInsertOperation,
 }: useBlockOptionSelectProps) => {
   const handleTypeSelect = (blockId: BlockId, type: ElementType) => {
     const block = editorState.linkedList.getNode(blockId);
@@ -73,16 +71,8 @@ export const useBlockOptionSelect = ({
     }));
   };
 
-  // TODO 복제
-  const handleCopySelect = () => {};
-
-  // TODO 삭제
-  const handleDeleteSelect = () => {};
-
   return {
     handleTypeSelect,
     handleAnimationSelect,
-    handleCopySelect,
-    handleDeleteSelect,
   };
 };
