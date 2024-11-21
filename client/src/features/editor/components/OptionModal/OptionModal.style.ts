@@ -20,3 +20,9 @@ export const optionButton = css({
     backgroundColor: "gray.100/40",
   },
 });
+
+export const modalContainer = css({
+  display: "flex",
+  gap: "1",
+  flexDirection: "column",
+});
