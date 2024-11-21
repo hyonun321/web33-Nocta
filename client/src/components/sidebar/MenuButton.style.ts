@@ -23,3 +23,14 @@ export const textBox = css({
   textStyle: "display-medium20",
   color: "gray.900",
 });
+
+export const menuDropdown = css({
+  zIndex: "dropdown",
+  position: "absolute",
+  top: "100%",
+  right: "0",
+  borderRadius: "md",
+  width: "100px",
+  marginTop: "sm",
+  boxShadow: "md",
+});

@@ -8,8 +8,8 @@ export class UserDto {
   id: string;
 
   @ApiProperty({
-    description: "The email address of the user",
-    example: "user@example.com",
+    description: "The email of the user",
+    example: "example@email.com",
   })
   email: string;
 
@@ -18,4 +18,10 @@ export class UserDto {
     example: "John Doe",
   })
   name: string;
+
+  @ApiProperty({
+    description: "The access token for authentication",
+    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  })
+  accessToken?: string;
 }

@@ -1,9 +1,10 @@
+import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
 import { MAX_VISIBLE_PAGE } from "@src/constants/page";
-import { useIsSidebarOpen, useSidebarActions } from "@src/stores/useSidebarStore";
+import { AuthButton } from "@src/features/auth/AuthButton";
 import { Page } from "@src/types/page";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";
@@ -69,6 +70,7 @@ export const Sidebar = ({
       </motion.nav>
       <motion.div className={plusIconBox} variants={contentVariants}>
         <IconButton icon="➕" onClick={handleAddPageButtonClick} size="sm" />
+        <AuthButton />
       </motion.div>
       <Modal isOpen={isOpen} primaryButtonLabel="확인" primaryButtonOnClick={closeModal}>
         <p>

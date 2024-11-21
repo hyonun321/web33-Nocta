@@ -45,6 +45,8 @@ export const modalContent = css({
   alignItems: "center",
   width: "100%",
   height: "100%",
+  paddingTop: "md",
+  paddingBottom: "md",
   textAlign: "center",
 });
 
