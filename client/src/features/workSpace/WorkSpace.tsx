@@ -4,7 +4,6 @@ import { BottomNavigator } from "@components/bottomNavigator/BottomNavigator";
 import { ErrorModal } from "@components/modal/ErrorModal";
 import { Sidebar } from "@components/sidebar/Sidebar";
 import { Page } from "@features/page/Page";
-import { useSocket } from "@src/apis/useSocket";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { workSpaceContainer, content } from "./WorkSpace.style";
 import { IntroScreen } from "./components/IntroScreen";
@@ -14,13 +13,12 @@ import { useWorkspaceInit } from "./hooks/useWorkspaceInit";
 export const WorkSpace = () => {
   const [workspace, setWorkspace] = useState<WorkSpaceClass | null>(null);
   const { isLoading, isInitialized, error } = useWorkspaceInit();
-  // const { socket, fetchWorkspaceData } = useSocket(); // TODO zustand로 변경
-
   const { workspace: workspaceMetadata, clientId } = useSocketStore();
 
   const { pages, fetchPage, selectPage, closePage, updatePageTitle, initPages, initPagePosition } =
     usePagesManage(workspace, clientId);
   const visiblePages = pages.filter((page) => page.isVisible);
+
   useEffect(() => {
     if (workspaceMetadata) {
       const newWorkspace = new WorkSpaceClass(workspaceMetadata.id, workspaceMetadata.pageList);

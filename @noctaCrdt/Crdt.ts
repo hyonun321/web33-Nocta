@@ -61,7 +61,6 @@ export class CRDT<T extends Node<NodeId>> {
   deserialize(data: any): void {
     this.clock = data.clock;
     this.client = data.client;
-    console.log("crdt data", data);
     this.LinkedList.deserialize(data.LinkedList);
   }
 }
