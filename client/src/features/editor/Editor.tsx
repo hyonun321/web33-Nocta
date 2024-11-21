@@ -9,7 +9,6 @@ import {
   serializedEditorDataProps,
 } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
-import { useSocket } from "@src/apis/useSocket.ts";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 import { Block } from "./components/block/Block.tsx";
@@ -242,7 +241,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     const operation = editorCRDT.current.localInsert(index, "");
     sendBlockInsertOperation({ node: operation.node, pageId });
     console.log("operation clock", operation.node);
-    setEditorState((prev) => ({
+    setEditorState(() => ({
       clock: operation.node.id.clock,
       linkedList: editorCRDT.current.LinkedList,
       currentBlock: operation.node.id,

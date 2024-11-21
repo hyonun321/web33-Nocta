@@ -4,7 +4,6 @@ import { BottomNavigator } from "@components/bottomNavigator/BottomNavigator";
 import { ErrorModal } from "@components/modal/ErrorModal";
 import { Sidebar } from "@components/sidebar/Sidebar";
 import { Page } from "@features/page/Page";
-import { useSocket } from "@src/apis/useSocket";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { workSpaceContainer, content } from "./WorkSpace.style";
 import { IntroScreen } from "./components/IntroScreen";
@@ -21,6 +20,7 @@ export const WorkSpace = () => {
   const visiblePages = pages.filter((page) => page.isVisible);
   useEffect(() => {
     if (workspaceMetadata) {
+      console.log(workspace, "추후 workspace데이터 들어올때 변경 예정");
       const newWorkspace = new WorkSpaceClass(workspaceMetadata.id, workspaceMetadata.pageList);
       newWorkspace.deserialize(workspaceMetadata);
       setWorkspace(newWorkspace);
@@ -34,12 +34,11 @@ export const WorkSpace = () => {
   if (error) {
     return <ErrorModal errorMessage="서버와 연결할 수 없습니다." />;
   }
-  // 0. 몽고 다 제거 
+  // 0. 몽고 다 제거
   // 1. 클라이언트 연결하고 tempblock으로 클라이언트 블럭 생성한다.
   // 2. 클라이언트를 새로고침한다
   // 3. 추가된 블럭의 콘솔로그 정보를 본다.
-  // 4. 클라이언트 인스턴스의 clock정보를 본다. 
-  
+  // 4. 클라이언트 인스턴스의 clock정보를 본다.
 
   // 정상화면
   return (
