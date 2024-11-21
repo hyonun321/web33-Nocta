@@ -1,6 +1,6 @@
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { EditorCRDT } from "@noctaCrdt/Crdt";
+import { CRDT, EditorCRDT } from "@noctaCrdt/Crdt";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
@@ -46,7 +46,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
   } = useSocketStore();
-  console.log("서버에서 받아온 workspace 직렬화된 데이터 : ", serializedEditorData);
   const editorCRDTInstance = useMemo(() => {
     const editor = new EditorCRDT(serializedEditorData.client);
     editor.deserialize(serializedEditorData);
@@ -59,8 +58,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     linkedList: editorCRDT.current.LinkedList,
     currentBlock: null as BlockId | null,
   });
-  console.log("클라이언트 인스턴스 클락:", editorCRDT.current.clock);
-  console.log("표시용 클라이언트 state 클락:", editorState.clock);
   const { sensors, handleDragEnd } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
     editorState,
@@ -216,7 +213,9 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       onRemoteBlockUpdate: (operation) => {
         console.log(operation, "block : 업데이트 확인합니다이");
         if (!editorCRDT.current) return;
-        editorCRDT.current.remoteUpdate(operation.node);
+        // ??
+        console.log("타입", operation.node);
+        editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -246,7 +245,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       linkedList: editorCRDT.current.LinkedList,
       currentBlock: operation.node.id,
     }));
-    console.log("임시블록으로 추가하고 난다음 client의 인스턴스 상태 : ", editorState);
   };
 
   return (

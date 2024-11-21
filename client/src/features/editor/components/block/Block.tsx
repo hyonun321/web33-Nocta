@@ -1,8 +1,9 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { BlockCRDT } from "@noctaCrdt/Crdt";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { memo, useRef, useLayoutEffect } from "react";
+import { memo, useRef, useLayoutEffect, useMemo } from "react";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
@@ -18,8 +19,9 @@ interface BlockProps {
 
 export const Block: React.FC<BlockProps> = memo(
   ({ id, block, isActive, onInput, onKeyDown, onClick }: BlockProps) => {
-    // const textCRDT = useRef<BlockCRDT>(block.crdt);
+    console.log("블록 초기화 상태", block);
     const blockRef = useRef<HTMLDivElement>(null);
+    const blockCRDTRef = useRef<CRDTBlock>(block);
 
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
       id,
@@ -40,7 +42,11 @@ export const Block: React.FC<BlockProps> = memo(
         const range = document.createRange();
         const content =
           blockRef.current.firstChild || blockRef.current.appendChild(document.createTextNode(""));
-        const position = Math.min(block.crdt.currentCaret, content.textContent?.length || 0);
+        // const position = Math.min(block.crdt.currentCaret, content.textContent?.length || 0);
+        const position = Math.min(
+          blockCRDTRef.current.crdt.currentCaret,
+          content.textContent?.length || 0,
+        );
         range.setStart(content, position);
         range.collapse(true);
         selection.removeAllRanges();
@@ -51,7 +57,8 @@ export const Block: React.FC<BlockProps> = memo(
     useLayoutEffect(() => {
       // ✅ 추가
       setFocusAndCursor();
-    }, [isActive, block.crdt.currentCaret]);
+      // block.crdt.currentCaret
+    }, [isActive, blockCRDTRef.current.crdt.currentCaret]);
 
     return (
       // TODO: eslint 규칙을 수정해야 할까?
@@ -80,7 +87,7 @@ export const Block: React.FC<BlockProps> = memo(
               type: block.type,
             })}
           >
-            {block.crdt.read()}
+            {blockCRDTRef.current.crdt.read()}
           </div>
         </div>
       </div>

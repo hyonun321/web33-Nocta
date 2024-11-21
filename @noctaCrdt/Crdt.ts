@@ -8,6 +8,7 @@ import {
   RemoteCharInsertOperation,
   CRDTSerializedProps,
   RemoteReorderOperation,
+  RemoteBlockUpdateOperation,
 } from "./Interfaces";
 
 export class CRDT<T extends Node<NodeId>> {
@@ -60,6 +61,7 @@ export class CRDT<T extends Node<NodeId>> {
   deserialize(data: any): void {
     this.clock = data.clock;
     this.client = data.client;
+    console.log("crdt data", data);
     this.LinkedList.deserialize(data.LinkedList);
   }
 }
@@ -103,9 +105,9 @@ export class EditorCRDT extends CRDT<Block> {
     return operation;
   }
 
-  remoteUpdate(block: Block) {
+  remoteUpdate(block: Block, pageId: string): RemoteBlockUpdateOperation {
     this.LinkedList.nodeMap[JSON.stringify(block.id)] = block;
-    return { remoteUpdateOperation: block };
+    return { node: block, pageId };
   }
 
   remoteInsert(operation: RemoteBlockInsertOperation): void {
@@ -267,6 +269,7 @@ export class BlockCRDT extends CRDT<Char> {
   }
 
   static deserialize(data: any): BlockCRDT {
+    console.log("deserialize static", data);
     const crdt = new BlockCRDT(data.client);
     crdt.clock = data.clock;
     crdt.LinkedList.deserialize(data.LinkedList);
@@ -275,6 +278,7 @@ export class BlockCRDT extends CRDT<Char> {
   }
 
   deserialize(data: any): void {
+    console.log("deserialize", data);
     super.deserialize(data);
     this.currentCaret = data.currentCaret;
   }

@@ -19,6 +19,7 @@ import {
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
+import { Block } from "@noctaCrdt/Node";
 import { BlockId, CharId } from "@noctaCrdt/NodeId";
 
 // 클라이언트 맵 타입 정의
@@ -38,6 +39,7 @@ interface ClientInfo {
   path: "/api/socket.io",
   transports: ["websocket", "polling"],
 })
+
 export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(CrdtGateway.name);
   private server: Server;
@@ -65,7 +67,6 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       // 클라이언트에게 ID 할당
       client.emit("assignId", assignedId);
-
       // 현재 문서 상태 전송
       const currentWorkSpace = await this.workSpaceService.getWorkspace().serialize();
 
@@ -111,6 +112,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
   }
 
+
   /**
    * 블록 업데이트 연산 처리
    */
@@ -136,25 +138,18 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       // 초기값은 client = client 0 clock 0 , server = clinet 0 clock 0 
       // 여기서 입력이 발생하면 clinet 가 입력해야 clinet 0 clock 1, server = client0 clock 1 
-      // 
-
-
-
       // 2. 해당 페이지 가져오기
-      const pageId = data.pageId;
-      const page = workspace.pageList.find((p) => p.id === pageId);
-      if (!page) {
-        throw new Error(`Page with id ${pageId} not found`);
+      const currentPage = workspace.pageList.find((p) => p.id === data.pageId);
+      if (!currentPage) {
+        throw new Error(`Page with id ${data.pageId} not found`);
       }
-
-      // 3. 업데이트된 블록 정보를 페이지의 CRDT에 적용
-      page.crdt.remoteUpdate(data.node);
+      currentPage.crdt.remoteUpdate(data.node, data.pageId);
 
       // 5. 다른 클라이언트들에게 업데이트된 블록 정보 브로드캐스트
       const operation = {
         node: data.node,
         pageId: data.pageId,
-      };
+      } as RemoteBlockUpdateOperation;
       client.broadcast.emit("update/block", operation);
     } catch (error) {
       this.logger.error(
@@ -164,6 +159,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       throw new WsException(`Update 연산 실패: ${error.message}`);
     }
   }
+
 
   /**
    * 블록 삽입 연산 처리
@@ -199,7 +195,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       
     } catch (error) {
       this.logger.error(
-        `Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        `Block Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
         error.stack,
       );
       throw new WsException(`Insert 연산 실패: ${error.message}`);
@@ -220,21 +216,20 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         `Insert 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-
       // blockId 는 수신 받음
       // 원하는 block에 char node 를 삽입해야함 이제.
 
       // !! TODO 블록 찾기
-
       const currentPage = this.workSpaceService.getWorkspace().pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
+      console.log("블록아이디", data.blockId);
       const currentBlock = currentPage.crdt.LinkedList.nodeMap[JSON.stringify(data.blockId)];
+      console.log("블록", currentBlock);
       if (!currentBlock) {
         throw new Error(`Block with id ${data.blockId} not found`);
       }
-
       currentBlock.crdt.remoteInsert(data);
       // server는 EditorCRDT 없습니다. - BlockCRDT 로 사용되고있음.
       const operation = {
@@ -244,7 +239,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       client.broadcast.emit("insert/char", operation);
     } catch (error) {
       this.logger.error(
-        `Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        `Char Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
         error.stack,
       );
       throw new WsException(`Insert 연산 실패: ${error.message}`);
@@ -279,7 +274,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       client.broadcast.emit("delete/block", operation);
     } catch (error) {
       this.logger.error(
-        `Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        `Block Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
         error.stack,
       );
       throw new WsException(`Delete 연산 실패: ${error.message}`);
@@ -319,7 +314,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       client.broadcast.emit("delete/char", operation);
     } catch (error) {
       this.logger.error(
-        `Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        `Char Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
         error.stack,
       );
       throw new WsException(`Delete 연산 실패: ${error.message}`);
