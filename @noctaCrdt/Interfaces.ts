@@ -5,6 +5,8 @@ import { EditorCRDT } from "./Crdt";
 
 export type ElementType = "p" | "h1" | "h2" | "h3" | "ul" | "ol" | "li" | "checkbox" | "blockquote";
 
+export type AnimationType = "none" | "highlight" | "gradation";
+
 export interface InsertOperation {
   node: Block | Char;
 }
