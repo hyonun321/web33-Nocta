@@ -65,6 +65,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       sendBlockUpdateOperation,
       sendBlockDeleteOperation,
       sendBlockInsertOperation,
+      sendCharInsertOperation,
     });
 
   const { handleKeyDown } = useMarkdownGrammer({

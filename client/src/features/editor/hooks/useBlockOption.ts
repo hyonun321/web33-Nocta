@@ -1,10 +1,11 @@
-import { EditorCRDT } from "@noctaCrdt/Crdt";
+import { BlockCRDT, EditorCRDT } from "@noctaCrdt/Crdt";
 import {
   AnimationType,
   ElementType,
   RemoteBlockDeleteOperation,
   RemoteBlockInsertOperation,
   RemoteBlockUpdateOperation,
+  RemoteCharInsertOperation,
 } from "@noctaCrdt/Interfaces";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { BlockLinkedList } from "node_modules/@noctaCrdt/LinkedList";
@@ -24,6 +25,7 @@ interface useBlockOptionSelectProps {
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
   sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => void;
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
+  sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
 }
 
 export const useBlockOptionSelect = ({
@@ -34,6 +36,7 @@ export const useBlockOptionSelect = ({
   sendBlockUpdateOperation,
   sendBlockDeleteOperation,
   sendBlockInsertOperation,
+  sendCharInsertOperation,
 }: useBlockOptionSelectProps) => {
   const handleTypeSelect = (blockId: BlockId, type: ElementType) => {
     const block = editorState.linkedList.getNode(blockId);
@@ -73,8 +76,48 @@ export const useBlockOptionSelect = ({
     }));
   };
 
-  // TODO 복제
-  const handleCopySelect = () => {};
+  const handleCopySelect = (blockId: BlockId) => {
+    const currentBlock = editorState.linkedList.getNode(blockId);
+    if (!currentBlock) return;
+
+    const currentIndex = editorCRDT.LinkedList.spread().findIndex((block) =>
+      block.id.equals(blockId),
+    );
+
+    const operation = editorCRDT.localInsert(currentIndex + 1, "");
+    operation.node.type = currentBlock.type;
+    operation.node.indent = currentBlock.indent;
+    operation.node.animation = currentBlock.animation;
+    operation.node.style = currentBlock.style;
+    operation.node.icon = currentBlock.icon;
+    operation.node.crdt = new BlockCRDT(editorCRDT.client);
+
+    // 먼저 새로운 블록을 만들고
+    sendBlockInsertOperation({ node: operation.node, pageId });
+
+    // 내부 문자 노드 복사
+    currentBlock.crdt.LinkedList.spread().forEach((char, index) => {
+      const insertOperation = operation.node.crdt.localInsert(
+        index,
+        char.value,
+        operation.node.id,
+        pageId,
+      );
+      sendCharInsertOperation(insertOperation);
+    });
+
+    // 여기서 update를 한번 더 해주면 된다. (block의 속성 (animation, type, style, icon)을 복사하기 위함)
+    sendBlockUpdateOperation({
+      node: operation.node,
+      pageId,
+    });
+
+    setEditorState((prev) => ({
+      clock: editorCRDT.clock,
+      linkedList: editorCRDT.LinkedList,
+      currentBlock: operation.node.id || prev.currentBlock,
+    }));
+  };
 
   const handleDeleteSelect = (blockId: BlockId) => {
     const currentIndex = editorCRDT.LinkedList.spread().findIndex((block) =>

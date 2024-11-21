@@ -20,7 +20,7 @@ interface BlockProps {
   onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
   onTypeSelect: (blockId: BlockId, type: ElementType) => void;
-  onCopySelect: () => void;
+  onCopySelect: (blockId: BlockId) => void;
   onDeleteSelect: (blockId: BlockId) => void;
 }
 
@@ -88,7 +88,7 @@ export const Block: React.FC<BlockProps> = memo(
     };
 
     const handleCopySelect = () => {
-      onCopySelect();
+      onCopySelect(block.id);
     };
 
     const handleDeleteSelect = () => {
