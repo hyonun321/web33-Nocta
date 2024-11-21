@@ -4,7 +4,6 @@ import { BottomNavigator } from "@components/bottomNavigator/BottomNavigator";
 import { ErrorModal } from "@components/modal/ErrorModal";
 import { Sidebar } from "@components/sidebar/Sidebar";
 import { Page } from "@features/page/Page";
-import { useSocket } from "@src/apis/useSocket";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { workSpaceContainer, content } from "./WorkSpace.style";
 import { IntroScreen } from "./components/IntroScreen";

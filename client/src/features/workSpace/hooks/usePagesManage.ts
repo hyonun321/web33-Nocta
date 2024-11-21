@@ -32,7 +32,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
       subscriptionRef.current = false;
       unsubscribe?.();
     };
-  }, []);
+  }, [pages]);
 
   const getZIndex = () => {
     return Math.max(0, ...pages.map((page) => page.zIndex)) + 1;
@@ -113,7 +113,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
           y: PAGE_OFFSET * index,
           zIndex: index,
           isActive: index === 0, // 첫 번째 페이지를 활성화
-          isVisible: true,
+          isVisible: false,
           serializedEditorData: crdtPage.crdt.serialize(),
         }) as Page,
     );
