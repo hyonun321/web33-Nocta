@@ -7,6 +7,7 @@ services:
       - ./client/dist:/app/client/dist
     environment:
       - NODE_ENV=${NODE_ENV}
+      - VITE_API_URL=${VITE_API_URL}
     command: pnpm --filter client run build
 
   backend:
@@ -18,7 +19,9 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI}
       - NODE_ENV=${NODE_ENV}
+      - PORT=3000
       - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
 
   nginx:
     build:
