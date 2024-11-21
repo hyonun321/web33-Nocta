@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSocketStore } from "@src/stores/useSocketStore";
 
 interface UseWorkspaceInitReturn {
   isLoading: boolean;
@@ -10,6 +11,7 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const { socket } = useSocketStore();
 
   useEffect(() => {
     const initializeWorkspace = async () => {
@@ -21,7 +23,6 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
         //   fetchInitialPages(),
         //   fetchWorkspaceData(),
         // ]);
-
         // 개발 중에는 임시로 딜레이를 줘서 스플래시 화면 확인
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -37,7 +38,7 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
     };
 
     initializeWorkspace();
-  }, []);
+  }, [socket]);
 
   return { isLoading, isInitialized, error };
 };

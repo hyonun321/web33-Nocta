@@ -1,7 +1,7 @@
 import { pageItemContainer, iconBox, textBox } from "./PageItem.style";
 
 interface PageItemProps {
-  id: number;
+  id: string;
   title: string;
   icon?: string;
   onClick: () => void;

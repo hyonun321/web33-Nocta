@@ -1,5 +1,7 @@
+import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
+
 export interface Page {
-  id: number;
+  id: string;
   title: string;
   icon: string;
   x: number;
@@ -7,6 +9,7 @@ export interface Page {
   zIndex: number;
   isActive: boolean;
   isVisible: boolean;
+  serializedEditorData: serializedEditorDataProps;
 }
 
 export interface Position {

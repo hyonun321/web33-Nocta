@@ -1,8 +1,9 @@
+// Node.ts
 import { NodeId, BlockId, CharId } from "./NodeId";
-import { BlockCRDT } from "./Crdt";
 import { ElementType } from "./Interfaces";
+import { BlockCRDT } from "./Crdt";
 
-export class Node<T extends NodeId> {
+export abstract class Node<T extends NodeId> {
   id: T;
   value: string;
   next: T | null;
@@ -24,6 +25,19 @@ export class Node<T extends NodeId> {
 
     return false;
   }
+
+  serialize(): any {
+    return {
+      id: this.id.serialize(),
+      value: this.value,
+      next: this.next ? this.next.serialize() : null,
+      prev: this.prev ? this.prev.serialize() : null,
+    };
+  }
+
+  static deserialize(data: any): Node<NodeId> {
+    throw new Error("Deserialize method should be implemented by subclasses");
+  }
 }
 
 export class Block extends Node<BlockId> {
@@ -43,10 +57,48 @@ export class Block extends Node<BlockId> {
     this.icon = "";
     this.crdt = new BlockCRDT(id.client);
   }
+
+  serialize(): any {
+    return {
+      ...super.serialize(),
+      type: this.type,
+      indent: this.indent,
+      animation: this.animation,
+      style: this.style,
+      icon: this.icon,
+      crdt: this.crdt.serialize(),
+    };
+  }
+
+  static deserialize(data: any): Block {
+    const id = BlockId.deserialize(data.id);
+    const block = new Block(data.value, id);
+    block.next = data.next ? BlockId.deserialize(data.next) : null;
+    block.prev = data.prev ? BlockId.deserialize(data.prev) : null;
+    block.type = data.type;
+    block.indent = data.indent;
+    block.animation = data.animation;
+    block.style = data.style;
+    block.icon = data.icon;
+    block.crdt = BlockCRDT.deserialize(data.crdt);
+    return block;
+  }
 }
 
 export class Char extends Node<CharId> {
   constructor(value: string, id: CharId) {
     super(value, id);
+  }
+
+  serialize(): any {
+    return super.serialize();
+  }
+
+  static deserialize(data: any): Char {
+    const id = CharId.deserialize(data.id);
+    const char = new Char(data.value, id);
+    char.next = data.next ? CharId.deserialize(data.next) : null;
+    char.prev = data.prev ? CharId.deserialize(data.prev) : null;
+    return char;
   }
 }

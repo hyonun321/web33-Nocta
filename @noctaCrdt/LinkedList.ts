@@ -1,8 +1,8 @@
 import { Node, Char, Block } from "./Node";
-import { NodeId } from "./NodeId";
+import { NodeId, BlockId, CharId } from "./NodeId";
 import { InsertOperation, ReorderNodesProps } from "./Interfaces";
 
-export class LinkedList<T extends Node<NodeId>> {
+export abstract class LinkedList<T extends Node<NodeId>> {
   head: T["id"] | null;
   nodeMap: { [key: string]: T };
 
@@ -27,6 +27,8 @@ export class LinkedList<T extends Node<NodeId>> {
 
   deleteNode(id: T["id"]): void {
     const nodeToDelete = this.getNode(id);
+    console.log(this.nodeMap);
+    console.log("nodeToDelete", nodeToDelete, id);
     if (!nodeToDelete) return;
 
     if (this.head && id.equals(this.head)) {
@@ -146,7 +148,7 @@ export class LinkedList<T extends Node<NodeId>> {
 
   insertAtIndex(index: number, value: string, id: T["id"]): InsertOperation {
     try {
-      const node = new Node(value, id) as T;
+      const node = this.createNode(value, id);
       this.setNode(id, node);
 
       if (!this.head || index <= 0) {
@@ -239,13 +241,81 @@ export class LinkedList<T extends Node<NodeId>> {
     while (currentNodeId !== null) {
       const currentNode = this.getNode(currentNodeId);
       if (!currentNode) break;
-      result.push(currentNode);
+      result.push(currentNode!);
       currentNodeId = currentNode.next;
     }
     return result;
   }
+
+  /*
+  spread(): T[] {
+    const visited = new Set<string>();
+    let currentNodeId = this.head;
+    const result: T[] = [];
+    
+    while (currentNodeId !== null) {
+      const nodeKey = JSON.stringify(currentNodeId);
+      if (visited.has(nodeKey)) break; // 순환 감지
+      
+      visited.add(nodeKey);
+      const currentNode = this.getNode(currentNodeId);
+      if (!currentNode) break;
+      
+      result.push(currentNode);
+      currentNodeId = currentNode.next;
+    }
+    return result;
+}
+  */
+
+  serialize(): any {
+    return {
+      head: this.head ? this.head.serialize() : null,
+      nodeMap: Object.fromEntries(
+        Object.entries(this.nodeMap).map(([key, value]) => [key, value.serialize()]),
+      ),
+    };
+  }
+
+  deserialize(data: any): void {
+    this.head = data.head ? this.deserializeNodeId(data.head) : null;
+    this.nodeMap = {};
+    for (const key in data.nodeMap) {
+      this.nodeMap[key] = this.deserializeNode(data.nodeMap[key]);
+    }
+  }
+
+  abstract deserializeNodeId(data: any): T["id"];
+
+  abstract deserializeNode(data: any): T;
+
+  abstract createNode(value: string, id: T["id"]): T;
 }
 
-export class BlockLinkedList extends LinkedList<Block> {}
+export class BlockLinkedList extends LinkedList<Block> {
+  deserializeNodeId(data: any): BlockId {
+    return BlockId.deserialize(data);
+  }
 
-export class TextLinkedList extends LinkedList<Char> {}
+  deserializeNode(data: any): Block {
+    return Block.deserialize(data);
+  }
+
+  createNode(value: string, id: BlockId): Block {
+    return new Block(value, id);
+  }
+}
+
+export class TextLinkedList extends LinkedList<Char> {
+  deserializeNodeId(data: any): CharId {
+    return CharId.deserialize(data);
+  }
+
+  deserializeNode(data: any): Char {
+    return Char.deserialize(data);
+  }
+
+  createNode(value: string, id: CharId): Char {
+    return new Char(value, id);
+  }
+}
