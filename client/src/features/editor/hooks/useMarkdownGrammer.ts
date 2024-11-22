@@ -57,10 +57,10 @@ export const useMarkdownGrammer = ({
         ) {
           editorCRDT.currentBlock = editorCRDT.LinkedList.getNode(newBlockId);
         }
-        setEditorState((prev) => ({
+        setEditorState({
           clock: editorCRDT.clock,
           linkedList: editorCRDT.LinkedList,
-        }));
+        });
       };
 
       const currentBlockId = editorCRDT.currentBlock ? editorCRDT.currentBlock.id : null;

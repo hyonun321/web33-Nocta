@@ -102,7 +102,7 @@ export const Block: React.FC<BlockProps> = memo(
             ref={blockRef}
             onKeyDown={onKeyDown}
             onInput={handleInput}
-            onClick={(e) => onClick(block.id)}
+            onClick={() => onClick(block.id)}
             contentEditable
             suppressContentEditableWarning
             className={textContainerStyle({
