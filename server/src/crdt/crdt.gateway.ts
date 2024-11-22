@@ -17,6 +17,7 @@ import {
   RemoteCharInsertOperation,
   RemoteBlockUpdateOperation,
   RemotePageCreateOperation,
+  RemoteBlockReorderOperation,
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
@@ -359,6 +360,43 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         error.stack,
       );
       throw new WsException(`Delete 연산 실패: ${error.message}`);
+    }
+  }
+
+  @SubscribeMessage("reorder/block")
+  async handleBlockReorder(
+    @MessageBody() data: RemoteBlockReorderOperation,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `블록 Reorder 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+      // 1. 워크스페이스 가져오기
+      const workspace = this.workSpaceService.getWorkspace();
+
+      const currentPage = workspace.pageList.find((p) => p.id === data.pageId);
+      if (!currentPage) {
+        throw new Error(`Page with id ${data.pageId} not found`);
+      }
+      currentPage.crdt.remoteReorder(data);
+
+      // 5. 다른 클라이언트들에게 업데이트된 블록 정보 브로드캐스트
+      const operation = {
+        targetId: data.targetId,
+        beforeId: data.beforeId,
+        afterId: data.afterId,
+        pageId: data.pageId,
+      } as RemoteBlockReorderOperation;
+      client.broadcast.emit("reorder/block", operation);
+    } catch (error) {
+      this.logger.error(
+        `블록 Reorder 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Update 연산 실패: ${error.message}`);
     }
   }
 

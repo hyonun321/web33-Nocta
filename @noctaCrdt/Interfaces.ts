@@ -93,10 +93,11 @@ export interface WorkSpaceSerializedProps {
   pageList: Page[];
   authUser: Map<string, string>;
 }
-export interface RemoteReorderOperation {
+export interface RemoteBlockReorderOperation {
   targetId: BlockId;
   beforeId: BlockId | null;
   afterId: BlockId | null;
   clock: number;
   client: number;
+  pageId: string;
 }
