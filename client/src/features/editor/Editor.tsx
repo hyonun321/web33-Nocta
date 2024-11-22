@@ -11,7 +11,12 @@ import {
 import { useRef, useState, useCallback, useEffect, useMemo, useLayoutEffect } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { setCaretPosition } from "@src/utils/caretUtils.ts";
-import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
+import {
+  editorContainer,
+  editorTitleContainer,
+  editorTitle,
+  addNewBlockButton,
+} from "./Editor.style";
 import { Block } from "./components/block/Block.tsx";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
 import { useBlockOptionSelect } from "./hooks/useBlockOption.ts";
@@ -148,10 +153,10 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
           });
         });
       }
-      setEditorState((prev) => ({
+      setEditorState({
         clock: editorCRDT.current.clock,
         linkedList: editorCRDT.current.LinkedList,
-      }));
+      });
     },
     [sendCharInsertOperation, sendCharDeleteOperation],
   );
@@ -176,20 +181,20 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         console.log(operation, "block : 입력 확인합니다이");
         if (!editorCRDT.current) return;
         editorCRDT.current.remoteInsert(operation);
-        setEditorState((prev) => ({
+        setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
-        }));
+        });
       },
 
       onRemoteBlockDelete: (operation) => {
         console.log(operation, "block : 삭제 확인합니다이");
         if (!editorCRDT.current) return;
         editorCRDT.current.remoteDelete(operation);
-        setEditorState((prev) => ({
+        setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
-        }));
+        });
       },
 
       onRemoteCharInsert: (operation) => {
@@ -198,10 +203,10 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         const targetBlock =
           editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteInsert(operation);
-        setEditorState((prev) => ({
+        setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
-        }));
+        });
       },
 
       onRemoteCharDelete: (operation) => {
@@ -210,10 +215,10 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         const targetBlock =
           editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteDelete(operation);
-        setEditorState((prev) => ({
+        setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
-        }));
+        });
       },
 
       onRemoteBlockUpdate: (operation) => {
@@ -222,20 +227,20 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         // ??
         console.log("타입", operation.node);
         editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
-        setEditorState((prev) => ({
+        setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
-        }));
+        });
       },
 
       onRemoteBlockReorder: (operation) => {
         console.log(operation, "block : 재정렬 확인합니다이");
         if (!editorCRDT.current) return;
         editorCRDT.current.remoteReorder(operation);
-        setEditorState((prev) => ({
+        setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
-        }));
+        });
       },
 
       onRemoteCursor: (position) => {
@@ -249,18 +254,16 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     };
   }, []);
 
-  const tempBlock = () => {
+  const addNewBlock = () => {
     const index = editorCRDT.current.LinkedList.spread().length;
 
     // 로컬 삽입을 수행하고 연산 객체를 반환받음
     const operation = editorCRDT.current.localInsert(index, "");
     sendBlockInsertOperation({ node: operation.node, pageId });
-    console.log("operation clock", operation.node);
-    setEditorState(() => ({
+    setEditorState({
       clock: operation.node.id.clock,
       linkedList: editorCRDT.current.LinkedList,
-      currentBlock: operation.node.id,
-    }));
+    });
   };
 
   return (
@@ -296,7 +299,11 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
             ))}
           </SortableContext>
         </DndContext>
-        <div onClick={tempBlock}>임시</div>
+        {editorState.linkedList.spread().length === 0 && (
+          <div className={addNewBlockButton} onClick={addNewBlock}>
+            클릭해서 새로운 블록을 추가하세요
+          </div>
+        )}
       </div>
     </div>
   );
