@@ -71,6 +71,7 @@ export const useMarkdownGrammer = ({
 
       switch (e.key) {
         case "Enter": {
+          if (e.nativeEvent.isComposing) return;
           e.preventDefault();
           const caretPosition = currentBlock.crdt.currentCaret;
           const currentContent = currentBlock.crdt.read();
