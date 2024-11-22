@@ -1,9 +1,9 @@
-import { useEffect } from "react";
 import { useRefreshQuery } from "@apis/auth";
-import { ErrorModal } from "@components/modal/ErrorModal";
-import { WorkSpace } from "@features/workSpace/WorkSpace";
 import { useErrorStore } from "@stores/useErrorStore";
 import { useUserInfo } from "@stores/useUserStore";
+import { useEffect } from "react";
+import { ErrorModal } from "@components/modal/ErrorModal";
+import { WorkSpace } from "@features/workSpace/WorkSpace";
 import { useSocketStore } from "./stores/useSocketStore";
 
 const App = () => {
