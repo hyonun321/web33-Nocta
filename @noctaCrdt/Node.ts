@@ -1,6 +1,6 @@
 // Node.ts
 import { NodeId, BlockId, CharId } from "./NodeId";
-import { ElementType } from "./Interfaces";
+import { AnimationType, ElementType } from "./Interfaces";
 import { BlockCRDT } from "./Crdt";
 
 export abstract class Node<T extends NodeId> {
@@ -43,7 +43,7 @@ export abstract class Node<T extends NodeId> {
 export class Block extends Node<BlockId> {
   type: ElementType;
   indent: number;
-  animation: string;
+  animation: AnimationType;
   style: string[];
   icon: string;
   crdt: BlockCRDT;
@@ -52,7 +52,7 @@ export class Block extends Node<BlockId> {
     super(value, id);
     this.type = "p";
     this.indent = 0;
-    this.animation = "";
+    this.animation = "none";
     this.style = [];
     this.icon = "";
     this.crdt = new BlockCRDT(id.client);
