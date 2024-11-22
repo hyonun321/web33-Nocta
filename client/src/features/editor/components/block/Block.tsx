@@ -1,5 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { AnimationType, ElementType } from "@noctaCrdt/Interfaces";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { motion } from "framer-motion";
@@ -17,10 +18,25 @@ interface BlockProps {
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
+  onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
+  onTypeSelect: (blockId: BlockId, type: ElementType) => void;
+  onCopySelect: (blockId: BlockId) => void;
+  onDeleteSelect: (blockId: BlockId) => void;
 }
 
 export const Block: React.FC<BlockProps> = memo(
-  ({ id, block, isActive, onInput, onKeyDown, onClick }: BlockProps) => {
+  ({
+    id,
+    block,
+    isActive,
+    onInput,
+    onKeyDown,
+    onClick,
+    onAnimationSelect,
+    onTypeSelect,
+    onCopySelect,
+    onDeleteSelect,
+  }: BlockProps) => {
     console.log("블록 초기화 상태", block);
     const blockRef = useRef<HTMLDivElement>(null);
     const blockCRDTRef = useRef<CRDTBlock>(block);
@@ -63,6 +79,22 @@ export const Block: React.FC<BlockProps> = memo(
       // block.crdt.currentCaret
     }, [isActive, blockCRDTRef.current.crdt.currentCaret]);
 
+    const handleAnimationSelect = (animation: AnimationType) => {
+      onAnimationSelect(block.id, animation);
+    };
+
+    const handleTypeSelect = (type: ElementType) => {
+      onTypeSelect(block.id, type);
+    };
+
+    const handleCopySelect = () => {
+      onCopySelect(block.id);
+    };
+
+    const handleDeleteSelect = () => {
+      onDeleteSelect(block.id);
+    };
+
     return (
       // TODO: eslint 규칙을 수정해야 할까?
       // TODO: ol일때 index 순서 처리
@@ -72,17 +104,24 @@ export const Block: React.FC<BlockProps> = memo(
         style={{
           transform: CSS.Transform.toString(transform),
           transition,
-          opacity: isDragging ? 0.5 : 1,
+          opacity: isDragging ? 0.5 : undefined,
         }}
-        initial={block?.animation && blockAnimation.highlight.initial}
-        animate={isAnimationStart && block?.animation && blockAnimation.highlight.animate}
+        initial={blockAnimation[block.animation || "none"].initial}
+        animate={isAnimationStart && blockAnimation[block.animation || "none"].animate}
         data-group
       >
         <motion.div
           className={contentWrapperStyle()}
           style={{ paddingLeft: `${block.indent * 12}px` }}
         >
-          <MenuBlock attributes={attributes} listeners={listeners} />
+          <MenuBlock
+            attributes={attributes}
+            listeners={listeners}
+            onAnimationSelect={handleAnimationSelect}
+            onTypeSelect={handleTypeSelect}
+            onCopySelect={handleCopySelect}
+            onDeleteSelect={handleDeleteSelect}
+          />
           <IconBlock type={block.type} index={1} />
           <div
             ref={blockRef}
@@ -103,5 +142,4 @@ export const Block: React.FC<BlockProps> = memo(
   },
 );
 
-// 메모이제이션을 위한 displayName 설정
 Block.displayName = "Block";
