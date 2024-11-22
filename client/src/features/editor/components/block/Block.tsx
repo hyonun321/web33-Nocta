@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { motion } from "framer-motion";
-import { memo, useRef, useLayoutEffect } from "react";
+import { memo, useRef, useLayoutEffect, useState } from "react";
 import { useBlockAnimation } from "../../hooks/useBlockAnimtaion";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
@@ -16,12 +16,11 @@ interface BlockProps {
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
+  onClick: (blockId: BlockId) => void;
 }
 
 export const Block: React.FC<BlockProps> = memo(
   ({ id, block, isActive, onInput, onKeyDown, onClick }: BlockProps) => {
-    console.log("블록 초기화 상태", block);
     const blockRef = useRef<HTMLDivElement>(null);
     const blockCRDTRef = useRef<CRDTBlock>(block);
 
@@ -37,31 +36,6 @@ export const Block: React.FC<BlockProps> = memo(
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
       onInput(e, block);
     };
-
-    const setFocusAndCursor = () => {
-      if (blockRef.current && isActive) {
-        const selection = window.getSelection();
-        if (!selection) return;
-        const range = document.createRange();
-        const content =
-          blockRef.current.firstChild || blockRef.current.appendChild(document.createTextNode(""));
-        // const position = Math.min(block.crdt.currentCaret, content.textContent?.length || 0);
-        const position = Math.min(
-          blockCRDTRef.current.crdt.currentCaret,
-          content.textContent?.length || 0,
-        );
-        range.setStart(content, position);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    };
-
-    useLayoutEffect(() => {
-      // ✅ 추가
-      setFocusAndCursor();
-      // block.crdt.currentCaret
-    }, [isActive, blockCRDTRef.current.crdt.currentCaret]);
 
     return (
       // TODO: eslint 규칙을 수정해야 할까?
@@ -88,7 +62,7 @@ export const Block: React.FC<BlockProps> = memo(
             ref={blockRef}
             onKeyDown={onKeyDown}
             onInput={handleInput}
-            onClick={(e) => onClick(block.id, e)}
+            onClick={(e) => onClick(block.id)}
             contentEditable
             suppressContentEditableWarning
             className={textContainerStyle({
