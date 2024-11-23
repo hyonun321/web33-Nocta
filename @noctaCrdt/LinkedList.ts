@@ -219,6 +219,35 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     this.setNode(node.id, node);
   }
 
+  getNodesBetween(startIndex: number, endIndex: number): T[] {
+    if (startIndex < 0 || endIndex < startIndex) {
+      throw new Error("Invalid indices");
+    }
+
+    const result: T[] = [];
+    let currentNodeId = this.head;
+    let currentIndex = 0;
+
+    // 시작 인덱스까지 이동
+    while (currentNodeId !== null && currentIndex < startIndex) {
+      const currentNode = this.getNode(currentNodeId);
+      if (!currentNode) break;
+      currentNodeId = currentNode.next;
+      currentIndex += 1;
+    }
+
+    // 시작 인덱스부터 끝 인덱스까지의 노드들 수집
+    while (currentNodeId !== null && currentIndex < endIndex) {
+      const currentNode = this.getNode(currentNodeId);
+      if (!currentNode) break;
+      result.push(currentNode);
+      currentNodeId = currentNode.next;
+      currentIndex += 1;
+    }
+
+    return result;
+  }
+
   stringify(): string {
     let currentNodeId = this.head;
     let result = "";
@@ -244,27 +273,6 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     }
     return result;
   }
-
-  /*
-  spread(): T[] {
-    const visited = new Set<string>();
-    let currentNodeId = this.head;
-    const result: T[] = [];
-    
-    while (currentNodeId !== null) {
-      const nodeKey = JSON.stringify(currentNodeId);
-      if (visited.has(nodeKey)) break; // 순환 감지
-      
-      visited.add(nodeKey);
-      const currentNode = this.getNode(currentNodeId);
-      if (!currentNode) break;
-      
-      result.push(currentNode);
-      currentNodeId = currentNode.next;
-    }
-    return result;
-}
-  */
 
   serialize(): any {
     return {
