@@ -8,12 +8,14 @@ export abstract class Node<T extends NodeId> {
   value: string;
   next: T | null;
   prev: T | null;
+  style: string[];
 
   constructor(value: string, id: T) {
     this.id = id;
     this.value = value;
     this.next = null;
     this.prev = null;
+    this.style = [];
   }
 
   precedes(node: Node<T>): boolean {
@@ -32,6 +34,7 @@ export abstract class Node<T extends NodeId> {
       value: this.value,
       next: this.next ? this.next.serialize() : null,
       prev: this.prev ? this.prev.serialize() : null,
+      style: this.style,
     };
   }
 
@@ -86,7 +89,7 @@ export class Block extends Node<BlockId> {
 }
 
 export class Char extends Node<CharId> {
-  style: TextStyleType[];
+  style: string[];
 
   constructor(value: string, id: CharId) {
     super(value, id);
