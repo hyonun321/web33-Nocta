@@ -99,10 +99,9 @@ export const usePage = ({ x, y }: Position) => {
 
       switch (direction) {
         case "right": {
-          // startWidth + deltaX 가 계속해서 변하는 값. 사용자가 마우스를 움직이면서 계속해서 변함
           newWidth = Math.min(
-            window.innerWidth - startPosition.x - getSidebarWidth() - PADDING, // 최대 넓이를 지정하고 싶을때 Math.min
-            Math.max(PAGE.MIN_WIDTH, startWidth + deltaX), //최소 넓이를 지정하고 싶을때 Math.max
+            window.innerWidth - startPosition.x - getSidebarWidth() - PADDING,
+            Math.max(PAGE.MIN_WIDTH, startWidth + deltaX),
           );
           break;
         }
