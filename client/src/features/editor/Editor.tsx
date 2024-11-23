@@ -21,6 +21,7 @@ import { Block } from "./components/block/Block.tsx";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
 import { useBlockOptionSelect } from "./hooks/useBlockOption.ts";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
+import { useTextOptionSelect } from "./hooks/useTextOptions.ts";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
@@ -84,6 +85,13 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendCharInsertOperation,
   });
 
+  const { onTextStyleUpdate } = useTextOptionSelect({
+    editorCRDT: editorCRDT.current,
+    setEditorState,
+    pageId,
+    sendBlockUpdateOperation,
+  });
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitleChange(e.target.value);
   };
@@ -109,35 +117,14 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
           const [addedChar] = newContent;
           charNode = block.crdt.localInsert(0, addedChar, block.id, pageId);
           editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
-          requestAnimationFrame(() => {
-            setCaretPosition({
-              blockId: block.id,
-              linkedList: editorCRDT.current.LinkedList,
-              position: caretPosition,
-            });
-          });
         } else if (caretPosition > currentContent.length) {
           const addedChar = newContent[newContent.length - 1];
           charNode = block.crdt.localInsert(currentContent.length, addedChar, block.id, pageId);
           editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
-          requestAnimationFrame(() => {
-            setCaretPosition({
-              blockId: block.id,
-              linkedList: editorCRDT.current.LinkedList,
-              position: caretPosition,
-            });
-          });
         } else {
           const addedChar = newContent[caretPosition - 1];
           charNode = block.crdt.localInsert(caretPosition - 1, addedChar, block.id, pageId);
           editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
-          requestAnimationFrame(() => {
-            setCaretPosition({
-              blockId: block.id,
-              linkedList: editorCRDT.current.LinkedList,
-              position: caretPosition,
-            });
-          });
         }
         sendCharInsertOperation({ node: charNode.node, blockId: block.id, pageId });
       } else if (newContent.length < currentContent.length) {
@@ -145,13 +132,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         operationNode = block.crdt.localDelete(caretPosition, block.id, pageId);
         sendCharDeleteOperation(operationNode);
         editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
-        requestAnimationFrame(() => {
-          setCaretPosition({
-            blockId: block.id,
-            linkedList: editorCRDT.current.LinkedList,
-            position: caretPosition,
-          });
-        });
       }
       setEditorState({
         clock: editorCRDT.current.clock,
@@ -170,7 +150,8 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       linkedList: editorCRDT.current.LinkedList,
       position: editorCRDT.current.currentBlock?.crdt.currentCaret,
     });
-  }, [editorCRDT.current.currentBlock?.crdt.read().length]);
+    // 서윤님 피드백 반영
+  }, [editorCRDT.current.currentBlock?.id.serialize()]);
 
   useEffect(() => {
     if (subscriptionRef.current) return;
@@ -224,8 +205,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       onRemoteBlockUpdate: (operation) => {
         console.log(operation, "block : 업데이트 확인합니다이");
         if (!editorCRDT.current) return;
-        // ??
-        console.log("타입", operation.node);
         editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
         setEditorState({
           clock: editorCRDT.current.clock,
@@ -237,6 +216,18 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         console.log(operation, "block : 재정렬 확인합니다이");
         if (!editorCRDT.current) return;
         editorCRDT.current.remoteReorder(operation);
+        setEditorState({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+        });
+      },
+
+      onRemoteCharUpdate: (operation) => {
+        console.log(operation, "char : 업데이트 확인합니다이");
+        if (!editorCRDT.current) return;
+        const targetBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+        targetBlock.crdt.remoteUpdate(operation);
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -295,6 +286,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
                 onTypeSelect={handleTypeSelect}
                 onCopySelect={handleCopySelect}
                 onDeleteSelect={handleDeleteSelect}
+                onTextStyleUpdate={onTextStyleUpdate}
               />
             ))}
           </SortableContext>
