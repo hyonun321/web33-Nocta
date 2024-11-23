@@ -118,6 +118,12 @@ export const useBlockOptionSelect = ({
     });
   };
 
+  const findBlock = (linkedList: BlockLinkedList, index: number) => {
+    if (index < 0) return null;
+    if (index >= linkedList.spread().length) return null;
+    return linkedList.findByIndex(index);
+  };
+
   const handleDeleteSelect = (blockId: BlockId) => {
     const currentIndex = editorCRDT.LinkedList.spread().findIndex((block) =>
       block.id.equals(blockId),
@@ -127,8 +133,9 @@ export const useBlockOptionSelect = ({
     // 삭제할 블록이 현재 활성화된 블록인 경우
     if (editorCRDT.currentBlock?.id.equals(blockId)) {
       // 다음 블록이나 이전 블록으로 currentBlock 설정
-      const nextBlock = editorCRDT.LinkedList.findByIndex(currentIndex + 1);
-      const prevBlock = editorCRDT.LinkedList.findByIndex(currentIndex - 1);
+      // 서윤님 피드백 반영
+      const nextBlock = findBlock(editorCRDT.LinkedList, currentIndex); // ✅ 이미 삭제한 후라, next는 currentIndex
+      const prevBlock = findBlock(editorCRDT.LinkedList, currentIndex - 1); // ✅ 이미 삭제한 후라, prev는 currentIndex - 1
       editorCRDT.currentBlock = nextBlock || prevBlock || null;
     }
 
