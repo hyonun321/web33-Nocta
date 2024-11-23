@@ -7,6 +7,8 @@ export type ElementType = "p" | "h1" | "h2" | "h3" | "ul" | "ol" | "li" | "check
 
 export type AnimationType = "none" | "highlight" | "gradation";
 
+export type TextStyleType = "bold" | "italic" | "underline" | "strikethrough";
+
 export interface InsertOperation {
   node: Block | Char;
 }
@@ -48,6 +50,12 @@ export interface RemoteCharDeleteOperation {
   targetId: CharId;
   clock: number;
   blockId?: BlockId;
+  pageId: string;
+}
+
+export interface RemoteCharUpdateOperation {
+  node: Char;
+  blockId: BlockId;
   pageId: string;
 }
 

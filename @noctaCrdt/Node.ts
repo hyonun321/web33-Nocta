@@ -1,6 +1,6 @@
 // Node.ts
 import { NodeId, BlockId, CharId } from "./NodeId";
-import { AnimationType, ElementType } from "./Interfaces";
+import { AnimationType, ElementType, TextStyleType } from "./Interfaces";
 import { BlockCRDT } from "./Crdt";
 
 export abstract class Node<T extends NodeId> {
@@ -86,8 +86,11 @@ export class Block extends Node<BlockId> {
 }
 
 export class Char extends Node<CharId> {
+  style: TextStyleType[];
+
   constructor(value: string, id: CharId) {
     super(value, id);
+    this.style = [];
   }
 
   serialize(): any {
@@ -99,6 +102,7 @@ export class Char extends Node<CharId> {
     const char = new Char(data.value, id);
     char.next = data.next ? CharId.deserialize(data.next) : null;
     char.prev = data.prev ? CharId.deserialize(data.prev) : null;
+    char.style = data.style ? data.style : [];
     return char;
   }
 }

@@ -9,6 +9,7 @@ import {
   CRDTSerializedProps,
   RemoteBlockReorderOperation,
   RemoteBlockUpdateOperation,
+  RemoteCharUpdateOperation,
 } from "./Interfaces";
 
 export class CRDT<T extends Node<NodeId>> {
@@ -219,7 +220,7 @@ export class BlockCRDT extends CRDT<Char> {
     pageId: string,
   ): RemoteCharInsertOperation {
     const id = new CharId(this.clock + 1, this.client);
-    const { node } = this.LinkedList.insertAtIndex(index, value, id);
+    const { node } = this.LinkedList.insertAtIndex(index, value, id) as { node: Char };
     this.clock += 1;
     const operation: RemoteCharInsertOperation = {
       node,
@@ -253,6 +254,12 @@ export class BlockCRDT extends CRDT<Char> {
     return operation;
   }
 
+  localUpdate(node: Char, blockId: BlockId, pageId: string): RemoteCharUpdateOperation {
+    const updatedChar = this.LinkedList.nodeMap[JSON.stringify(node.id)];
+    updatedChar.style = [...node.style];
+    return { node: updatedChar, blockId, pageId };
+  }
+
   remoteInsert(operation: RemoteCharInsertOperation): void {
     const newNodeId = new CharId(operation.node.id.clock, operation.node.id.client);
     const newNode = new Char(operation.node.value, newNodeId);
@@ -276,6 +283,11 @@ export class BlockCRDT extends CRDT<Char> {
     if (this.clock <= clock) {
       this.clock = clock + 1;
     }
+  }
+
+  remoteUpdate(operation: RemoteCharUpdateOperation): void {
+    const updatedChar = this.LinkedList.nodeMap[JSON.stringify(operation.node.id)];
+    updatedChar.style = [...operation.node.style];
   }
 
   serialize(): CRDTSerializedProps<Char> {
