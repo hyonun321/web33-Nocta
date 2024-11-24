@@ -1,15 +1,34 @@
-import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
 import { MAX_VISIBLE_PAGE } from "@src/constants/page";
 import { AuthButton } from "@src/features/auth/AuthButton";
+import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page } from "@src/types/page";
+import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
 import { sidebarContainer, navWrapper, plusIconBox, sidebarToggleButton } from "./Sidebar.style";
+
+const MODAL_TEXT = {
+  maxPage: (
+    <p>
+      최대 {MAX_VISIBLE_PAGE}개의 페이지만 표시할 수 있습니다
+      <br />
+      사용하지 않는 페이지는 닫아주세요.
+    </p>
+  ),
+  lastPage: (
+    <p>
+      마지막 페이지는 삭제할 수 없습니다.
+      <br />
+      최소 1개의 페이지가 필요합니다.
+    </p>
+  ),
+} as const;
 
 export const Sidebar = ({
   pages,
@@ -22,10 +41,11 @@ export const Sidebar = ({
 }) => {
   const visiblePages = pages.filter((page) => page.isVisible);
   const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
-  console.log(pages, visiblePages, "체크용");
   const isSidebarOpen = useIsSidebarOpen();
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
+  const { sendPageDeleteOperation, clientId } = useSocketStore();
+  const [isLastPageModal, setIsLastPageModal] = useState(false);
 
   const handlePageItemClick = (id: string) => {
     if (isMaxVisiblePage) {
@@ -36,12 +56,30 @@ export const Sidebar = ({
   };
 
   const handleAddPageButtonClick = () => {
-    console.log(isMaxVisiblePage, "체크");
     if (isMaxVisiblePage) {
       openModal();
       return;
     }
     handlePageAdd();
+  };
+
+  const handlePageDelete = (pageId: string) => {
+    if (!clientId) {
+      console.error("Client ID not assigned");
+      return;
+    }
+
+    if (pages.length <= 1) {
+      setIsLastPageModal(true);
+      openModal();
+      return;
+    }
+
+    sendPageDeleteOperation({
+      workspaceId: "default",
+      pageId,
+      clientId,
+    });
   };
 
   return (
@@ -65,7 +103,11 @@ export const Sidebar = ({
             animate={animation.animate}
             transition={animation.transition}
           >
-            <PageItem {...item} onClick={() => handlePageItemClick(item.id)} />
+            <PageItem
+              {...item}
+              onClick={() => handlePageItemClick(item.id)}
+              onDelete={() => handlePageDelete(item.id)}
+            />
           </motion.div>
         ))}
       </motion.nav>
@@ -74,11 +116,7 @@ export const Sidebar = ({
         <AuthButton />
       </motion.div>
       <Modal isOpen={isOpen} primaryButtonLabel="확인" primaryButtonOnClick={closeModal}>
-        <p>
-          최대 {MAX_VISIBLE_PAGE}개의 페이지만 표시할 수 있습니다
-          <br />
-          사용하지 않는 페이지는 닫아주세요.
-        </p>
+        {isLastPageModal ? MODAL_TEXT.lastPage : MODAL_TEXT.maxPage}
       </Modal>
     </motion.aside>
   );
