@@ -68,28 +68,28 @@ export const textContainerStyle = cva({
     type: {
       p: {
         textStyle: "display-medium16",
-        fontWeight: "bold",
+        fontWeight: "normal",
         "&:empty::before": {
           content: '"텍스트를 입력하세요..."',
         },
       },
       h1: {
         textStyle: "display-medium24",
-        fontWeight: "bold",
+        fontWeight: "normal",
         "&:empty::before": {
           content: '"제목 1"',
         },
       },
       h2: {
         textStyle: "display-medium20",
-        fontWeight: "bold",
+        fontWeight: "normal",
         "&:empty::before": {
           content: '"제목 2"',
         },
       },
       h3: {
         textStyle: "display-medium16",
-        fontWeight: "bold",
+        fontWeight: "normal",
         "&:empty::before": {
           content: '"제목 3"',
         },
