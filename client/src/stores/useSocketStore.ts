@@ -121,14 +121,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => {
     const { socket } = get();
-    console.log("block insert operation", operation);
-    console.log("socket", socket);
     socket?.emit("insert/block", operation);
   },
 
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => {
     const { socket } = get();
-    console.log("char insert operation", operation);
     socket?.emit("insert/char", operation);
   },
 
