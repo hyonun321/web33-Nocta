@@ -23,7 +23,7 @@ export const setInnerHTML = ({ element, block }: SetInnerHTMLProps): void => {
   }
 
   // 각 위치별 모든 적용된 스타일을 추적
-  const positionStyles: Set<string>[] = chars.map((char, index) => {
+  const positionStyles: Set<string>[] = chars.map((_, index) => {
     const styleSet = new Set<string>();
 
     // 해당 위치에 적용되어야 하는 모든 스타일 수집
@@ -91,6 +91,7 @@ const setsEqual = (a: Set<string>, b: Set<string>): boolean => {
 
 const sanitizeText = (text: string): string => {
   return text
+    .replace(/<br>/g, "&nbsp;")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
