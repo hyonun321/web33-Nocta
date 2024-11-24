@@ -218,9 +218,13 @@ export class BlockCRDT extends CRDT<Char> {
     value: string,
     blockId: BlockId,
     pageId: string,
+    style?: string[],
   ): RemoteCharInsertOperation {
     const id = new CharId(this.clock + 1, this.client);
     const { node } = this.LinkedList.insertAtIndex(index, value, id) as { node: Char };
+    if (style && style.length > 0) {
+      node.style = style;
+    }
     this.clock += 1;
     const operation: RemoteCharInsertOperation = {
       node,
