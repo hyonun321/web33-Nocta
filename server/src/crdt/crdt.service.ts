@@ -10,11 +10,7 @@ import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
 @Injectable()
 export class workSpaceService implements OnModuleInit {
   private workspaces: Map<string, CRDTWorkSpace>;
-  private tempPage: CRDTPage;
-  constructor(@InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>) {
-    // this.tempPage = new CRDTPage();
-    // this.workspaces = new CRDTWorkSpace("test", [this.tempPage]);
-  }
+  constructor(@InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>) {}
   async onModuleInit() {
     this.workspaces = new Map();
     // 게스트 워크스페이스 초기화
