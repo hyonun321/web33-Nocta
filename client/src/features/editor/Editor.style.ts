@@ -26,7 +26,7 @@ export const editorTitle = css({
   width: "full",
   color: "gray.700",
   "&::placeholder": {
-    color: "gray.300",
+    color: "gray.100",
   },
 });
 
