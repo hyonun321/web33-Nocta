@@ -26,6 +26,31 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         });
         addPage(newPage);
       },
+      onRemotePageDelete: (operation) => {
+        console.log(operation, "page : 삭제 확인합니다");
+        workspace.remotePageDelete?.({
+          pageId: operation.pageId,
+          workspaceId: operation.workspaceId,
+          clientId: operation.clientId,
+        });
+
+        setPages((prevPages) => {
+          const deletedPage = prevPages.find((page) => page.id === operation.pageId);
+          const remainingPages = prevPages.filter((page) => page.id !== operation.pageId);
+
+          // 삭제된 페이지가 활성화된 상태였다면, 다른 페이지를 활성화
+          if (deletedPage?.isActive && remainingPages.length > 0) {
+            const nextActiveIndex = 0; // 첫 번째 페이지를 활성화하거나, 다른 로직으로 선택
+            remainingPages[nextActiveIndex] = {
+              ...remainingPages[nextActiveIndex],
+              isActive: true,
+              isVisible: true,
+            };
+          }
+
+          return remainingPages;
+        });
+      },
     });
 
     return () => {
