@@ -4,9 +4,11 @@ import { AnimationType, ElementType, TextStyleType } from "@noctaCrdt/Interfaces
 import { Block as CRDTBlock, Char } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { motion } from "framer-motion";
-import { memo, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useModal } from "@src/components/modal/useModal";
+import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils";
 import { useBlockAnimation } from "../../hooks/useBlockAnimtaion";
+import { setInnerHTML } from "../../utils/domSyncUtils";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { TextOptionModal } from "../TextOptionModal/TextOptionModal";
@@ -24,7 +26,11 @@ interface BlockProps {
   onTypeSelect: (blockId: BlockId, type: ElementType) => void;
   onCopySelect: (blockId: BlockId) => void;
   onDeleteSelect: (blockId: BlockId) => void;
-  onTextStyleUpdate: (styleType: TextStyleType, blockId: BlockId, nodes: Array<Char>) => void;
+  onTextStyleUpdate: (
+    styleType: TextStyleType,
+    blockId: BlockId,
+    nodes: Array<Char> | null,
+  ) => void;
 }
 export const Block: React.FC<BlockProps> = memo(
   ({
@@ -88,11 +94,29 @@ export const Block: React.FC<BlockProps> = memo(
         return;
       }
 
-      const nodes = blockCRDTRef.current.crdt.LinkedList.getNodesBetween(
-        range.startOffset,
-        range.endOffset,
-      );
+      // 실제 텍스트 위치 계산
+      const getTextOffset = (container: Node, offset: number): number => {
+        let totalOffset = 0;
+        const walker = document.createTreeWalker(blockRef.current!, NodeFilter.SHOW_TEXT, null);
 
+        let node = walker.nextNode();
+        while (node) {
+          if (node === container) {
+            return totalOffset + offset;
+          }
+          if (node.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            totalOffset += node.textContent?.length || 0;
+          }
+          node = walker.nextNode();
+        }
+        return totalOffset;
+      };
+
+      const startOffset = getTextOffset(range.startContainer, range.startOffset);
+      const endOffset = getTextOffset(range.endContainer, range.endOffset);
+
+      const nodes = block.crdt.LinkedList.spread().slice(startOffset, endOffset);
+      console.log("nodes", nodes);
       if (nodes.length > 0) {
         setSelectedNodes(nodes);
         openModal();
@@ -100,11 +124,23 @@ export const Block: React.FC<BlockProps> = memo(
     };
 
     const handleStyleSelect = (styleType: TextStyleType) => {
-      if (selectedNodes) {
+      if (blockRef.current && selectedNodes) {
+        const selection = window.getSelection();
+        // CRDT 상태 업데이트 및 서버 전송
         onTextStyleUpdate(styleType, block.id, selectedNodes);
+
+        const position = selection?.focusOffset || 0;
+        block.crdt.currentCaret = position;
+
         closeModal();
       }
     };
+
+    useEffect(() => {
+      if (blockRef.current) {
+        setInnerHTML({ element: blockRef.current, block });
+      }
+    }, [block.crdt.serialize(), isActive]);
 
     return (
       // TODO: eslint 규칙을 수정해야 할까?
@@ -141,13 +177,12 @@ export const Block: React.FC<BlockProps> = memo(
             onClick={() => onClick(block.id)}
             onMouseUp={handleMouseUp}
             contentEditable
+            spellCheck={false}
             suppressContentEditableWarning
             className={textContainerStyle({
               type: block.type,
             })}
-          >
-            {blockCRDTRef.current.crdt.read()}
-          </div>
+          />
         </motion.div>
         <TextOptionModal
           isOpen={isOpen}
