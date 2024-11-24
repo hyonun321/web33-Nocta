@@ -120,6 +120,10 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
   const handleBlockInput = useCallback(
     (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => {
       if (!block) return;
+      if ((e.nativeEvent as InputEvent).isComposing) {
+        return;
+      }
+
       let operationNode;
       const element = e.currentTarget;
       const newContent = element.textContent || "";
@@ -158,6 +162,27 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     },
     [sendCharInsertOperation, sendCharDeleteOperation],
   );
+
+  const handleCompositionEnd = (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => {
+    const event = e.nativeEvent as CompositionEvent;
+    const characters = [...event.data];
+    const selection = window.getSelection();
+    const caretPosition = selection?.focusOffset || 0;
+    const startPosition = caretPosition - characters.length;
+
+    characters.forEach((char, index) => {
+      const insertPosition = startPosition + index;
+      const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
+
+      sendCharInsertOperation({
+        node: charNode.node,
+        blockId: block.id,
+        pageId,
+      });
+    });
+
+    block.crdt.currentCaret = caretPosition;
+  };
 
   const subscriptionRef = useRef(false);
 
@@ -286,6 +311,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
                 block={block}
                 isActive={block.id === editorState.currentBlock}
                 onInput={handleBlockInput}
+                onCompositionEnd={handleCompositionEnd}
                 onKeyDown={handleKeyDown}
                 onClick={handleBlockClick}
                 onAnimationSelect={handleAnimationSelect}
