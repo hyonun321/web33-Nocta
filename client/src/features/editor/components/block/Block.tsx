@@ -21,7 +21,7 @@ interface BlockProps {
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  onClick: (blockId: BlockId) => void;
+  onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
   onTypeSelect: (blockId: BlockId, type: ElementType) => void;
   onCopySelect: (blockId: BlockId) => void;
@@ -47,7 +47,6 @@ export const Block: React.FC<BlockProps> = memo(
     onTextStyleUpdate,
   }: BlockProps) => {
     const blockRef = useRef<HTMLDivElement>(null);
-    const blockCRDTRef = useRef<CRDTBlock>(block);
     const { isOpen, openModal, closeModal } = useModal();
     const [selectedNodes, setSelectedNodes] = useState<Array<Char> | null>(null);
     const { isAnimationStart } = useBlockAnimation(blockRef);
@@ -60,6 +59,13 @@ export const Block: React.FC<BlockProps> = memo(
     });
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+      // 텍스트를 삭제하면 <br> 태그가 생김
+      // 이를 방지하기 위해 <br> 태그 찾아서 모두 삭제
+      const brElements = e.currentTarget.getElementsByTagName("br");
+      if (brElements.length > 0) {
+        e.preventDefault();
+        Array.from(brElements).forEach((br) => br.remove());
+      }
       onInput(e, block);
     };
 
@@ -140,7 +146,7 @@ export const Block: React.FC<BlockProps> = memo(
       if (blockRef.current) {
         setInnerHTML({ element: blockRef.current, block });
       }
-    }, [block.crdt.serialize(), isActive]);
+    }, [block.crdt.serialize()]);
 
     return (
       // TODO: eslint 규칙을 수정해야 할까?
@@ -174,7 +180,7 @@ export const Block: React.FC<BlockProps> = memo(
             ref={blockRef}
             onKeyDown={onKeyDown}
             onInput={handleInput}
-            onClick={() => onClick(block.id)}
+            onClick={(e) => onClick(block.id, e)}
             onMouseUp={handleMouseUp}
             contentEditable
             spellCheck={false}

@@ -10,7 +10,7 @@ import {
 } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect, useMemo, useLayoutEffect } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
-import { setCaretPosition } from "@src/utils/caretUtils.ts";
+import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils.ts";
 import {
   editorContainer,
   editorTitleContainer,
@@ -42,7 +42,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendBlockInsertOperation,
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
-    sendCharUpdateOperation,
   } = useSocketStore();
   const editorCRDTInstance = useMemo(() => {
     const editor = new EditorCRDT(serializedEditorData.client);
@@ -96,9 +95,21 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     onTitleChange(e.target.value);
   };
 
-  const handleBlockClick = (blockId: BlockId) => {
+  const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    const clickedElement = (e.target as HTMLElement).closest(
+      '[contenteditable="true"]',
+    ) as HTMLDivElement;
+    if (!clickedElement) return;
+
     editorCRDT.current.currentBlock =
       editorCRDT.current.LinkedList.nodeMap[JSON.stringify(blockId)];
+    const caretPosition = getAbsoluteCaretPosition(clickedElement);
+
+    // 계산된 캐럿 위치 저장
+    editorCRDT.current.currentBlock.crdt.currentCaret = caretPosition;
   };
 
   const handleBlockInput = useCallback(
@@ -108,11 +119,8 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       const element = e.currentTarget;
       const newContent = element.textContent || "";
       const currentContent = block.crdt.read();
-      const selection = window.getSelection();
-      const caretPosition = selection?.focusOffset || 0;
-
-      editorCRDT.current.currentBlock = block;
-      editorCRDT.current.currentBlock.crdt.currentCaret = caretPosition;
+      const caretPosition = getAbsoluteCaretPosition(element);
+      console.log(caretPosition, "블록의 캐럿 위치");
 
       if (newContent.length > currentContent.length) {
         let charNode: RemoteCharInsertOperation;
@@ -134,9 +142,9 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         // 문자가 삭제된 경우
         operationNode = block.crdt.localDelete(caretPosition, block.id, pageId);
         sendCharDeleteOperation(operationNode);
-        editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
+        // editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
+        editorCRDT.current.currentBlock!.crdt.currentCaret -= 1;
       }
-      // syncDOMToCRDT(element, block.id);
       setEditorState({
         clock: editorCRDT.current.clock,
         linkedList: editorCRDT.current.LinkedList,
@@ -147,18 +155,16 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
   const subscriptionRef = useRef(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!editorCRDT.current.currentBlock) return;
+    // TODO: 값이 제대로 들어왔는데 왜 안되는지 확인 필요
     setCaretPosition({
       blockId: editorCRDT.current.currentBlock.id,
       linkedList: editorCRDT.current.LinkedList,
       position: editorCRDT.current.currentBlock?.crdt.currentCaret,
     });
     // 서윤님 피드백 반영
-  }, [
-    editorCRDT.current.currentBlock?.id.serialize(),
-    editorCRDT.current.currentBlock?.crdt.currentCaret,
-  ]);
+  }, [editorCRDT.current.currentBlock?.id.serialize()]);
 
   useEffect(() => {
     if (subscriptionRef.current) return;
