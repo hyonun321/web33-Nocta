@@ -42,6 +42,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendBlockInsertOperation,
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
+    sendCharUpdateOperation,
   } = useSocketStore();
   const editorCRDTInstance = useMemo(() => {
     const editor = new EditorCRDT(serializedEditorData.client);
@@ -89,7 +90,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     editorCRDT: editorCRDT.current,
     setEditorState,
     pageId,
-    sendBlockUpdateOperation,
   });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,6 +110,9 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       const currentContent = block.crdt.read();
       const selection = window.getSelection();
       const caretPosition = selection?.focusOffset || 0;
+
+      editorCRDT.current.currentBlock = block;
+      editorCRDT.current.currentBlock.crdt.currentCaret = caretPosition;
 
       if (newContent.length > currentContent.length) {
         let charNode: RemoteCharInsertOperation;
@@ -133,6 +136,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         sendCharDeleteOperation(operationNode);
         editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
       }
+      // syncDOMToCRDT(element, block.id);
       setEditorState({
         clock: editorCRDT.current.clock,
         linkedList: editorCRDT.current.LinkedList,
@@ -151,7 +155,10 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       position: editorCRDT.current.currentBlock?.crdt.currentCaret,
     });
     // 서윤님 피드백 반영
-  }, [editorCRDT.current.currentBlock?.id.serialize()]);
+  }, [
+    editorCRDT.current.currentBlock?.id.serialize(),
+    editorCRDT.current.currentBlock?.crdt.currentCaret,
+  ]);
 
   useEffect(() => {
     if (subscriptionRef.current) return;
@@ -250,6 +257,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
     // 로컬 삽입을 수행하고 연산 객체를 반환받음
     const operation = editorCRDT.current.localInsert(index, "");
+    editorCRDT.current.currentBlock = operation.node;
     sendBlockInsertOperation({ node: operation.node, pageId });
     setEditorState({
       clock: operation.node.id.clock,
