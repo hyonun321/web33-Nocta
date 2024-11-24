@@ -20,13 +20,13 @@ const App = () => {
 
   useEffect(() => {
     const socketStore = useSocketStore.getState();
-    socketStore.init();
+    socketStore.init(accessToken);
     return () => {
       setTimeout(() => {
         socketStore.cleanup();
       }, 0);
     };
-  }, []);
+  }, [accessToken]);
 
   return (
     <>

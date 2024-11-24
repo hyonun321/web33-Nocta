@@ -16,7 +16,7 @@ interface SocketStore {
   socket: Socket | null;
   clientId: number | null;
   workspace: WorkSpaceSerializedProps | null;
-  init: () => void;
+  init: (accessToken: string | null) => void;
   cleanup: () => void;
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
   sendPageCreateOperation: (operation: RemotePageCreateOperation) => void;
@@ -51,9 +51,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   clientId: null,
   workspace: null,
 
-  init: () => {
+  init: (accessToken: string | null) => {
     const { socket: existingSocket } = get();
-    if (existingSocket?.connected) return;
 
     if (existingSocket) {
       existingSocket.disconnect();
@@ -68,6 +67,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       withCredentials: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      auth: {
+        token: accessToken,
+      },
       autoConnect: false,
     });
 
