@@ -1,4 +1,3 @@
-import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { motion } from "framer-motion";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
@@ -6,6 +5,7 @@ import { useModal } from "@components/modal/useModal";
 import { MAX_VISIBLE_PAGE } from "@src/constants/page";
 import { AuthButton } from "@src/features/auth/AuthButton";
 import { Page } from "@src/types/page";
+import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
@@ -22,7 +22,6 @@ export const Sidebar = ({
 }) => {
   const visiblePages = pages.filter((page) => page.isVisible);
   const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
-  console.log(pages, visiblePages, "체크용");
   const isSidebarOpen = useIsSidebarOpen();
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
@@ -36,7 +35,6 @@ export const Sidebar = ({
   };
 
   const handleAddPageButtonClick = () => {
-    console.log(isMaxVisiblePage, "체크");
     if (isMaxVisiblePage) {
       openModal();
       return;
