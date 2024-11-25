@@ -60,8 +60,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    */
   async handleConnection(client: Socket) {
     try {
-      let userId = null;
-      userId = client.handshake.auth.userId;
+      let { userId } = client.handshake.auth;
       if (!userId) {
         userId = "guest";
       }
@@ -130,8 +129,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     try {
-      const pageId = data.pageId;
-      const userId = client.data.userId;
+      const { pageId } = data;
+      const { userId } = client.data;
 
       // 워크스페이스에서 해당 페이지 찾기
       const workspace = this.workSpaceService.getWorkspace(userId);
@@ -174,8 +173,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     try {
-      const pageId = data.pageId;
-      const userId = client.data.userId;
+      const { pageId } = data;
+      const { userId } = client.data;
       client.leave(pageId);
 
       this.logger.log(`Client ${clientInfo.clientId} leaved page ${pageId}`);
@@ -202,7 +201,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         `Page create 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-      const userId = client.data.userId;
+      const { userId } = client.data;
       const workspace = this.workSpaceService.getWorkspace(userId);
 
       const newEditorCRDT = new EditorCRDT(data.clientId);
@@ -239,7 +238,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const userId = client.data.userId;
+      const { userId } = client.data;
       const workspace = this.workSpaceService.getWorkspace(userId);
 
       const currentPage = workspace.pageList.find((p) => p.id === data.pageId);
@@ -277,7 +276,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const userId = client.data.userId;
+      const { userId } = client.data;
       const currentPage = this.workSpaceService
         .getWorkspace(userId)
         .pageList.find((p) => p.id === data.pageId);
@@ -316,7 +315,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
 
-      const userId = client.data.userId;
+      const { userId } = client.data;
       const currentPage = this.workSpaceService
         .getWorkspace(userId)
         .pageList.find((p) => p.id === data.pageId);
@@ -360,7 +359,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         `Delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-      const userId = client.data.userId;
+      const { userId } = client.data;
       const currentPage = this.workSpaceService
         .getWorkspace(userId)
         .pageList.find((p) => p.id === data.pageId);
@@ -398,7 +397,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         `Delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-      const userId = client.data.userId;
+      const { userId } = client.data;
       const currentPage = this.workSpaceService
         .getWorkspace(userId)
         .pageList.find((p) => p.id === data.pageId);
@@ -438,7 +437,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         `블록 Reorder 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-      const userId = client.data.userId;
+      const { userId } = client.data;
       const workspace = this.workSpaceService.getWorkspace(userId);
 
       const currentPage = workspace.pageList.find((p) => p.id === data.pageId);
@@ -480,7 +479,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         clientId: clientInfo?.clientId,
         position: data.position,
       };
-      const userId = client.data.userId;
+      const { userId } = client.data;
       client.to(userId).emit("cursor", operation);
     } catch (error) {
       this.logger.error(
