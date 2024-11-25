@@ -217,6 +217,7 @@ export const Block: React.FC<BlockProps> = memo(
           />
         </motion.div>
         <TextOptionModal
+          selectedNodes={selectedNodes}
           isOpen={isOpen}
           onClose={closeModal}
           onBoldSelect={() => handleStyleSelect("bold")}
