@@ -1,5 +1,5 @@
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-import { RemoteBlockUpdateOperation, TextStyleType } from "@noctaCrdt/Interfaces";
+import { TextStyleType } from "@noctaCrdt/Interfaces";
 import { Block, Char } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useCallback } from "react";

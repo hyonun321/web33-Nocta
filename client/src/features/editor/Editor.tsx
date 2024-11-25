@@ -8,7 +8,7 @@ import {
   RemoteCharInsertOperation,
   serializedEditorDataProps,
 } from "node_modules/@noctaCrdt/Interfaces.ts";
-import { useRef, useState, useCallback, useEffect, useMemo, useLayoutEffect } from "react";
+import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils.ts";
 import {

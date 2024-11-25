@@ -6,7 +6,7 @@ import { BlockId } from "@noctaCrdt/NodeId";
 import { motion } from "framer-motion";
 import { memo, useEffect, useRef, useState } from "react";
 import { useModal } from "@src/components/modal/useModal";
-import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils";
+import { getAbsoluteCaretPosition } from "@src/utils/caretUtils";
 import { useBlockAnimation } from "../../hooks/useBlockAnimtaion";
 import { setInnerHTML } from "../../utils/domSyncUtils";
 import { IconBlock } from "../IconBlock/IconBlock";

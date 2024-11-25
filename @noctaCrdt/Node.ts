@@ -1,6 +1,6 @@
 // Node.ts
 import { NodeId, BlockId, CharId } from "./NodeId";
-import { AnimationType, ElementType, TextStyleType } from "./Interfaces";
+import { AnimationType, ElementType } from "./Interfaces";
 import { BlockCRDT } from "./Crdt";
 
 export abstract class Node<T extends NodeId> {
