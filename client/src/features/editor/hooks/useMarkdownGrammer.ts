@@ -71,6 +71,7 @@ export const useMarkdownGrammer = ({
           e.preventDefault();
           const caretPosition = getAbsoluteCaretPosition(e.currentTarget);
           const currentContent = currentBlock.crdt.read();
+          const currentCharNodes = currentBlock.crdt.spread();
 
           if (!currentContent && currentBlock.type !== "p") {
             currentBlock.type = "p";
@@ -96,6 +97,7 @@ export const useMarkdownGrammer = ({
 
           // 현재 캐럿 위치를 기준으로 내용 분할
           const afterContent = currentContent.slice(caretPosition);
+          const afterCharNode = currentCharNodes.slice(caretPosition);
 
           // 새 블록 생성
           const operation = createNewBlock(currentIndex + 1);
@@ -106,8 +108,15 @@ export const useMarkdownGrammer = ({
           // 캐럿 이후의 텍스트 있으면 새 블록에 추가
           if (afterContent) {
             afterContent.split("").forEach((char, i) => {
+              const currentCharNode = afterCharNode[i];
               sendCharInsertOperation(
-                operation.node.crdt.localInsert(i, char, operation.node.id, pageId),
+                operation.node.crdt.localInsert(
+                  i,
+                  char,
+                  operation.node.id,
+                  pageId,
+                  currentCharNode.style,
+                ),
               );
             });
             for (let i = currentContent.length - 1; i >= caretPosition; i--) {
@@ -129,6 +138,7 @@ export const useMarkdownGrammer = ({
 
         case "Backspace": {
           const currentContent = currentBlock.crdt.read();
+          const currentCharNodes = currentBlock.crdt.spread();
           if (currentContent === "") {
             e.preventDefault();
             if (currentBlock.indent > 0) {
@@ -179,15 +189,19 @@ export const useMarkdownGrammer = ({
                 currentIndex > 0 ? editorCRDT.LinkedList.findByIndex(currentIndex - 1) : null;
               if (prevBlock) {
                 const prevBlockEndCaret = prevBlock.crdt.spread().length;
-                currentContent.split("").forEach((char) => {
+                for (let i = 0; i < currentContent.length; i++) {
+                  const currentCharNode = currentCharNodes[i];
                   sendCharInsertOperation(
                     prevBlock.crdt.localInsert(
-                      prevBlock.crdt.read().length,
-                      char,
+                      prevBlockEndCaret + i,
+                      currentContent[i],
                       prevBlock.id,
                       pageId,
+                      currentCharNode.style,
                     ),
                   );
+                }
+                currentContent.split("").forEach(() => {
                   sendCharDeleteOperation(
                     currentBlock.crdt.localDelete(0, currentBlock.id, pageId),
                   );
@@ -264,8 +278,9 @@ export const useMarkdownGrammer = ({
             return;
           }
 
-          const selection = window.getSelection();
-          const caretPosition = selection?.focusOffset || 0;
+          // const selection = window.getSelection();
+          // const caretPosition = selection?.focusOffset || 0;
+          const caretPosition = getAbsoluteCaretPosition(e.currentTarget);
 
           // 이동할 블록 결정
           const targetIndex = e.key === "ArrowUp" ? currentIndex - 1 : currentIndex + 1;
@@ -283,8 +298,9 @@ export const useMarkdownGrammer = ({
         }
         case "ArrowLeft":
         case "ArrowRight": {
-          const selection = window.getSelection();
-          const caretPosition = selection?.focusOffset || 0;
+          // const selection = window.getSelection();
+          // const caretPosition = selection?.focusOffset || 0;
+          const caretPosition = getAbsoluteCaretPosition(e.currentTarget);
           const textLength = currentBlock.crdt.read().length;
 
           // 왼쪽 끝에서 이전 블록으로
