@@ -301,7 +301,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     setEditorState(() => ({
       clock: operation.node.id.clock,
       linkedList: editorCRDT.current.LinkedList,
-    });
+    }));
   };
 
   // 로딩 상태 체크
