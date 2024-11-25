@@ -116,6 +116,79 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   /**
+   * 페이지 참여 처리
+   * 클라이언트가 특정 페이지에 참여할 때 호출됨
+   */
+  @SubscribeMessage("join/page")
+  async handleJoinPage(
+    @MessageBody() data: { pageId: string },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    if (!clientInfo) {
+      throw new WsException("Client information not found");
+    }
+
+    try {
+      const pageId = data.pageId;
+      const userId = client.data.userId;
+
+      // 워크스페이스에서 해당 페이지 찾기
+      const workspace = this.workSpaceService.getWorkspace(userId);
+      const page = workspace.pageList.find((p) => p.id === pageId);
+
+      // pageId에 가입 시키기
+      client.join(pageId);
+      if (!page) {
+        throw new WsException(`Page with id ${pageId} not found`);
+      }
+
+      // 페이지 데이터를 요청한 클라이언트에게 전송
+      client.emit("join/page", {
+        pageId,
+        serializedPage: page.serialize(),
+      });
+
+      this.logger.log(`Client ${clientInfo.clientId} joined page ${pageId}`);
+    } catch (error) {
+      this.logger.error(
+        `페이지 참여 중 오류 발생 - Client ID: ${clientInfo.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`페이지 참여 실패: ${error.message}`);
+    }
+  }
+
+  /**
+   * 페이지 퇴장 처리
+   * 클라이언트가 특정 페이지에서 나갈 때 호출됨
+   */
+  @SubscribeMessage("leave/page")
+  async handleLeavePage(
+    @MessageBody() data: { pageId: string },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    if (!clientInfo) {
+      throw new WsException("Client information not found");
+    }
+
+    try {
+      const pageId = data.pageId;
+      const userId = client.data.userId;
+      client.leave(pageId);
+
+      this.logger.log(`Client ${clientInfo.clientId} leaved page ${pageId}`);
+    } catch (error) {
+      this.logger.error(
+        `페이지 퇴장 중 오류 발생 - Client ID: ${clientInfo.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`페이지 퇴장 실패: ${error.message}`);
+    }
+  }
+
+  /**
    * 블록 삽입 연산 처리
    */
   @SubscribeMessage("create/page")
@@ -179,7 +252,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         node: data.node,
         pageId: data.pageId,
       } as RemoteBlockUpdateOperation;
-      client.to(userId).emit("update/block", operation);
+      client.to(client.data.pageId).emit("update/block", operation);
     } catch (error) {
       this.logger.error(
         `블록 Update 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -217,7 +290,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         node: data.node,
         pageId: data.pageId,
       };
-      client.to(userId).emit("insert/block", operation);
+      client.to(data.pageId).emit("insert/block", operation);
     } catch (error) {
       this.logger.error(
         `Block Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -237,6 +310,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ): Promise<void> {
     const clientInfo = this.clientMap.get(client.id);
     try {
+      console.log("인서트 char", client.data.pageId);
       this.logger.debug(
         `Insert 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
@@ -259,8 +333,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const operation = {
         node: data.node,
         blockId: data.blockId,
+        pageId: data.pageId,
       };
-      client.to(userId).emit("insert/char", operation);
+      client.to(data.pageId).emit("insert/char", operation);
     } catch (error) {
       this.logger.error(
         `Char Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -269,6 +344,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       throw new WsException(`Insert 연산 실패: ${error.message}`);
     }
   }
+
   /**
    * 삭제 연산 처리
    */
@@ -279,6 +355,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ): Promise<void> {
     const clientInfo = this.clientMap.get(client.id);
     try {
+      console.log("딜리트 블록", client.data.pageId);
       this.logger.debug(
         `Delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
@@ -296,7 +373,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         clock: data.clock,
         pageId: data.pageId,
       };
-      client.to(userId).emit("delete/block", operation);
+      client.to(data.pageId).emit("delete/block", operation);
     } catch (error) {
       this.logger.error(
         `Block Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -316,6 +393,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ): Promise<void> {
     const clientInfo = this.clientMap.get(client.id);
     try {
+      console.log("딜리트 캐릭터", client.data.pageId);
       this.logger.debug(
         `Delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
@@ -337,8 +415,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         targetId: data.targetId,
         clock: data.clock,
         blockId: data.blockId,
+        pageId: data.pageId,
       };
-      client.to(userId).emit("delete/char", operation);
+      client.to(data.pageId).emit("delete/char", operation);
     } catch (error) {
       this.logger.error(
         `Char Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -375,7 +454,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         afterId: data.afterId,
         pageId: data.pageId,
       } as RemoteBlockReorderOperation;
-      client.to(userId).emit("reorder/block", operation);
+      client.to(data.pageId).emit("reorder/block", operation);
     } catch (error) {
       this.logger.error(
         `블록 Reorder 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,

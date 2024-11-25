@@ -168,7 +168,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     const unsubscribe = subscribeToRemoteOperations({
       onRemoteBlockInsert: (operation) => {
         console.log(operation, "block : 입력 확인합니다이");
-        if (!editorCRDT.current) return;
+        if (!editorCRDT.current || operation.pageId !== pageId) return;
         editorCRDT.current.remoteInsert(operation);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
@@ -179,7 +179,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteBlockDelete: (operation) => {
         console.log(operation, "block : 삭제 확인합니다이");
-        if (!editorCRDT.current) return;
+        if (!editorCRDT.current || operation.pageId !== pageId) return;
         editorCRDT.current.remoteDelete(operation);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
@@ -190,7 +190,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteCharInsert: (operation) => {
         console.log(operation, "char : 입력 확인합니다이");
-        if (!editorCRDT.current) return;
+        if (!editorCRDT.current || operation.pageId !== pageId) return;
         const targetBlock =
           editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteInsert(operation);
@@ -203,7 +203,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteCharDelete: (operation) => {
         console.log(operation, "char : 삭제 확인합니다이");
-        if (!editorCRDT.current) return;
+        if (!editorCRDT.current || operation.pageId !== pageId) return;
         const targetBlock =
           editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteDelete(operation);
@@ -216,9 +216,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteBlockUpdate: (operation) => {
         console.log(operation, "block : 업데이트 확인합니다이");
-        if (!editorCRDT.current) return;
-        // ??
-        console.log("타입", operation.node);
+        if (!editorCRDT.current || operation.pageId !== pageId) return;
         editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
@@ -229,7 +227,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteBlockReorder: (operation) => {
         console.log(operation, "block : 재정렬 확인합니다이");
-        if (!editorCRDT.current) return;
+        if (!editorCRDT.current || operation.pageId !== pageId) return;
         editorCRDT.current.remoteReorder(operation);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
