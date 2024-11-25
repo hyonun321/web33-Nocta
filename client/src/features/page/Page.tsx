@@ -75,6 +75,7 @@ export const Page = ({
           onTitleChange={onTitleChange}
           pageId={id}
           serializedEditorData={serializedEditorDatas}
+          updatePageData={updatePageData}
         />
         {DIRECTIONS.map((direction) => (
           <motion.div

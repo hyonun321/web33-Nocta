@@ -6,7 +6,8 @@ interface SetCaretPositionProps {
   linkedList: BlockLinkedList | TextLinkedList;
   clientX?: number;
   clientY?: number;
-  position?: number; // 특정 위치로 캐럿을 설정하고 싶을 때 사용
+  position?: number; // Used to set the caret at a specific position
+  rootElement: HTMLElement | null; // Add rootElement to scope the query
 }
 
 export const setCaretPosition = ({
@@ -15,8 +16,10 @@ export const setCaretPosition = ({
   clientX,
   clientY,
   position,
+  rootElement,
 }: SetCaretPositionProps): boolean => {
   try {
+    if (!rootElement) return false; // Ensure rootElement is provided
     const selection = window.getSelection();
     if (!selection) return false;
 

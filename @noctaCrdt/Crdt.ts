@@ -9,6 +9,7 @@ import {
   CRDTSerializedProps,
   RemoteBlockReorderOperation,
   RemoteBlockUpdateOperation,
+  serializedEditorDataProps,
 } from "./Interfaces";
 
 export class CRDT<T extends Node<NodeId>> {
@@ -190,7 +191,7 @@ export class EditorCRDT extends CRDT<Block> {
     this.clock = Math.max(this.clock, clock) + 1;
   }
 
-  serialize(): CRDTSerializedProps<Block> {
+  serialize(): serializedEditorDataProps {
     return {
       ...super.serialize(),
       currentBlock: this.currentBlock ? this.currentBlock.serialize() : null,
