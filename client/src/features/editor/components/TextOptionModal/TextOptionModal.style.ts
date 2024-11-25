@@ -16,23 +16,34 @@ export const modalContainer = css({
 
 export const optionButton = css({
   display: "flex",
+  position: "relative",
   justifyContent: "center",
-
   alignItems: "center",
   border: "none",
   borderRadius: "4px",
-  minWidth: "28px",
+  width: "28px",
   height: "28px",
   padding: "4px 8px",
-  background: "#f5f5f5",
   cursor: "pointer",
-  "&:hover": {
-    background: "#e0e0e0",
-  },
 });
 
 export const divider = css({
   width: "1px",
   height: "20px",
   margin: "0 8px",
+});
+
+export const optionButtonText = css({
+  color: "transparent",
+  fontWeight: "bold",
+  opacity: 0.9,
+  backgroundPosition: "0% 50%",
+  backgroundClip: "text",
+  backgroundImage: "linear-gradient(45deg, #2563EB 0%, #7E22CE 50%, #FF0080 100%)",
+  backgroundSize: "200% 200%",
+  transition: "all 0.2s ease",
+  WebkitTextFillColor: "transparent",
+  _hover: {
+    backgroundPosition: "100% -10%",
+  },
 });

@@ -5,7 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BackgroundColorOptionModal } from "../ColorOptionModal/BackgroundColorOptionModal";
 import { TextColorOptionModal } from "../ColorOptionModal/TextColorOptionModal";
-import { modalContainer, optionButton, optionModal, divider } from "./TextOptionModal.style";
+import {
+  modalContainer,
+  optionButton,
+  optionModal,
+  optionButtonText,
+} from "./TextOptionModal.style";
 
 interface SelectionModalProps {
   selectedNodes: Array<Char> | null;
@@ -239,20 +244,13 @@ export const TextOptionModal = ({
               S
             </span>
           </button>
-
-          {/** Divider: 왼쪽에 텍스트 스타일, 오른쪽에 색상 */}
-
-          <div className={divider} />
-
           {/* 텍스트 색상 버튼들 */}
           <div
-            style={{ position: "relative" }}
+            className={optionButton}
             onMouseEnter={() => handleMouseEnter("text")}
             onClick={() => handleClickButton("text")}
           >
-            <button className={optionButton}>
-              <span>A</span>
-            </button>
+            <span className={optionButtonText}>A</span>
             {hoveredType === "text" && (
               <TextColorOptionModal
                 onColorSelect={handleTextColorClick}
@@ -263,18 +261,13 @@ export const TextOptionModal = ({
               />
             )}
           </div>
-
-          <div className={divider} />
-
           {/* 배경 색상 버튼들 */}
           <div
-            style={{ position: "relative" }}
+            className={optionButton}
             onMouseEnter={() => handleMouseEnter("background")}
             onClick={() => handleClickButton("background")}
           >
-            <button className={optionButton}>
-              <span>BG</span>
-            </button>
+            <span className={optionButtonText}>BG</span>
 
             {hoveredType === "background" && (
               <BackgroundColorOptionModal
