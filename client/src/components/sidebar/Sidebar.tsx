@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
@@ -34,7 +33,6 @@ export const Sidebar = ({
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
   const { sendPageDeleteOperation, clientId } = useSocketStore();
-  const [isLastPageModal, setIsLastPageModal] = useState(false);
 
   const handlePageItemClick = (id: string) => {
     if (isMaxVisiblePage) {
@@ -55,12 +53,6 @@ export const Sidebar = ({
   const handlePageDelete = (pageId: string) => {
     if (!clientId) {
       console.error("Client ID not assigned");
-      return;
-    }
-
-    if (pages.length <= 1) {
-      setIsLastPageModal(true);
-      openModal();
       return;
     }
 
@@ -85,20 +77,24 @@ export const Sidebar = ({
         <MenuButton />
       </motion.div>
       <motion.nav className={navWrapper} variants={contentVariants}>
-        {pages?.map((item) => (
-          <motion.div
-            key={item.id}
-            initial={animation.initial}
-            animate={animation.animate}
-            transition={animation.transition}
-          >
-            <PageItem
-              {...item}
-              onClick={() => handlePageItemClick(item.id)}
-              onDelete={() => handlePageDelete(item.id)}
-            />
-          </motion.div>
-        ))}
+        {visiblePages.length === 0 ? (
+          <div className={placeholderMessage}>+ 버튼을 눌러 페이지를 추가하세요</div>
+        ) : (
+          visiblePages.map((item) => (
+            <motion.div
+              key={item.id}
+              initial={animation.initial}
+              animate={animation.animate}
+              transition={animation.transition}
+            >
+              <PageItem
+                {...item}
+                onClick={() => handlePageItemClick(item.id)}
+                onDelete={() => handlePageDelete(item.id)}
+              />
+            </motion.div>
+          ))
+        )}
       </motion.nav>
       <motion.div className={plusIconBox} variants={contentVariants}>
         <IconButton icon="➕" onClick={handleAddPageButtonClick} size="sm" />
