@@ -14,7 +14,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useModal } from "@src/components/modal/useModal";
 import { getAbsoluteCaretPosition } from "@src/utils/caretUtils";
 import { useBlockAnimation } from "../../hooks/useBlockAnimtaion";
-import { setInnerHTML } from "../../utils/domSyncUtils";
+import { setInnerHTML, getTextOffset } from "../../utils/domSyncUtils";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { TextOptionModal } from "../TextOptionModal/TextOptionModal";
@@ -28,6 +28,11 @@ interface BlockProps {
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  onCopy: (
+    e: React.ClipboardEvent<HTMLDivElement>,
+    blockRef: HTMLDivElement | null,
+    block: CRDTBlock,
+  ) => void;
   onPaste: (e: React.ClipboardEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
@@ -54,6 +59,7 @@ export const Block: React.FC<BlockProps> = memo(
     onInput,
     onCompositionEnd,
     onKeyDown,
+    onCopy,
     onPaste,
     onClick,
     onAnimationSelect,
@@ -139,26 +145,8 @@ export const Block: React.FC<BlockProps> = memo(
         return;
       }
 
-      // 실제 텍스트 위치 계산
-      const getTextOffset = (container: Node, offset: number): number => {
-        let totalOffset = 0;
-        const walker = document.createTreeWalker(blockRef.current!, NodeFilter.SHOW_TEXT, null);
-
-        let node = walker.nextNode();
-        while (node) {
-          if (node === container) {
-            return totalOffset + offset;
-          }
-          if (node.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_FOLLOWING) {
-            totalOffset += node.textContent?.length || 0;
-          }
-          node = walker.nextNode();
-        }
-        return totalOffset;
-      };
-
-      const startOffset = getTextOffset(range.startContainer, range.startOffset);
-      const endOffset = getTextOffset(range.endContainer, range.endOffset);
+      const startOffset = getTextOffset(blockRef.current, range.startContainer, range.startOffset);
+      const endOffset = getTextOffset(blockRef.current, range.endContainer, range.endOffset);
 
       const nodes = block.crdt.LinkedList.spread().slice(startOffset, endOffset);
       console.log("nodes", nodes);
@@ -243,6 +231,7 @@ export const Block: React.FC<BlockProps> = memo(
             onKeyDown={onKeyDown}
             onInput={handleInput}
             onClick={(e) => onClick(block.id, e)}
+            onCopy={(e) => onCopy(e, blockRef.current, block)}
             onPaste={(e) => onPaste(e, block)}
             onMouseUp={handleMouseUp}
             onCompositionEnd={(e) => onCompositionEnd(e, block)}
