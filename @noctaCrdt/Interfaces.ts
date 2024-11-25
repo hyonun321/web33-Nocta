@@ -9,6 +9,19 @@ export type AnimationType = "none" | "highlight" | "gradation";
 
 export type TextStyleType = "bold" | "italic" | "underline" | "strikethrough";
 
+export type BackgroundColorType =
+  | "black"
+  | "red"
+  | "green"
+  | "blue"
+  | "white"
+  | "yellow"
+  | "purple"
+  | "brown"
+  | "transparent";
+
+export type TextColorType = Exclude<BackgroundColorType, "transparent">;
+
 export interface InsertOperation {
   node: Block | Char;
 }

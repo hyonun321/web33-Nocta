@@ -261,7 +261,15 @@ export class BlockCRDT extends CRDT<Char> {
 
   localUpdate(node: Char, blockId: BlockId, pageId: string): RemoteCharUpdateOperation {
     const updatedChar = this.LinkedList.nodeMap[JSON.stringify(node.id)];
-    updatedChar.style = [...node.style];
+    if (node.style && node.style.length > 0) {
+      updatedChar.style = [...node.style];
+    }
+    if (node.color) {
+      updatedChar.color = node.color;
+    }
+    if (node.backgroundColor !== updatedChar.backgroundColor) {
+      updatedChar.backgroundColor = node.backgroundColor;
+    }
     return { node: updatedChar, blockId, pageId };
   }
 
@@ -298,7 +306,15 @@ export class BlockCRDT extends CRDT<Char> {
 
   remoteUpdate(operation: RemoteCharUpdateOperation): void {
     const updatedChar = this.LinkedList.nodeMap[JSON.stringify(operation.node.id)];
-    updatedChar.style = [...operation.node.style];
+    if (operation.node.style && operation.node.style.length > 0) {
+      updatedChar.style = [...operation.node.style];
+    }
+    if (operation.node.color) {
+      updatedChar.color = operation.node.color;
+    }
+    if (operation.node.backgroundColor) {
+      updatedChar.backgroundColor = operation.node.backgroundColor;
+    }
   }
 
   serialize(): CRDTSerializedProps<Char> {

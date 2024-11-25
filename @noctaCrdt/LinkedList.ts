@@ -144,7 +144,7 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     return node;
   }
 
-  insertAtIndex(index: number, value: string, id: T["id"]): InsertOperation {
+  insertAtIndex(index: number, value: string, id: T["id"]) {
     try {
       const node = this.createNode(value, id);
       this.setNode(id, node);
