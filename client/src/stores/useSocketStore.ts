@@ -51,7 +51,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   clientId: null,
   workspace: null,
 
-  init: (accessToken: string | null) => {
+  init: (id: string | null) => {
     const { socket: existingSocket } = get();
 
     if (existingSocket) {
@@ -68,7 +68,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       auth: {
-        token: accessToken,
+        userId: id,
       },
       autoConnect: false,
     });

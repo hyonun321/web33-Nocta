@@ -60,22 +60,14 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    */
   async handleConnection(client: Socket) {
     try {
-      // 현재 토큰 처리를 어떻게 하는지 몰라 일단 null로 가정하고 guest환경을 만들겠음.
-      const token = client.handshake.auth.token;
       let userId = null;
-      if (token) {
-        try {
-          const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-          userId = payload.sub;
-        } catch (e) {
-          this.logger.warn("Invalid token, trating as guest");
-        }
-      }
+      userId = client.handshake.auth.userId;
       if (!userId) {
         userId = "guest";
       }
       client.data.userId = userId;
       client.join(userId);
+      // userId라는 방.
       const currentWorkSpace = await this.workSpaceService.getWorkspace(userId).serialize();
       client.emit("workspace", currentWorkSpace);
 
@@ -151,7 +143,6 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       };
       client.emit("create/page", operation);
       client.to(userId).emit("create/page", operation);
-      //client.broadcast.emit("create/page", operation);
     } catch (error) {
       this.logger.error(
         `Page Create 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,

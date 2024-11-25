@@ -17,7 +17,6 @@ export class workSpaceService implements OnModuleInit {
     const guestWorkspace = new CRDTWorkSpace("guest", []);
     this.workspaces.set("guest", guestWorkspace);
   }
-
   getWorkspace(userId: string): CRDTWorkSpace {
     if (!this.workspaces.has(userId)) {
       // 새로운 워크스페이스 생성
@@ -27,6 +26,27 @@ export class workSpaceService implements OnModuleInit {
     return this.workspaces.get(userId);
   }
 }
+
+// // 1. 연산마다 mongoDB값을 조작할 것인지,
+// assync hand createPage MongoDB(operation){
+//   분석을해서
+//   const 어쩌구 = await doc.findOne
+//   mongoDb 의 어떤
+//   page[pageId] = 생성 ;
+//   }
+// 어떤 pageId에 3번째 블럭에 2번째 인덱스 char를 삭제한다.
+// operation을 분리해서
+// mongoDB를 그부분만 조작하도록 한다.
+
+// pageId[id] =
+// workspaceId[id] =
+// editor[id]
+
+// // 2. 연산마다 상태로 update를 할 것 인지.  create/page ->
+// 서버의 인스턴스 상태를 통째로 mongoDB에다가
+// 덮어씌워버림. -> 인스턴스 상태가 얼마나 많은데..
+// 직렬화도 문제임.
+// 스키마도 복잡할 것으로 예상됨.
 
 // async onModuleInit() {
 //   try {
