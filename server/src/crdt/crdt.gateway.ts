@@ -277,6 +277,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         blockId: data.blockId,
         pageId: data.pageId,
         style: data.style || [],
+        color: data.color ? data.color : "black",
+        backgroundColor: data.backgroundColor ? data.backgroundColor : "transparent",
       };
       client.broadcast.emit("insert/char", operation);
     } catch (error) {
