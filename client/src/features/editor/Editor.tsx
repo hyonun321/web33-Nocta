@@ -5,7 +5,7 @@ import { RemoteCharInsertOperation, serializedEditorDataProps } from "@noctaCrdt
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { useRef, useState, useCallback, useEffect, useLayoutEffect } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { setCaretPosition } from "@src/utils/caretUtils";
 import {
@@ -48,7 +48,7 @@ export const Editor = ({
   const { clientId } = useSocketStore();
   const editorRef = useRef<HTMLDivElement | null>(null); // Add ref for the editor
   // editorCRDT를 useState로 관리하여 페이지별로 인스턴스를 분리
-  const [editorCRDT, setEditorCRDT] = useState<EditorCRDT | null>(null);
+  const [editorCRDT, setEditorCRDT] = useState<EditorCRDT>(() => new EditorCRDT(0));
 
   useEffect(() => {
     let newEditorCRDT;
