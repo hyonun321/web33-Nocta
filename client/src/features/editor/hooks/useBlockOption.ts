@@ -102,6 +102,9 @@ export const useBlockOptionSelect = ({
         operation.node.id,
         pageId,
       );
+      insertOperation.node.style = char.style;
+      insertOperation.node.color = char.color;
+      insertOperation.node.backgroundColor = char.backgroundColor;
       sendCharInsertOperation(insertOperation);
     });
 

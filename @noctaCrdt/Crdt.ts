@@ -10,6 +10,8 @@ import {
   RemoteBlockReorderOperation,
   RemoteBlockUpdateOperation,
   RemoteCharUpdateOperation,
+  TextColorType,
+  BackgroundColorType,
 } from "./Interfaces";
 
 export class CRDT<T extends Node<NodeId>> {
@@ -219,11 +221,19 @@ export class BlockCRDT extends CRDT<Char> {
     blockId: BlockId,
     pageId: string,
     style?: string[],
+    color?: TextColorType,
+    backgroundColor?: BackgroundColorType,
   ): RemoteCharInsertOperation {
     const id = new CharId(this.clock + 1, this.client);
     const { node } = this.LinkedList.insertAtIndex(index, value, id) as { node: Char };
     if (style && style.length > 0) {
       node.style = style;
+    }
+    if (color) {
+      node.color = color;
+    }
+    if (backgroundColor) {
+      node.backgroundColor = backgroundColor;
     }
     this.clock += 1;
     const operation: RemoteCharInsertOperation = {

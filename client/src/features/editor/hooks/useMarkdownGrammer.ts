@@ -117,6 +117,8 @@ export const useMarkdownGrammer = ({
                   operation.node.id,
                   pageId,
                   currentCharNode.style,
+                  currentCharNode.color,
+                  currentCharNode.backgroundColor,
                 ),
               );
             });
@@ -199,6 +201,8 @@ export const useMarkdownGrammer = ({
                       prevBlock.id,
                       pageId,
                       currentCharNode.style,
+                      currentCharNode.color,
+                      currentCharNode.backgroundColor,
                     ),
                   );
                 }
