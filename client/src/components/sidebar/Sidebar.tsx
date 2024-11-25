@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
@@ -34,6 +35,9 @@ export const Sidebar = ({
   const { isOpen, openModal, closeModal } = useModal();
   const { sendPageDeleteOperation, clientId } = useSocketStore();
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState<Page | null>(null);
+
   const handlePageItemClick = (id: string) => {
     if (isMaxVisiblePage) {
       openModal();
@@ -63,6 +67,11 @@ export const Sidebar = ({
     });
   };
 
+  const confirmPageDelete = (page: Page) => {
+    setPageToDelete(page);
+    setIsDeleteModalOpen(true);
+  };
+
   return (
     <motion.aside
       className={sidebarContainer}
@@ -90,7 +99,7 @@ export const Sidebar = ({
               <PageItem
                 {...item}
                 onClick={() => handlePageItemClick(item.id)}
-                onDelete={() => handlePageDelete(item.id)}
+                onDelete={() => confirmPageDelete(item)}
               />
             </motion.div>
           ))
@@ -100,11 +109,33 @@ export const Sidebar = ({
         <IconButton icon="➕" onClick={handleAddPageButtonClick} size="sm" />
         <AuthButton />
       </motion.div>
+
       <Modal isOpen={isOpen} primaryButtonLabel="확인" primaryButtonOnClick={closeModal}>
         <p>
           최대 {MAX_VISIBLE_PAGE}개의 페이지만 표시할 수 있습니다
           <br />
           사용하지 않는 페이지는 닫아주세요.
+        </p>
+      </Modal>
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        primaryButtonLabel="예"
+        primaryButtonOnClick={() => {
+          if (pageToDelete) {
+            handlePageDelete(pageToDelete.id);
+            setIsDeleteModalOpen(false);
+            setPageToDelete(null);
+          }
+        }}
+        secondaryButtonLabel="아니오"
+        secondaryButtonOnClick={() => {
+          setIsDeleteModalOpen(false);
+          setPageToDelete(null);
+        }}
+      >
+        <p>
+          정말 이 <strong>{pageToDelete?.title}</strong>을(를) 삭제하시겠습니까?
         </p>
       </Modal>
     </motion.aside>
