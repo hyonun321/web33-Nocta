@@ -39,6 +39,7 @@ export const contentWrapperStyle = cva({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
   },
 });
 
@@ -54,7 +55,7 @@ const baseTextStyle = {
   padding: "spacing.sm",
   color: "gray.900",
   backgroundColor: "transparent",
-  display: "flex",
+  display: "inline",
   alignItems: "center",
 };
 
