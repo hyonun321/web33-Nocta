@@ -11,24 +11,13 @@ import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { MenuButton } from "./MenuButton";
 import { PageItem } from "./PageItem";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
-import { sidebarContainer, navWrapper, plusIconBox, sidebarToggleButton } from "./Sidebar.style";
-
-const MODAL_TEXT = {
-  maxPage: (
-    <p>
-      최대 {MAX_VISIBLE_PAGE}개의 페이지만 표시할 수 있습니다
-      <br />
-      사용하지 않는 페이지는 닫아주세요.
-    </p>
-  ),
-  lastPage: (
-    <p>
-      마지막 페이지는 삭제할 수 없습니다.
-      <br />
-      최소 1개의 페이지가 필요합니다.
-    </p>
-  ),
-} as const;
+import {
+  sidebarContainer,
+  navWrapper,
+  plusIconBox,
+  sidebarToggleButton,
+  placeholderMessage,
+} from "./Sidebar.style";
 
 export const Sidebar = ({
   pages,
@@ -116,7 +105,11 @@ export const Sidebar = ({
         <AuthButton />
       </motion.div>
       <Modal isOpen={isOpen} primaryButtonLabel="확인" primaryButtonOnClick={closeModal}>
-        {isLastPageModal ? MODAL_TEXT.lastPage : MODAL_TEXT.maxPage}
+        <p>
+          최대 {MAX_VISIBLE_PAGE}개의 페이지만 표시할 수 있습니다
+          <br />
+          사용하지 않는 페이지는 닫아주세요.
+        </p>
       </Modal>
     </motion.aside>
   );
