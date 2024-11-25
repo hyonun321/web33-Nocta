@@ -1,5 +1,5 @@
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-import { TextStyleType } from "@noctaCrdt/Interfaces";
+import { TextStyleType, TextColorType, BackgroundColorType } from "@noctaCrdt/Interfaces";
 import { Block, Char } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useCallback } from "react";
@@ -74,7 +74,71 @@ export const useTextOptionSelect = ({
     [pageId, sendCharUpdateOperation, editorCRDT],
   );
 
+  // 텍스트 색상 업데이트 함수
+  const handleTextColorUpdate = useCallback(
+    (color: TextColorType, blockId: BlockId, nodes: Array<Char> | null) => {
+      if (!nodes || nodes.length === 0) return;
+      const block = editorCRDT.LinkedList.getNode(blockId) as Block;
+      if (!block) return;
+
+      nodes.forEach((node) => {
+        const char = block.crdt.LinkedList.getNode(node.id) as Char;
+        if (!char) return;
+
+        // 색상 업데이트
+        char.color = color;
+
+        // 업데이트 및 전송
+        block.crdt.localUpdate(char, node.id, pageId);
+        sendCharUpdateOperation({
+          node: char,
+          blockId,
+          pageId,
+        });
+      });
+
+      setEditorState({
+        clock: editorCRDT.clock,
+        linkedList: editorCRDT.LinkedList,
+      });
+    },
+    [pageId, sendCharUpdateOperation, editorCRDT],
+  );
+
+  // 배경색상 업데이트 함수
+  const handleBackgroundColorUpdate = useCallback(
+    (color: BackgroundColorType, blockId: BlockId, nodes: Array<Char> | null) => {
+      if (!nodes || nodes.length === 0) return;
+      const block = editorCRDT.LinkedList.getNode(blockId) as Block;
+      if (!block) return;
+
+      nodes.forEach((node) => {
+        const char = block.crdt.LinkedList.getNode(node.id) as Char;
+        if (!char) return;
+
+        // 배경색상 업데이트
+        char.backgroundColor = color;
+
+        // 업데이트 및 전송
+        block.crdt.localUpdate(char, node.id, pageId);
+        sendCharUpdateOperation({
+          node: char,
+          blockId,
+          pageId,
+        });
+      });
+
+      setEditorState({
+        clock: editorCRDT.clock,
+        linkedList: editorCRDT.LinkedList,
+      });
+    },
+    [pageId, sendCharUpdateOperation, editorCRDT],
+  );
+
   return {
     onTextStyleUpdate: handleStyleUpdate,
+    onTextColorUpdate: handleTextColorUpdate,
+    onTextBackgroundColorUpdate: handleBackgroundColorUpdate,
   };
 };
