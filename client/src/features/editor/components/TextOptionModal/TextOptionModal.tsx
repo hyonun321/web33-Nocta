@@ -1,8 +1,31 @@
+import { TextColorType, BackgroundColorType } from "@noctaCrdt/Interfaces";
 import { Char } from "@noctaCrdt/Node";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { modalContainer, optionButton, optionModal } from "./TextOptionModal.style";
+import { BackgroundColorOptionModal } from "../ColorOptionModal/BackgroundColorOptionModal";
+import { TextColorOptionModal } from "../ColorOptionModal/TextColorOptionModal";
+import {
+  modalContainer,
+  optionButton,
+  optionModal,
+  divider,
+  textColorIndicator,
+  backgroundColorIndicator,
+  colorOptionButton,
+} from "./TextOptionModal.style";
+
+// 사용 가능한 색상 배열
+const COLORS: TextColorType[] = [
+  "black",
+  "red",
+  "green",
+  "blue",
+  "yellow",
+  "purple",
+  "brown",
+  "white",
+];
 
 interface SelectionModalProps {
   selectedNodes: Array<Char> | null;
@@ -12,6 +35,8 @@ interface SelectionModalProps {
   onUnderlineSelect: () => void;
   onStrikeSelect: () => void;
   onClose: () => void;
+  onTextColorSelect: (color: TextColorType) => void;
+  onTextBackgroundColorSelect: (color: BackgroundColorType) => void;
 }
 
 const ModalPortal = ({ children }: { children: React.ReactNode }) => {
@@ -26,18 +51,39 @@ export const TextOptionModal = ({
   onUnderlineSelect,
   onStrikeSelect,
   onClose,
+  onTextColorSelect,
+  onTextBackgroundColorSelect,
 }: SelectionModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [TextModalPosition, setTextModalPosition] = useState<{ top: number; left: number }>({
     top: 0,
     left: 0,
   });
+  const [hoveredType, setHoveredType] = useState<"text" | "background" | null>(null);
   const [styleState, setStyleState] = useState({
     isBold: false,
     isItalic: false,
     isUnderline: false,
     isStrike: false,
   });
+
+  const handleMouseEnter = (type: "text" | "background") => {
+    setHoveredType(type);
+  };
+
+  const handleClickButton = (type: "text" | "background") => {
+    if (hoveredType === type) {
+      setHoveredType(null);
+    } else {
+      setHoveredType(type);
+    }
+  };
+
+  const handleModalClick = () => {
+    if (hoveredType !== null) {
+      setHoveredType(null);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -75,6 +121,7 @@ export const TextOptionModal = ({
         isUnderline: false,
         isStrike: false,
       });
+      setHoveredType(null);
     };
   }, [isOpen, onClose]);
 
@@ -119,6 +166,16 @@ export const TextOptionModal = ({
     });
   }, [selectedNodes]);
 
+  const handleTextColorClick = (color: TextColorType) => {
+    if (!selectedNodes || selectedNodes.length === 0) return;
+    onTextColorSelect(color);
+  };
+
+  const handleTextBackgroundSelect = (color: BackgroundColorType) => {
+    if (!selectedNodes || selectedNodes.length === 0) return;
+    onTextBackgroundColorSelect(color);
+  };
+
   if (!isOpen) return;
 
   return (
@@ -128,13 +185,13 @@ export const TextOptionModal = ({
         className={optionModal}
         style={{
           left: `${TextModalPosition.left}px`,
-          top: `${TextModalPosition.top}px`,
+          top: `${TextModalPosition.top - 8}px`,
         }}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
       >
-        <div className={modalContainer}>
+        <div className={modalContainer} onClick={handleModalClick}>
           <button
             className={optionButton}
             onClick={onBoldSelect}
@@ -202,6 +259,53 @@ export const TextOptionModal = ({
               S
             </span>
           </button>
+
+          {/** Divider: 왼쪽에 텍스트 스타일, 오른쪽에 색상 */}
+
+          <div className={divider} />
+
+          {/* 텍스트 색상 버튼들 */}
+          <div
+            style={{ position: "relative" }}
+            onMouseEnter={() => handleMouseEnter("text")}
+            onClick={(e) => handleClickButton("text")}
+          >
+            <button className={optionButton}>
+              <span>A</span>
+            </button>
+            {hoveredType === "text" && (
+              <TextColorOptionModal
+                onColorSelect={handleTextColorClick}
+                position={{
+                  top: 40,
+                  left: 0,
+                }}
+              />
+            )}
+          </div>
+
+          <div className={divider} />
+
+          {/* 배경 색상 버튼들 */}
+          <div
+            style={{ position: "relative" }}
+            onMouseEnter={() => handleMouseEnter("background")}
+            onClick={() => handleClickButton("background")}
+          >
+            <button className={optionButton}>
+              <span>BG</span>
+            </button>
+
+            {hoveredType === "background" && (
+              <BackgroundColorOptionModal
+                onColorSelect={handleTextBackgroundSelect}
+                position={{
+                  top: 40,
+                  left: -53,
+                }}
+              />
+            )}
+          </div>
         </div>
       </motion.div>
     </ModalPortal>
