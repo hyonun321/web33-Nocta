@@ -4,7 +4,7 @@ import { AnimationType, ElementType } from "@noctaCrdt/Interfaces";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { motion } from "framer-motion";
-import { memo, useRef, useLayoutEffect } from "react";
+import { memo, useRef } from "react";
 import { useBlockAnimation } from "../../hooks/useBlockAnimtaion";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
@@ -18,7 +18,7 @@ interface BlockProps {
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
+  onClick: (blockId: BlockId) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
   onTypeSelect: (blockId: BlockId, type: ElementType) => void;
   onCopySelect: (blockId: BlockId) => void;
@@ -55,31 +55,6 @@ export const Block: React.FC<BlockProps> = memo(
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
       onInput(e, block);
     };
-
-    const setFocusAndCursor = () => {
-      if (blockRef.current && isActive) {
-        const selection = window.getSelection();
-        if (!selection) return;
-        const range = document.createRange();
-        const content =
-          blockRef.current.firstChild || blockRef.current.appendChild(document.createTextNode(""));
-        // const position = Math.min(block.crdt.currentCaret, content.textContent?.length || 0);
-        const position = Math.min(
-          blockCRDTRef.current.crdt.currentCaret,
-          content.textContent?.length || 0,
-        );
-        range.setStart(content, position);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    };
-
-    useLayoutEffect(() => {
-      // ✅ 추가
-      setFocusAndCursor();
-      // block.crdt.currentCaret
-    }, [isActive, blockCRDTRef.current.crdt.currentCaret]);
 
     const handleAnimationSelect = (animation: AnimationType) => {
       onAnimationSelect(block.id, animation);
@@ -130,7 +105,7 @@ export const Block: React.FC<BlockProps> = memo(
             onKeyDown={onKeyDown}
             onInput={handleInput}
             onCompositionEnd={(e) => onCompositionEnd(e, block)}
-            onClick={(e) => onClick(block.id, e)}
+            onClick={() => onClick(block.id)}
             contentEditable
             suppressContentEditableWarning
             className={textContainerStyle({

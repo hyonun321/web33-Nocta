@@ -50,3 +50,16 @@ export const checkbox = css({
     backgroundColor: "blue.500",
   },
 });
+
+export const addNewBlockButton = css({
+  display: "flex",
+  gap: "spacing.sm",
+  borderRadius: "4px",
+  padding: "spacing.sm",
+  color: "gray.900",
+  opacity: 0.8,
+  cursor: "pointer",
+  "&:hover": {
+    opacity: 1,
+  },
+});
