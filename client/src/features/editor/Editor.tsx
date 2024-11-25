@@ -84,7 +84,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       sendCharInsertOperation,
     });
 
-  const { handleKeyDown } = useMarkdownGrammer({
+  const { handleKeyDown: onKeyDown } = useMarkdownGrammer({
     editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
@@ -181,6 +181,44 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     },
     [sendCharInsertOperation, sendCharDeleteOperation],
   );
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    blockRef: HTMLDivElement | null,
+    block: CRDTBlock,
+  ) => {
+    if (!blockRef || !block) return;
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || !blockRef) {
+      // 선택된 텍스트가 없으면 기존 onKeyDown 로직 실행
+      onKeyDown(e);
+      return;
+    }
+
+    if (e.key === "Backspace") {
+      e.preventDefault();
+
+      const range = selection.getRangeAt(0);
+      if (!blockRef.contains(range.commonAncestorContainer)) return;
+
+      const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
+      const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
+
+      // 선택된 범위의 문자들을 역순으로 삭제
+      for (let i = endOffset - 1; i >= startOffset; i--) {
+        const operationNode = block.crdt.localDelete(i, block.id, pageId);
+        sendCharDeleteOperation(operationNode);
+      }
+
+      block.crdt.currentCaret = startOffset;
+      setEditorState({
+        clock: editorCRDT.current.clock,
+        linkedList: editorCRDT.current.LinkedList,
+      });
+    } else {
+      onKeyDown(e);
+    }
+  };
 
   const handleCopy = (
     e: React.ClipboardEvent<HTMLDivElement>,

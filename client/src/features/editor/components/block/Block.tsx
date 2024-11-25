@@ -27,7 +27,11 @@ interface BlockProps {
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  onKeyDown: (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    blockRef: HTMLDivElement | null,
+    block: CRDTBlock,
+  ) => void;
   onCopy: (
     e: React.ClipboardEvent<HTMLDivElement>,
     blockRef: HTMLDivElement | null,
@@ -228,7 +232,7 @@ export const Block: React.FC<BlockProps> = memo(
           <IconBlock type={block.type} index={1} />
           <div
             ref={blockRef}
-            onKeyDown={onKeyDown}
+            onKeyDown={(e) => onKeyDown(e, blockRef.current, block)}
             onInput={handleInput}
             onClick={(e) => onClick(block.id, e)}
             onCopy={(e) => onCopy(e, blockRef.current, block)}
