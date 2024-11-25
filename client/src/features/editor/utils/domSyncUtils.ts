@@ -1,18 +1,39 @@
 import { Block } from "@noctaCrdt/Node";
+import { css } from "styled-system/css";
+
+export const TEXT_STYLES: Record<string, string> = {
+  bold: "bold",
+  italic: "italic",
+  underline: "underline",
+  strikethrough: "strikethrough",
+};
 
 interface SetInnerHTMLProps {
   element: HTMLDivElement;
   block: Block;
 }
 
-const getHtmlTag = (style: string): string => {
-  const tagMappings: Record<string, string> = {
-    bold: "b", // bold는 <b>
-    italic: "i", // italic은 <i>
-    underline: "u", // underline은 <u>
-    strikethrough: "s", // strikethrough는 <s>
-  };
-  return tagMappings[style] || "span"; // 기본은 <span>
+const getClassNames = (styles: Set<string>): string => {
+  // underline과 strikethrough가 함께 있는 경우 특별 처리
+  if (styles.has("underline") && styles.has("strikethrough")) {
+    return css({
+      textDecoration: "underline line-through",
+      fontWeight: styles.has("bold") ? "bold" : "normal",
+      fontStyle: styles.has("italic") ? "italic" : "normal",
+    });
+  }
+
+  // 일반적인 경우
+  return css({
+    textDecoration: styles.has("underline")
+      ? "underline"
+      : styles.has("strikethrough")
+        ? "line-through"
+        : "none",
+    // textStyle 속성 대신 직접 스타일 지정
+    fontWeight: styles.has("bold") ? "bold" : "normal",
+    fontStyle: styles.has("italic") ? "italic" : "normal",
+  });
 };
 
 export const setInnerHTML = ({ element, block }: SetInnerHTMLProps): void => {
@@ -29,7 +50,7 @@ export const setInnerHTML = ({ element, block }: SetInnerHTMLProps): void => {
     // 해당 위치에 적용되어야 하는 모든 스타일 수집
     chars.forEach((c, i) => {
       if (i === index) {
-        c.style.forEach((style) => styleSet.add(style));
+        c.style.forEach((style) => styleSet.add(TEXT_STYLES[style]));
       }
     });
 
@@ -38,39 +59,37 @@ export const setInnerHTML = ({ element, block }: SetInnerHTMLProps): void => {
 
   let html = "";
   let currentStyles = new Set<string>();
+  let spanOpen = false;
 
   chars.forEach((char, index) => {
     const targetStyles = positionStyles[index];
 
-    // 제거해야 할 스타일 (현재는 있지만 다음에는 필요 없는 스타일)
-    const stylesToRemove = [...currentStyles].filter((style) => !targetStyles.has(style));
+    // 스타일이 변경되었는지 확인
+    const styleChanged = !setsEqual(currentStyles, targetStyles);
 
-    // 추가해야 할 스타일 (현재는 없지만 다음에는 필요한 스타일)
-    const stylesToAdd = [...targetStyles].filter((style) => !currentStyles.has(style));
+    // 스타일이 변경되었으면 현재 span 태그 닫기
+    if (styleChanged && spanOpen) {
+      html += "</span>";
+      spanOpen = false;
+    }
 
-    // 제거할 스타일 태그 닫기 (역순으로)
-    stylesToRemove.reverse().forEach((style) => {
-      html += `</${getHtmlTag(style)}>`;
-    });
-
-    // 새로운 스타일 태그 열기
-    stylesToAdd.forEach((style) => {
-      html += `<${getHtmlTag(style)}>`;
-    });
+    // 새로운 스타일 조합으로 span 태그 열기
+    if (styleChanged && targetStyles.size > 0) {
+      const className = getClassNames(targetStyles);
+      html += `<span class="${className}">`;
+      spanOpen = true;
+    }
 
     // 텍스트 추가
     html += sanitizeText(char.value);
 
     // 다음 문자로 넘어가기 전에 현재 스타일 상태 업데이트
-    currentStyles = new Set(targetStyles);
+    currentStyles = targetStyles;
 
-    // 마지막 문자이거나 다음 문자와 스타일이 다른 경우
-    if (index === chars.length - 1 || !setsEqual(targetStyles, positionStyles[index + 1])) {
-      // 현재 열려있는 모든 태그 닫기
-      [...currentStyles].reverse().forEach((style) => {
-        html += `</${getHtmlTag(style)}>`;
-      });
-      currentStyles.clear();
+    // 마지막 문자이고 span이 열려있으면 닫기
+    if (index === chars.length - 1 && spanOpen) {
+      html += "</span>";
+      spanOpen = false;
     }
   });
 
