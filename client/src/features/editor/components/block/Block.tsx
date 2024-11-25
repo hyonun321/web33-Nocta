@@ -28,6 +28,7 @@ interface BlockProps {
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  onPaste: (e: React.ClipboardEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
   onTypeSelect: (blockId: BlockId, type: ElementType) => void;
@@ -53,6 +54,7 @@ export const Block: React.FC<BlockProps> = memo(
     onInput,
     onCompositionEnd,
     onKeyDown,
+    onPaste,
     onClick,
     onAnimationSelect,
     onTypeSelect,
@@ -241,6 +243,7 @@ export const Block: React.FC<BlockProps> = memo(
             onKeyDown={onKeyDown}
             onInput={handleInput}
             onClick={(e) => onClick(block.id, e)}
+            onPaste={(e) => onPaste(e, block)}
             onMouseUp={handleMouseUp}
             onCompositionEnd={(e) => onCompositionEnd(e, block)}
             contentEditable

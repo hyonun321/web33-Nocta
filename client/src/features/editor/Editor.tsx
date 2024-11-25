@@ -171,6 +171,34 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     [sendCharInsertOperation, sendCharDeleteOperation],
   );
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>, block: CRDTBlock) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+
+    if (!block || text.length === 0) return;
+
+    const caretPosition = block.crdt.currentCaret;
+
+    // 텍스트를 한 글자씩 순차적으로 삽입
+    text.split("").forEach((char, index) => {
+      const insertPosition = caretPosition + index;
+      const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
+      sendCharInsertOperation({
+        node: charNode.node,
+        blockId: block.id,
+        pageId,
+      });
+    });
+
+    // 캐럿 위치 업데이트
+    editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition + text.length;
+
+    setEditorState({
+      clock: editorCRDT.current.clock,
+      linkedList: editorCRDT.current.LinkedList,
+    });
+  };
+
   const handleCompositionEnd = (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => {
     const event = e.nativeEvent as CompositionEvent;
     const characters = [...event.data];
@@ -336,6 +364,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
                 onInput={handleBlockInput}
                 onCompositionEnd={handleCompositionEnd}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
                 onClick={handleBlockClick}
                 onAnimationSelect={handleAnimationSelect}
                 onTypeSelect={handleTypeSelect}
