@@ -205,13 +205,13 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
   const subscriptionRef = useRef(false);
 
   useLayoutEffect(() => {
-    if (!editorCRDT.current.currentBlock) return;
+    if (!editorCRDT || !editorCRDT.current.currentBlock) return;
     setCaretPosition({
       blockId: editorCRDT.current.currentBlock.id,
       linkedList: editorCRDT.current.LinkedList,
       position: editorCRDT.current.currentBlock?.crdt.currentCaret,
     });
-  }, [editorCRDT.current.currentBlock?.crdt.read().length]);
+  }, [editorCRDT, editorCRDT?.current.currentBlock?.crdt.read().length]);
 
   useEffect(() => {
     if (subscriptionRef.current) return;

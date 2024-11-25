@@ -76,7 +76,6 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         connectionTime: new Date(),
       };
       this.clientMap.set(client.id, clientInfo);
-      console.log(userId, "유저아이디 체크");
       client.emit("assign/clientId", assignedId);
 
       client.broadcast.emit("userJoined", { clientId: assignedId });
@@ -142,11 +141,18 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         throw new WsException(`Page with id ${pageId} not found`);
       }
 
-      // 페이지 데이터를 요청한 클라이언트에게 전송
-      client.emit("join/page", {
-        pageId,
-        serializedPage: page.serialize(),
-      });
+      const start = process.hrtime();
+      const [seconds, nanoseconds] = process.hrtime(start);
+      this.logger.log(
+        `Page join operation took ${seconds}s ${nanoseconds / 1000000}ms\n` +
+          `Active connections: ${this.server.engine.clientsCount}\n` +
+          `Connected clients: ${this.clientMap.size}`,
+      );
+      console.log(`Memory usage: ${process.memoryUsage().heapUsed}`),
+        client.emit("join/page", {
+          pageId,
+          serializedPage: page.serialize(),
+        });
 
       this.logger.log(`Client ${clientInfo.clientId} joined page ${pageId}`);
     } catch (error) {
@@ -309,7 +315,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ): Promise<void> {
     const clientInfo = this.clientMap.get(client.id);
     try {
-      console.log("인서트 char", client.data.pageId);
+      console.log("인서트 char", data.pageId);
       this.logger.debug(
         `Insert 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
@@ -354,7 +360,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ): Promise<void> {
     const clientInfo = this.clientMap.get(client.id);
     try {
-      console.log("딜리트 블록", client.data.pageId);
+      console.log("딜리트 블록", data.pageId);
       this.logger.debug(
         `Delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
@@ -392,7 +398,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ): Promise<void> {
     const clientInfo = this.clientMap.get(client.id);
     try {
-      console.log("딜리트 캐릭터", client.data.pageId);
+      console.log("딜리트 캐릭터", data.pageId);
       this.logger.debug(
         `Delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),

@@ -9,7 +9,8 @@ export interface Page {
   zIndex: number;
   isActive: boolean;
   isVisible: boolean;
-  serializedEditorData: serializedEditorDataProps;
+  isLoaded: boolean;
+  serializedEditorData: serializedEditorDataProps | null;
 }
 
 export interface Position {
