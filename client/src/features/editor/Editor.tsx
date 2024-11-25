@@ -249,11 +249,8 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
   const tempBlock = () => {
     const index = editorCRDT.current.LinkedList.spread().length;
-
-    // 로컬 삽입을 수행하고 연산 객체를 반환받음
     const operation = editorCRDT.current.localInsert(index, "");
     sendBlockInsertOperation({ node: operation.node, pageId });
-    console.log("operation clock", operation.node);
     setEditorState(() => ({
       clock: operation.node.id.clock,
       linkedList: editorCRDT.current.LinkedList,
