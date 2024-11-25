@@ -91,7 +91,6 @@ export const useBlockDragAndDrop = ({
       setEditorState({
         clock: editorCRDT.clock,
         linkedList: editorCRDT.LinkedList,
-        currentBlock: editorState.currentBlock,
       });
     } catch (error) {
       console.error("Failed to reorder blocks:", error);

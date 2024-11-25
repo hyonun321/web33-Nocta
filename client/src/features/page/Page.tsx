@@ -5,10 +5,10 @@ import { Editor } from "@features/editor/Editor";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page as PageType } from "@src/types/page";
 import { pageAnimation, resizeHandleAnimation } from "./Page.animation";
-import { pageContainer, pageHeader, resizeHandle } from "./Page.style";
+import { pageContainer, pageHeader, resizeHandles } from "./Page.style";
 import { PageControlButton } from "./components/PageControlButton/PageControlButton";
 import { PageTitle } from "./components/PageTitle/PageTitle";
-import { usePage } from "./hooks/usePage";
+import { DIRECTIONS, usePage } from "./hooks/usePage";
 
 interface PageProps extends PageType {
   handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
@@ -79,17 +79,12 @@ export const Page = ({
   }
   return (
     <AnimatePresence>
-      <motion.div
+      <div
         className={pageContainer}
-        initial={pageAnimation.initial}
-        animate={pageAnimation.animate({
-          x: position.x,
-          y: position.y,
-          isActive,
-        })}
         style={{
           width: `${size.width}px`,
           height: `${size.height}px`,
+          transform: `translate(${position.x}px, ${position.y}px)`,
           zIndex,
         }}
         onPointerDown={handlePageClick}
@@ -107,12 +102,14 @@ export const Page = ({
           pageId={id}
           serializedEditorData={serializedEditorDatas}
         />
-        <motion.div
-          className={resizeHandle}
-          onMouseDown={pageResize}
-          whileHover={resizeHandleAnimation.whileHover}
-        />
-      </motion.div>
+        {DIRECTIONS.map((direction) => (
+          <motion.div
+            key={direction}
+            className={resizeHandles[direction]}
+            onMouseDown={(e) => pageResize(e, direction)}
+          />
+        ))}
+      </div>
     </AnimatePresence>
   );
 };

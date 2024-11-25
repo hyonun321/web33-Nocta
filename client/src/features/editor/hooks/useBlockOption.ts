@@ -18,7 +18,6 @@ interface useBlockOptionSelectProps {
     React.SetStateAction<{
       clock: number;
       linkedList: BlockLinkedList;
-      currentBlock: BlockId | null;
     }>
   >;
   pageId: string;
@@ -43,6 +42,7 @@ export const useBlockOptionSelect = ({
     if (!block) return;
 
     block.type = type;
+    editorCRDT.currentBlock = block;
     editorCRDT.remoteUpdate(block, pageId);
 
     sendBlockUpdateOperation({
@@ -50,11 +50,10 @@ export const useBlockOptionSelect = ({
       pageId,
     });
 
-    setEditorState((prev) => ({
+    setEditorState({
       clock: editorCRDT.clock,
       linkedList: editorCRDT.LinkedList,
-      currentBlock: blockId || prev.currentBlock,
-    }));
+    });
   };
 
   const handleAnimationSelect = (blockId: BlockId, animation: AnimationType) => {
@@ -62,6 +61,7 @@ export const useBlockOptionSelect = ({
     if (!block) return;
 
     block.animation = animation;
+    editorCRDT.currentBlock = block;
     editorCRDT.remoteUpdate(block, pageId);
 
     sendBlockUpdateOperation({
@@ -69,11 +69,10 @@ export const useBlockOptionSelect = ({
       pageId,
     });
 
-    setEditorState((prev) => ({
+    setEditorState({
       clock: editorCRDT.clock,
       linkedList: editorCRDT.LinkedList,
-      currentBlock: blockId || prev.currentBlock,
-    }));
+    });
   };
 
   const handleCopySelect = (blockId: BlockId) => {
@@ -112,11 +111,11 @@ export const useBlockOptionSelect = ({
       pageId,
     });
 
-    setEditorState((prev) => ({
+    editorCRDT.currentBlock = operation.node;
+    setEditorState({
       clock: editorCRDT.clock,
       linkedList: editorCRDT.LinkedList,
-      currentBlock: operation.node.id || prev.currentBlock,
-    }));
+    });
   };
 
   const handleDeleteSelect = (blockId: BlockId) => {
@@ -125,11 +124,18 @@ export const useBlockOptionSelect = ({
     );
     sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
 
-    setEditorState((prev) => ({
+    // 삭제할 블록이 현재 활성화된 블록인 경우
+    if (editorCRDT.currentBlock?.id.equals(blockId)) {
+      // 다음 블록이나 이전 블록으로 currentBlock 설정
+      const nextBlock = editorCRDT.LinkedList.findByIndex(currentIndex + 1);
+      const prevBlock = editorCRDT.LinkedList.findByIndex(currentIndex - 1);
+      editorCRDT.currentBlock = nextBlock || prevBlock || null;
+    }
+
+    setEditorState({
       clock: editorCRDT.clock,
       linkedList: editorCRDT.LinkedList,
-      currentBlock: prev.currentBlock,
-    }));
+    });
   };
 
   return {
