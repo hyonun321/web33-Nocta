@@ -77,10 +77,10 @@ export const Sidebar = ({
         <MenuButton />
       </motion.div>
       <motion.nav className={navWrapper} variants={contentVariants}>
-        {visiblePages.length === 0 ? (
+        {pages.length === 0 ? (
           <div className={placeholderMessage}>+ 버튼을 눌러 페이지를 추가하세요</div>
         ) : (
-          visiblePages.map((item) => (
+          pages?.map((item) => (
             <motion.div
               key={item.id}
               initial={animation.initial}
