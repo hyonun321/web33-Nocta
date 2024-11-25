@@ -8,6 +8,9 @@ const baseBlockStyle = {
   width: "full",
   minHeight: "16px",
   backgroundColor: "transparent",
+  "&:hover .menu_block, .menu_block.option_modal_open": {
+    opacity: 1,
+  },
 };
 
 export const blockContainerStyle = cva({
