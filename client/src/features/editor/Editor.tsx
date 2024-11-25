@@ -319,6 +319,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
           onChange={handleTitleChange}
           className={editorTitle}
         />
+        <div style={{ height: "36px" }}></div>
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <SortableContext
             items={editorState.linkedList
