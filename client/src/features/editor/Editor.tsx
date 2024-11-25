@@ -120,30 +120,42 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       const newContent = element.textContent || "";
       const currentContent = block.crdt.read();
       const caretPosition = getAbsoluteCaretPosition(element);
-      console.log(caretPosition, "블록의 캐럿 위치");
+      console.log({
+        newContent,
+        currentContent,
+        caretPosition,
+      });
 
       if (newContent.length > currentContent.length) {
         let charNode: RemoteCharInsertOperation;
+        // 캐럿 위치 유효성 검사
+        const validCaretPosition = Math.min(Math.max(0, caretPosition), currentContent.length);
+        // 맨 앞에 삽입
         if (caretPosition === 0) {
           const [addedChar] = newContent;
           charNode = block.crdt.localInsert(0, addedChar, block.id, pageId);
-          editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
         } else if (caretPosition > currentContent.length) {
+          // 맨 뒤에 삽입
           const addedChar = newContent[newContent.length - 1];
           charNode = block.crdt.localInsert(currentContent.length, addedChar, block.id, pageId);
-          editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
         } else {
-          const addedChar = newContent[caretPosition - 1];
-          charNode = block.crdt.localInsert(caretPosition - 1, addedChar, block.id, pageId);
-          editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
+          // 중간에 삽입
+          const addedChar = newContent[validCaretPosition - 1];
+          charNode = block.crdt.localInsert(validCaretPosition - 1, addedChar, block.id, pageId);
         }
+        editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
         sendCharInsertOperation({ node: charNode.node, blockId: block.id, pageId });
       } else if (newContent.length < currentContent.length) {
         // 문자가 삭제된 경우
-        operationNode = block.crdt.localDelete(caretPosition, block.id, pageId);
-        sendCharDeleteOperation(operationNode);
-        // editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
-        editorCRDT.current.currentBlock!.crdt.currentCaret -= 1;
+        // 삭제 위치 계산
+        const deletePosition = Math.max(0, caretPosition);
+        if (deletePosition >= 0 && deletePosition < currentContent.length) {
+          operationNode = block.crdt.localDelete(deletePosition, block.id, pageId);
+          sendCharDeleteOperation(operationNode);
+
+          // 캐럿 위치 업데이트
+          editorCRDT.current.currentBlock!.crdt.currentCaret = deletePosition;
+        }
       }
       setEditorState({
         clock: editorCRDT.current.clock,
