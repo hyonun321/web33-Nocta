@@ -1,6 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { AnimationType, ElementType, TextStyleType } from "@noctaCrdt/Interfaces";
+import {
+  AnimationType,
+  ElementType,
+  TextColorType,
+  TextStyleType,
+  BackgroundColorType,
+} from "@noctaCrdt/Interfaces";
 import { Block as CRDTBlock, Char } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { motion } from "framer-motion";
@@ -32,6 +38,12 @@ interface BlockProps {
     blockId: BlockId,
     nodes: Array<Char> | null,
   ) => void;
+  onTextColorUpdate: (color: TextColorType, blockId: BlockId, nodes: Array<Char>) => void;
+  onTextBackgroundColorUpdate: (
+    color: BackgroundColorType,
+    blockId: BlockId,
+    nodes: Array<Char>,
+  ) => void;
 }
 export const Block: React.FC<BlockProps> = memo(
   ({
@@ -47,6 +59,8 @@ export const Block: React.FC<BlockProps> = memo(
     onCopySelect,
     onDeleteSelect,
     onTextStyleUpdate,
+    onTextColorUpdate,
+    onTextBackgroundColorUpdate,
   }: BlockProps) => {
     const blockRef = useRef<HTMLDivElement>(null);
     const { isOpen, openModal, closeModal } = useModal();
@@ -166,6 +180,30 @@ export const Block: React.FC<BlockProps> = memo(
       }
     };
 
+    const handleTextColorSelect = (color: TextColorType) => {
+      if (blockRef.current && selectedNodes) {
+        const selection = window.getSelection();
+        onTextColorUpdate(color, block.id, selectedNodes);
+
+        const position = selection?.focusOffset || 0;
+        block.crdt.currentCaret = position;
+
+        closeModal();
+      }
+    };
+
+    const handleTextBackgroundColorSelect = (color: BackgroundColorType) => {
+      if (blockRef.current && selectedNodes) {
+        const selection = window.getSelection();
+        onTextBackgroundColorUpdate(color, block.id, selectedNodes);
+
+        const position = selection?.focusOffset || 0;
+        block.crdt.currentCaret = position;
+
+        closeModal();
+      }
+    };
+
     useEffect(() => {
       if (blockRef.current) {
         console.log("setInnerHTML");
@@ -224,6 +262,8 @@ export const Block: React.FC<BlockProps> = memo(
           onItalicSelect={() => handleStyleSelect("italic")}
           onUnderlineSelect={() => handleStyleSelect("underline")}
           onStrikeSelect={() => handleStyleSelect("strikethrough")}
+          onTextColorSelect={handleTextColorSelect}
+          onTextBackgroundColorSelect={handleTextBackgroundColorSelect}
         />
       </motion.div>
     );

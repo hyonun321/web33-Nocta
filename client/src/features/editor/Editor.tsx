@@ -85,11 +85,13 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendCharInsertOperation,
   });
 
-  const { onTextStyleUpdate } = useTextOptionSelect({
-    editorCRDT: editorCRDT.current,
-    setEditorState,
-    pageId,
-  });
+  const { onTextStyleUpdate, onTextColorUpdate, onTextBackgroundColorUpdate } = useTextOptionSelect(
+    {
+      editorCRDT: editorCRDT.current,
+      setEditorState,
+      pageId,
+    },
+  );
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitleChange(e.target.value);
@@ -339,6 +341,8 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
                 onCopySelect={handleCopySelect}
                 onDeleteSelect={handleDeleteSelect}
                 onTextStyleUpdate={onTextStyleUpdate}
+                onTextColorUpdate={onTextColorUpdate}
+                onTextBackgroundColorUpdate={onTextBackgroundColorUpdate}
               />
             ))}
           </SortableContext>
