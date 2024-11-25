@@ -37,7 +37,6 @@ export const Block: React.FC<BlockProps> = memo(
     onCopySelect,
     onDeleteSelect,
   }: BlockProps) => {
-    console.log("블록 초기화 상태", block);
     const blockRef = useRef<HTMLDivElement>(null);
     const blockCRDTRef = useRef<CRDTBlock>(block);
 

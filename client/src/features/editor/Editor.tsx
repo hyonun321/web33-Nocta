@@ -8,7 +8,7 @@ import {
   RemoteCharInsertOperation,
   serializedEditorDataProps,
 } from "node_modules/@noctaCrdt/Interfaces.ts";
-import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
 import { Block } from "./components/block/Block.tsx";
@@ -19,7 +19,7 @@ import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 interface EditorProps {
   onTitleChange: (title: string) => void;
   pageId: string;
-  serializedEditorData: serializedEditorDataProps;
+  serializedEditorData: serializedEditorDataProps | null;
 }
 
 export interface EditorStateProps {
@@ -37,18 +37,35 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
   } = useSocketStore();
-  const editorCRDTInstance = useMemo(() => {
-    const editor = new EditorCRDT(serializedEditorData.client);
-    editor.deserialize(serializedEditorData);
-    return editor;
-  }, [serializedEditorData]);
+  const { clientId } = useSocketStore();
 
-  const editorCRDT = useRef<EditorCRDT>(editorCRDTInstance);
+  const editorCRDT = useRef<EditorCRDT>(
+    (() => {
+      if (!serializedEditorData) {
+        return new EditorCRDT(clientId ? clientId : 0);
+      }
+      const editor = new EditorCRDT(serializedEditorData.client);
+      editor.deserialize(serializedEditorData);
+      return editor;
+    })(),
+  );
+
+  // Editor의 상태도 editorCRDT 기반으로 초기화
   const [editorState, setEditorState] = useState<EditorStateProps>({
     clock: editorCRDT.current.clock,
     linkedList: editorCRDT.current.LinkedList,
-    currentBlock: null as BlockId | null,
+    currentBlock: null,
   });
+
+  // editorCRDT가 변경될 때마다 editorState 업데이트
+  useEffect(() => {
+    setEditorState({
+      clock: editorCRDT.current.clock,
+      linkedList: editorCRDT.current.LinkedList,
+      currentBlock: null,
+    });
+  }, [editorCRDT]);
+
   const { sensors, handleDragEnd } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
     editorState,
@@ -168,7 +185,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     const unsubscribe = subscribeToRemoteOperations({
       onRemoteBlockInsert: (operation) => {
         console.log(operation, "block : 입력 확인합니다이");
-        if (!editorCRDT.current || operation.pageId !== pageId) return;
+        if (!editorCRDT || operation.pageId !== pageId) return;
         editorCRDT.current.remoteInsert(operation);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
@@ -179,7 +196,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteBlockDelete: (operation) => {
         console.log(operation, "block : 삭제 확인합니다이");
-        if (!editorCRDT.current || operation.pageId !== pageId) return;
+        if (!editorCRDT || operation.pageId !== pageId) return;
         editorCRDT.current.remoteDelete(operation);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
@@ -190,7 +207,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteCharInsert: (operation) => {
         console.log(operation, "char : 입력 확인합니다이");
-        if (!editorCRDT.current || operation.pageId !== pageId) return;
+        if (!editorCRDT || operation.pageId !== pageId) return;
         const targetBlock =
           editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteInsert(operation);
@@ -203,7 +220,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteCharDelete: (operation) => {
         console.log(operation, "char : 삭제 확인합니다이");
-        if (!editorCRDT.current || operation.pageId !== pageId) return;
+        if (!editorCRDT || operation.pageId !== pageId) return;
         const targetBlock =
           editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteDelete(operation);
@@ -216,7 +233,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteBlockUpdate: (operation) => {
         console.log(operation, "block : 업데이트 확인합니다이");
-        if (!editorCRDT.current || operation.pageId !== pageId) return;
+        if (!editorCRDT || operation.pageId !== pageId) return;
         editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
@@ -227,7 +244,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
 
       onRemoteBlockReorder: (operation) => {
         console.log(operation, "block : 재정렬 확인합니다이");
-        if (!editorCRDT.current || operation.pageId !== pageId) return;
+        if (!editorCRDT || operation.pageId !== pageId) return;
         editorCRDT.current.remoteReorder(operation);
         setEditorState((prev) => ({
           clock: editorCRDT.current.clock,
@@ -258,6 +275,10 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     }));
   };
 
+  // 로딩 상태 체크
+  if (!serializedEditorData) {
+    return <div>Loading editor data...</div>;
+  }
   return (
     <div className={editorContainer}>
       <div className={editorTitleContainer}>

@@ -1,6 +1,6 @@
 import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Editor } from "@features/editor/Editor";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page as PageType } from "@src/types/page";
@@ -14,6 +14,7 @@ interface PageProps extends PageType {
   handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
   handlePageClose: (pageId: string) => void;
   handleTitleChange: (pageId: string, newTitle: string) => void;
+  updatePageData: (pageId: string, newData: serializedEditorDataProps) => void;
   serializedEditorData: serializedEditorDataProps;
 }
 
@@ -27,9 +28,13 @@ export const Page = ({
   handlePageSelect,
   handlePageClose,
   handleTitleChange,
+  updatePageData,
   serializedEditorData,
 }: PageProps) => {
   const { position, size, pageDrag, pageResize, pageMinimize, pageMaximize } = usePage({ x, y });
+  const [isLoading, setIsLoading] = useState(true);
+  const [serializedEditorDatas, setSerializedEditorDatas] =
+    useState<serializedEditorDataProps | null>(serializedEditorData);
 
   const onTitleChange = (newTitle: string) => {
     handleTitleChange(id, newTitle);
@@ -41,22 +46,37 @@ export const Page = ({
     }
   };
 
+  // serializedEditorData prop이 변경되면 local state도 업데이트
+  useEffect(() => {
+    setSerializedEditorDatas(serializedEditorData);
+  }, [serializedEditorData, updatePageData]);
+
   useEffect(() => {
     const socketStore = useSocketStore.getState();
     if (!socketStore.socket) return;
-
-    // 페이지 열기 시 join/page 이벤트 전송
+    // 페이지 데이터 수신 핸들러
+    const handlePageData = (data: { pageId: string; serializedPage: any }) => {
+      if (data.pageId === id) {
+        console.log("Received new editor data:", data);
+        setSerializedEditorDatas(data.serializedPage.crdt);
+        updatePageData(id, data.serializedPage.crdt);
+        setIsLoading(false);
+      }
+    };
+    socketStore.socket.on("join/page", handlePageData);
     socketStore.socket.emit("join/page", { pageId: id });
-    console.log(id, "전송완료");
-    // 페이지 닫기 시 leave/page 이벤트 전송
+
     return () => {
       if (socketStore.socket) {
         socketStore.socket.emit("leave/page", { pageId: id });
-        console.log(id, "퇴장완료");
+        socketStore.socket.off("join/page", handlePageData);
       }
     };
-  }, [id]);
+  }, [id, updatePageData]);
 
+  if (isLoading || !serializedEditorDatas) {
+    return <div>Loading page content...</div>;
+  }
   return (
     <AnimatePresence>
       <motion.div
@@ -85,7 +105,7 @@ export const Page = ({
         <Editor
           onTitleChange={onTitleChange}
           pageId={id}
-          serializedEditorData={serializedEditorData}
+          serializedEditorData={serializedEditorDatas}
         />
         <motion.div
           className={resizeHandle}

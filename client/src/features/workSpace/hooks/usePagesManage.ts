@@ -1,6 +1,7 @@
+import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { WorkSpace } from "@noctaCrdt/WorkSpace";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page } from "@src/types/page";
 
@@ -10,6 +11,7 @@ const PAGE_OFFSET = 60;
 export const usePagesManage = (workspace: WorkSpace | null, clientId: number | null) => {
   const [pages, setPages] = useState<Page[]>([]);
   const { subscribeToPageOperations, sendPageCreateOperation } = useSocketStore();
+  const pageDataCache = useRef<Map<string, serializedEditorDataProps>>(new Map());
   const subscriptionRef = useRef(false);
   useEffect(() => {
     if (!workspace) return;
@@ -33,6 +35,15 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
       unsubscribe?.();
     };
   }, [workspace, pages]);
+
+  const updatePageData = useCallback((pageId: string, newData: serializedEditorDataProps) => {
+    pageDataCache.current.set(pageId, newData);
+    setPages((prevPages) =>
+      prevPages.map((page) =>
+        page.id === pageId ? { ...page, serializedEditorData: newData } : page,
+      ),
+    );
+  }, []);
 
   const getZIndex = () => {
     return Math.max(0, ...pages.map((page) => page.zIndex)) + 1;
@@ -66,6 +77,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
   };
 
   const selectPage = ({ pageId }: { pageId: string }) => {
+    const cachedData = pageDataCache.current.get(pageId);
     setPages((prevPages) =>
       prevPages.map((page) => ({
         ...page,
@@ -73,6 +85,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         ...(page.id === pageId && {
           zIndex: getZIndex(),
           isVisible: true,
+          ...(cachedData && { serializedEditorData: cachedData }),
         }),
       })),
     );
@@ -129,6 +142,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
     fetchPage,
     selectPage,
     closePage,
+    updatePageData,
     updatePageTitle,
     initPages,
     initPagePosition,

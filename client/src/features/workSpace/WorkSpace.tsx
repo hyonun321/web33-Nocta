@@ -15,8 +15,16 @@ export const WorkSpace = () => {
   const { isLoading, isInitialized, error } = useWorkspaceInit();
   const { workspace: workspaceMetadata, clientId } = useSocketStore();
 
-  const { pages, fetchPage, selectPage, closePage, updatePageTitle, initPages, initPagePosition } =
-    usePagesManage(workspace, clientId);
+  const {
+    pages,
+    fetchPage,
+    selectPage,
+    closePage,
+    updatePageTitle,
+    initPages,
+    initPagePosition,
+    updatePageData,
+  } = usePagesManage(workspace, clientId);
   const visiblePages = pages.filter((page) => page.isVisible);
 
   useEffect(() => {
@@ -59,6 +67,7 @@ export const WorkSpace = () => {
               handlePageSelect={selectPage}
               handlePageClose={closePage}
               handleTitleChange={updatePageTitle}
+              updatePageData={updatePageData}
             />
           ))}
         </div>
