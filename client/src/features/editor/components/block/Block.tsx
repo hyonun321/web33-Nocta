@@ -169,11 +169,10 @@ export const Block: React.FC<BlockProps> = memo(
 
     const handleStyleSelect = (styleType: TextStyleType) => {
       if (blockRef.current && selectedNodes) {
-        const selection = window.getSelection();
         // CRDT 상태 업데이트 및 서버 전송
         onTextStyleUpdate(styleType, block.id, selectedNodes);
 
-        const position = selection?.focusOffset || 0;
+        const position = getAbsoluteCaretPosition(blockRef.current);
         block.crdt.currentCaret = position;
 
         closeModal();
@@ -182,10 +181,9 @@ export const Block: React.FC<BlockProps> = memo(
 
     const handleTextColorSelect = (color: TextColorType) => {
       if (blockRef.current && selectedNodes) {
-        const selection = window.getSelection();
         onTextColorUpdate(color, block.id, selectedNodes);
 
-        const position = selection?.focusOffset || 0;
+        const position = getAbsoluteCaretPosition(blockRef.current);
         block.crdt.currentCaret = position;
 
         closeModal();
@@ -194,10 +192,9 @@ export const Block: React.FC<BlockProps> = memo(
 
     const handleTextBackgroundColorSelect = (color: BackgroundColorType) => {
       if (blockRef.current && selectedNodes) {
-        const selection = window.getSelection();
         onTextBackgroundColorUpdate(color, block.id, selectedNodes);
 
-        const position = selection?.focusOffset || 0;
+        const position = getAbsoluteCaretPosition(blockRef.current);
         block.crdt.currentCaret = position;
 
         closeModal();
