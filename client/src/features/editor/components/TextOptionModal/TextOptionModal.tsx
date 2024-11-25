@@ -5,27 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BackgroundColorOptionModal } from "../ColorOptionModal/BackgroundColorOptionModal";
 import { TextColorOptionModal } from "../ColorOptionModal/TextColorOptionModal";
-import {
-  modalContainer,
-  optionButton,
-  optionModal,
-  divider,
-  textColorIndicator,
-  backgroundColorIndicator,
-  colorOptionButton,
-} from "./TextOptionModal.style";
-
-// 사용 가능한 색상 배열
-const COLORS: TextColorType[] = [
-  "black",
-  "red",
-  "green",
-  "blue",
-  "yellow",
-  "purple",
-  "brown",
-  "white",
-];
+import { modalContainer, optionButton, optionModal, divider } from "./TextOptionModal.style";
 
 interface SelectionModalProps {
   selectedNodes: Array<Char> | null;
@@ -268,7 +248,7 @@ export const TextOptionModal = ({
           <div
             style={{ position: "relative" }}
             onMouseEnter={() => handleMouseEnter("text")}
-            onClick={(e) => handleClickButton("text")}
+            onClick={() => handleClickButton("text")}
           >
             <button className={optionButton}>
               <span>A</span>
