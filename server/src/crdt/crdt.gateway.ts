@@ -51,8 +51,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly workSpaceService: workSpaceService,
     private readonly jwtService: JwtService, // JwtService 주입
   ) {}
+
   afterInit(server: Server) {
-    this.server = server;
+    this.workSpaceService.setServer(server);
   }
   /**
    * 클라이언트 연결 처리
