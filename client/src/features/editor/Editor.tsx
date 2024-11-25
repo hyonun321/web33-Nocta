@@ -66,7 +66,6 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     setEditorState({
       clock: editorCRDT.current.clock,
       linkedList: editorCRDT.current.LinkedList,
-      currentBlock: null,
     });
   }, [editorCRDT]);
 

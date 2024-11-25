@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Editor } from "@features/editor/Editor";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page as PageType } from "@src/types/page";
-import { pageAnimation, resizeHandleAnimation } from "./Page.animation";
 import { pageContainer, pageHeader, resizeHandles } from "./Page.style";
 import { PageControlButton } from "./components/PageControlButton/PageControlButton";
 import { PageTitle } from "./components/PageTitle/PageTitle";
