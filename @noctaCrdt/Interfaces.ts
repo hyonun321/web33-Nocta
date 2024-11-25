@@ -38,6 +38,7 @@ export interface RemoteCharInsertOperation {
   node: Char;
   blockId: BlockId;
   pageId: string;
+  style?: string[];
 }
 
 export interface RemoteBlockDeleteOperation {

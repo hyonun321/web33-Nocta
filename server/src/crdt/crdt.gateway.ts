@@ -275,6 +275,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const operation = {
         node: data.node,
         blockId: data.blockId,
+        pageId: data.pageId,
+        style: data.style || [],
       };
       client.broadcast.emit("insert/char", operation);
     } catch (error) {

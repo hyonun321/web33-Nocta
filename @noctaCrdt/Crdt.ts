@@ -230,6 +230,7 @@ export class BlockCRDT extends CRDT<Char> {
       node,
       blockId,
       pageId,
+      style: node.style || [],
     };
 
     return operation;
@@ -270,6 +271,12 @@ export class BlockCRDT extends CRDT<Char> {
 
     newNode.next = operation.node.next;
     newNode.prev = operation.node.prev;
+
+    if (operation.style && operation.style.length > 0) {
+      operation.style.forEach((style) => {
+        newNode.style.push(style);
+      });
+    }
 
     this.LinkedList.insertById(newNode);
 
