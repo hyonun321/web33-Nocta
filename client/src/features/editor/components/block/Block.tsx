@@ -16,6 +16,7 @@ interface BlockProps {
   block: CRDTBlock;
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
+  onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   onClick: (blockId: BlockId) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
@@ -30,6 +31,7 @@ export const Block: React.FC<BlockProps> = memo(
     block,
     isActive,
     onInput,
+    onCompositionEnd,
     onKeyDown,
     onClick,
     onAnimationSelect,
@@ -102,6 +104,7 @@ export const Block: React.FC<BlockProps> = memo(
             ref={blockRef}
             onKeyDown={onKeyDown}
             onInput={handleInput}
+            onCompositionEnd={(e) => onCompositionEnd(e, block)}
             onClick={() => onClick(block.id)}
             contentEditable
             suppressContentEditableWarning

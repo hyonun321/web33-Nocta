@@ -75,6 +75,7 @@ export const useMarkdownGrammer = ({
 
       switch (e.key) {
         case "Enter": {
+          if (e.nativeEvent.isComposing) return;
           e.preventDefault();
           const selection = window.getSelection();
           if (!selection) return;

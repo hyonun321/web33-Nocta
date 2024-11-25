@@ -9,11 +9,9 @@ export const menuBlockStyle = css({
   width: "20px",
   height: "20px",
   marginLeft: "-20px",
+  opacity: 0,
   transition: "opacity 0.2s ease-in-out",
   cursor: "grab",
-  _groupHover: {
-    opacity: 1,
-  },
   _active: {
     cursor: "grabbing",
   },

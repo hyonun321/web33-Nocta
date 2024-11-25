@@ -71,7 +71,12 @@ export const MenuBlock = ({
   };
 
   return (
-    <div ref={menuBlockRef} className={menuBlockStyle} {...attributes} {...modifiedListeners}>
+    <div
+      ref={menuBlockRef}
+      className={`menu_block ${isOpen ? "option_modal_open" : ""} ${menuBlockStyle}`}
+      {...attributes}
+      {...modifiedListeners}
+    >
       <div className={dragHandleIconStyle}>
         <img src={DraggableIcon} alt="drag handle" width="10" height="10" />
       </div>
