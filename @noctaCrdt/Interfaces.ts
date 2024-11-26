@@ -37,6 +37,12 @@ export interface RemotePageCreateOperation {
   page?: Page;
 }
 
+export interface RemotePageDeleteOperation {
+  clientId: number;
+  workspaceId: string;
+  pageId: string;
+}
+
 export interface RemoteBlockUpdateOperation {
   node: Block;
   pageId: string;

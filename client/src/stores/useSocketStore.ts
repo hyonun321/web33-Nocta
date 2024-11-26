@@ -7,6 +7,7 @@ import {
   RemoteBlockUpdateOperation,
   RemoteBlockReorderOperation,
   RemoteCharUpdateOperation,
+  RemotePageDeleteOperation,
   CursorPosition,
   WorkSpaceSerializedProps,
 } from "@noctaCrdt/Interfaces";
@@ -21,6 +22,7 @@ interface SocketStore {
   cleanup: () => void;
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
   sendPageCreateOperation: (operation: RemotePageCreateOperation) => void;
+  sendPageDeleteOperation: (operation: RemotePageDeleteOperation) => void;
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
@@ -47,6 +49,7 @@ interface RemoteOperationHandlers {
 
 interface PageOperationsHandlers {
   onRemotePageCreate: (operation: RemotePageCreateOperation) => void;
+  onRemotePageDelete: (operation: RemotePageDeleteOperation) => void;
 }
 
 export const useSocketStore = create<SocketStore>((set, get) => ({
@@ -118,7 +121,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket?.emit("create/page", operation);
     console.log("페이지 만들기 송신", operation);
   },
-
+  sendPageDeleteOperation: (operation: RemotePageDeleteOperation) => {
+    const { socket } = get();
+    socket?.emit("delete/page", operation);
+    console.log("페이지 삭제 송신", operation);
+  },
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => {
     const { socket } = get();
     socket?.emit("insert/block", operation);
@@ -188,8 +195,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const { socket } = get();
     if (!socket) return;
     socket.on("create/page", handlers.onRemotePageCreate);
+    socket.on("delete/page", handlers.onRemotePageDelete);
     return () => {
       socket.off("create/page", handlers.onRemotePageCreate);
+      socket.off("delete/page", handlers.onRemotePageDelete);
     };
   },
 }));

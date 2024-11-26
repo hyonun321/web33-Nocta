@@ -116,7 +116,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   /**
-   * 블록 삽입 연산 처리
+   * 페이지 삽입 연산 처리
    */
   @SubscribeMessage("create/page")
   async handlePageCreate(
@@ -155,6 +155,55 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       throw new WsException(`Page Create 연산 실패: ${error.message}`);
     }
   }
+
+  /**
+   * 페이지 삭제 연산 처리
+   */
+  @SubscribeMessage("delete/page")
+  async handlePageDelete(
+    @MessageBody() data: { workspaceId: string; pageId: string; clientId: number },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `Page delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+
+      // 현재 워크스페이스 가져오기
+      const currentWorkspace = this.workSpaceService.getWorkspace();
+
+      // pageList에서 해당 페이지 찾기
+      const pageIndex = currentWorkspace.pageList.findIndex((page) => page.id === data.pageId);
+
+      if (pageIndex === -1) {
+        throw new Error(`Page with id ${data.pageId} not found`);
+      }
+
+      // pageList에서 페이지 제거
+      currentWorkspace.pageList.splice(pageIndex, 1);
+
+      const operation = {
+        workspaceId: data.workspaceId,
+        pageId: data.pageId,
+        clientId: data.clientId,
+      };
+
+      // 삭제 이벤트를 모든 클라이언트에게 브로드캐스트
+      client.emit("delete/page", operation);
+      client.broadcast.emit("delete/page", operation);
+
+      this.logger.debug(`Page ${data.pageId} successfully deleted`);
+    } catch (error) {
+      this.logger.error(
+        `Page Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Page Delete 연산 실패: ${error.message}`);
+    }
+  }
+
   /**
    * 블록 업데이트 연산 처리
    */

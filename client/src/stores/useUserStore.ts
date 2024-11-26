@@ -49,6 +49,7 @@ export const useUserStore = create<UserStore>()(
       partialize: (state) => ({
         id: state.id,
         name: state.name,
+        accessToken: state.accessToken,
       }),
     },
   ),
