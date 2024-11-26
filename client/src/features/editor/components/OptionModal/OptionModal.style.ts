@@ -22,6 +22,17 @@ export const optionButton = css({
   },
 });
 
+export const optionTypeButton = css({
+  borderRadius: "8px",
+  width: "100%",
+  paddingBlock: "4px",
+  paddingInline: "8px",
+  textAlign: "left",
+  "&.selected": {
+    backgroundColor: "gray.100/40",
+  },
+});
+
 export const modalContainer = css({
   display: "flex",
   gap: "1",

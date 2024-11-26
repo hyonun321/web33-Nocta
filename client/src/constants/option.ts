@@ -13,6 +13,7 @@ export const OPTION_CATEGORIES = {
       { id: "ol", label: "순서 리스트" },
       { id: "checkbox", label: "체크박스" },
       { id: "blockquote", label: "인용문" },
+      { id: "hr", label: "구분선" },
     ] as { id: ElementType; label: string }[],
   },
   ANIMATION: {
