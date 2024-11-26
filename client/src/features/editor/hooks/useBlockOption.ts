@@ -43,7 +43,11 @@ export const useBlockOptionSelect = ({
 
     block.type = type;
     editorCRDT.currentBlock = block;
-    editorCRDT.remoteUpdate(block, pageId);
+
+    // block의 crdt 초기화. hr 은 문자 노드가 없기 때문에
+    if (block.type === "hr") {
+      block.crdt = new BlockCRDT(editorCRDT.client);
+    }
 
     sendBlockUpdateOperation({
       node: block,

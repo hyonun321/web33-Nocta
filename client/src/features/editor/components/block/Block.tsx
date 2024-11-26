@@ -239,7 +239,7 @@ export const Block: React.FC<BlockProps> = memo(
             onPaste={(e) => onPaste(e, block)}
             onMouseUp={handleMouseUp}
             onCompositionEnd={(e) => onCompositionEnd(e, block)}
-            contentEditable
+            contentEditable={block.type !== "hr"}
             spellCheck={false}
             suppressContentEditableWarning
             className={textContainerStyle({
