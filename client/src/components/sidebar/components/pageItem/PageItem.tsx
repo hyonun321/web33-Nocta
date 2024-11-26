@@ -12,9 +12,21 @@ interface PageItemProps {
   icon: PageIconType;
   onClick: () => void;
   onDelete?: (id: string) => void; // 추가: 삭제 핸들러
+  handleIconUpdate: (
+    pageId: string,
+    updates: { title?: string; icon?: PageIconType },
+    syncWithServer: boolean,
+  ) => void;
 }
 
-export const PageItem = ({ id, icon, title, onClick, onDelete }: PageItemProps) => {
+export const PageItem = ({
+  id,
+  icon,
+  title,
+  onClick,
+  onDelete,
+  handleIconUpdate,
+}: PageItemProps) => {
   const { isOpen, openModal, closeModal } = useModal();
   const [pageIcon, setPageIcon] = useState<PageIconType>(icon);
   // 삭제 버튼 클릭 핸들러
@@ -39,13 +51,14 @@ export const PageItem = ({ id, icon, title, onClick, onDelete }: PageItemProps) 
   const handleSelectIcon = (e: React.MouseEvent, type: PageIconType) => {
     e.stopPropagation();
     setPageIcon(type);
+    handleIconUpdate(id, { icon: type }, true);
     closeModal();
   };
 
   return (
     <div className={pageItemContainer} onClick={onClick}>
       <PageIconButton type={pageIcon ?? "Docs"} onClick={handleToggleModal} />
-      <span className={textBox}>{title}</span>
+      <span className={textBox}>{title || "새로운 페이지"}</span>
       <span className={`delete_box ${deleteBox}`} onClick={handleDelete}>
         <CloseIcon width={16} height={16} />
       </span>

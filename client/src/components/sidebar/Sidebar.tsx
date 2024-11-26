@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { PageIconType } from "node_modules/@noctaCrdt/Interfaces";
 import { useState } from "react";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
@@ -23,13 +24,19 @@ export const Sidebar = ({
   pages,
   handlePageAdd,
   handlePageOpen,
+  handlePageUpdate,
 }: {
   pages: Page[];
   handlePageAdd: () => void;
   handlePageOpen: ({ pageId }: { pageId: string }) => void;
+  handlePageUpdate: (
+    pageId: string,
+    updates: { title?: string; icon?: PageIconType },
+    syncWithServer: boolean,
+  ) => void;
 }) => {
-  const visiblePages = pages.filter((page) => page.isVisible);
-  const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
+  const visiblePages = pages.filter((page) => page.isVisible && page.isLoaded);
+  const isMaxVisiblePage = visiblePages.length > MAX_VISIBLE_PAGE;
   const isSidebarOpen = useIsSidebarOpen();
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
@@ -100,6 +107,7 @@ export const Sidebar = ({
                 {...item}
                 onClick={() => handlePageItemClick(item.id)}
                 onDelete={() => confirmPageDelete(item)}
+                handleIconUpdate={handlePageUpdate}
               />
             </motion.div>
           ))
