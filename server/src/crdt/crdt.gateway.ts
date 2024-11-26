@@ -18,6 +18,7 @@ import {
   RemoteBlockUpdateOperation,
   RemotePageCreateOperation,
   RemoteBlockReorderOperation,
+  RemoteCharUpdateOperation,
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
@@ -323,6 +324,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const operation = {
         node: data.node,
         blockId: data.blockId,
+        pageId: data.pageId,
+        style: data.style || [],
       };
       client.broadcast.emit("insert/char", operation);
     } catch (error) {
@@ -443,6 +446,44 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     } catch (error) {
       this.logger.error(
         `블록 Reorder 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Update 연산 실패: ${error.message}`);
+    }
+  }
+
+  @SubscribeMessage("update/char")
+  async handleCharUpdate(
+    @MessageBody() data: RemoteCharUpdateOperation,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `Update 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+
+      const currentPage = this.workSpaceService
+        .getWorkspace()
+        .pageList.find((p) => p.id === data.pageId);
+      if (!currentPage) {
+        throw new Error(`Page with id ${data.pageId} not found`);
+      }
+      const currentBlock = currentPage.crdt.LinkedList.nodeMap[JSON.stringify(data.blockId)];
+      if (!currentBlock) {
+        throw new Error(`Block with id ${data.blockId} not found`);
+      }
+      currentBlock.crdt.remoteUpdate(data);
+      const operation = {
+        node: data.node,
+        blockId: data.blockId,
+        pageId: data.pageId,
+      };
+      client.broadcast.emit("update/char", operation);
+    } catch (error) {
+      this.logger.error(
+        `Char Update 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
         error.stack,
       );
       throw new WsException(`Update 연산 실패: ${error.message}`);
