@@ -120,7 +120,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    * 클라이언트가 특정 페이지에 참여할 때 호출됨
    */
   @SubscribeMessage("join/page")
-  async handleJoinPage(
+  async handlePageJoin(
     @MessageBody() data: { pageId: string },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
@@ -171,7 +171,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    * 클라이언트가 특정 페이지에서 나갈 때 호출됨
    */
   @SubscribeMessage("leave/page")
-  async handleLeavePage(
+  async handlePageLeave(
     @MessageBody() data: { pageId: string },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
