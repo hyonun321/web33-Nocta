@@ -50,6 +50,7 @@ export class Block extends Node<BlockId> {
   style: string[];
   icon: string;
   crdt: BlockCRDT;
+  listIndex?: number;
 
   constructor(value: string, id: BlockId) {
     super(value, id);
@@ -70,6 +71,7 @@ export class Block extends Node<BlockId> {
       style: this.style,
       icon: this.icon,
       crdt: this.crdt.serialize(),
+      listIndex: this.listIndex ? this.listIndex : null,
     };
   }
 
@@ -84,6 +86,7 @@ export class Block extends Node<BlockId> {
     block.style = data.style;
     block.icon = data.icon;
     block.crdt = BlockCRDT.deserialize(data.crdt);
+    block.listIndex = data.listIndex ? data.listIndex : null;
     return block;
   }
 }

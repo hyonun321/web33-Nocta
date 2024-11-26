@@ -114,7 +114,7 @@ export class EditorCRDT extends CRDT<Block> {
     updatedBlock.indent = block.indent;
     updatedBlock.style = block.style;
     updatedBlock.type = block.type;
-    // this.LinkedList.nodeMap[JSON.stringify(block.id)] = block;
+    updatedBlock.listIndex = block.listIndex || undefined;
     return { node: updatedBlock, pageId };
   }
 
@@ -125,7 +125,7 @@ export class EditorCRDT extends CRDT<Block> {
     updatedBlock.indent = block.indent;
     updatedBlock.style = block.style;
     updatedBlock.type = block.type;
-    // this.LinkedList.nodeMap[JSON.stringify(block.id)] = block;
+    updatedBlock.listIndex = block.listIndex || undefined;
     return { node: updatedBlock, pageId };
   }
 
@@ -136,14 +136,10 @@ export class EditorCRDT extends CRDT<Block> {
     newNode.next = operation.node.next;
     newNode.prev = operation.node.prev;
     newNode.indent = operation.node.indent;
+    newNode.listIndex = operation.node.listIndex || undefined;
     this.LinkedList.insertById(newNode);
 
     this.clock = Math.max(this.clock, operation.node.id.clock) + 1;
-    /*
-    if (this.clock <= newNode.id.clock) {
-      this.clock = newNode.id.clock + 1;
-    }
-      */
   }
 
   remoteDelete(operation: RemoteBlockDeleteOperation): void {
@@ -153,11 +149,6 @@ export class EditorCRDT extends CRDT<Block> {
       this.LinkedList.deleteNode(targetNodeId);
     }
     this.clock = Math.max(this.clock, clock) + 1;
-    /*
-    if (this.clock <= clock) {
-      this.clock = clock + 1;
-    }
-      */
   }
 
   localReorder(params: {
