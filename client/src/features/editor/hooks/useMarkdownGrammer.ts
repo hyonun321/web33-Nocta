@@ -11,6 +11,7 @@ import { useCallback } from "react";
 import { EditorStateProps } from "@features/editor/Editor";
 import { checkMarkdownPattern } from "@src/features/editor/utils/markdownPatterns";
 import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils";
+import { Block } from "node_modules/@noctaCrdt/Node";
 
 interface useMarkdownGrammerProps {
   editorCRDT: EditorCRDT;
@@ -54,6 +55,13 @@ export const useMarkdownGrammer = ({
           clock: editorCRDT.clock,
           linkedList: editorCRDT.LinkedList,
         });
+      };
+
+      const findBlock = (index: number) => {
+        if (index < 0) return null;
+        if (index >= editorCRDT.LinkedList.spread().length) return null;
+
+        return editorCRDT.LinkedList.findByIndex(index);
       };
 
       const currentBlockId = editorCRDT.currentBlock ? editorCRDT.currentBlock.id : null;
@@ -164,9 +172,30 @@ export const useMarkdownGrammer = ({
             const prevBlock =
               currentIndex > 0 ? editorCRDT.LinkedList.findByIndex(currentIndex - 1) : null;
             if (prevBlock) {
+              // 현재 블록 삭제
               sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
-              prevBlock.crdt.currentCaret = prevBlock.crdt.spread().length;
-              editorCRDT.currentBlock = prevBlock;
+
+              // 이전 편집 가능한 블록 찾기
+              let targetIndex = currentIndex - 1;
+              let targetBlock = findBlock(targetIndex);
+
+              while (targetBlock && targetBlock.type === "hr") {
+                targetIndex--;
+                targetBlock = findBlock(targetIndex);
+              }
+
+              // 편집 가능한 블록을 찾았다면 캐럿 이동
+              if (targetBlock && targetBlock.type !== "hr") {
+                targetBlock.crdt.currentCaret = targetBlock.crdt.read().length;
+                editorCRDT.currentBlock = targetBlock;
+                setCaretPosition({
+                  blockId: targetBlock.id,
+                  linkedList: editorCRDT.LinkedList,
+                  position: targetBlock.crdt.read().length,
+                  pageId,
+                });
+              }
+
               updateEditorState();
             }
             break;
@@ -190,7 +219,22 @@ export const useMarkdownGrammer = ({
               // FIX: 서윤님 피드백 반영
               const prevBlock =
                 currentIndex > 0 ? editorCRDT.LinkedList.findByIndex(currentIndex - 1) : null;
+
               if (prevBlock) {
+                let targetIndex = currentIndex - 1;
+                let targetBlock = findBlock(targetIndex);
+
+                while (targetBlock && targetBlock.type === "hr") {
+                  targetIndex--;
+                  targetBlock = findBlock(targetIndex);
+                }
+
+                if (prevBlock.type === "hr") {
+                  editorCRDT.currentBlock = targetBlock;
+                  updateEditorState();
+                  break;
+                }
+
                 const prevBlockEndCaret = prevBlock.crdt.spread().length;
                 for (let i = 0; i < currentContent.length; i++) {
                   const currentCharNode = currentCharNodes[i];
@@ -214,6 +258,7 @@ export const useMarkdownGrammer = ({
                 editorCRDT.currentBlock = prevBlock;
                 editorCRDT.currentBlock.crdt.currentCaret = prevBlockEndCaret;
                 sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
+
                 updateEditorState();
                 e.preventDefault();
               }
@@ -283,14 +328,18 @@ export const useMarkdownGrammer = ({
             return;
           }
 
-          // const selection = window.getSelection();
-          // const caretPosition = selection?.focusOffset || 0;
           const caretPosition = getAbsoluteCaretPosition(e.currentTarget);
 
-          // 이동할 블록 결정
-          const targetIndex = e.key === "ArrowUp" ? currentIndex - 1 : currentIndex + 1;
-          const targetBlock = editorCRDT.LinkedList.findByIndex(targetIndex);
-          if (!targetBlock) return;
+          let targetIndex = e.key === "ArrowUp" ? currentIndex - 1 : currentIndex + 1;
+          let targetBlock = findBlock(targetIndex);
+
+          while (targetBlock && targetBlock.type === "hr") {
+            targetIndex = e.key === "ArrowUp" ? targetIndex - 1 : targetIndex + 1;
+            targetBlock = findBlock(targetIndex);
+          }
+
+          if (!targetBlock || targetBlock.type === "hr") return;
+
           e.preventDefault();
           targetBlock.crdt.currentCaret = Math.min(caretPosition, targetBlock.crdt.read().length);
           editorCRDT.currentBlock = targetBlock;
@@ -312,14 +361,22 @@ export const useMarkdownGrammer = ({
           // 왼쪽 끝에서 이전 블록으로
           if (e.key === "ArrowLeft" && caretPosition === 0 && currentIndex > 0) {
             e.preventDefault(); // 기본 동작 방지
-            const prevBlock = editorCRDT.LinkedList.findByIndex(currentIndex - 1);
-            if (prevBlock) {
-              prevBlock.crdt.currentCaret = prevBlock.crdt.read().length;
-              editorCRDT.currentBlock = prevBlock;
+
+            let targetIndex = currentIndex - 1;
+            let targetBlock = findBlock(targetIndex);
+
+            while (targetBlock && targetBlock.type === "hr") {
+              targetIndex--;
+              targetBlock = findBlock(targetIndex);
+            }
+
+            if (targetBlock && targetBlock.type !== "hr") {
+              targetBlock.crdt.currentCaret = targetBlock.crdt.read().length;
+              editorCRDT.currentBlock = targetBlock;
               setCaretPosition({
-                blockId: prevBlock.id,
+                blockId: targetBlock.id,
                 linkedList: editorCRDT.LinkedList,
-                position: prevBlock.crdt.read().length,
+                position: targetBlock.crdt.read().length,
                 pageId,
               });
             }
@@ -331,12 +388,19 @@ export const useMarkdownGrammer = ({
             currentIndex < editorCRDT.LinkedList.spread().length - 1
           ) {
             e.preventDefault(); // 기본 동작 방지
-            const nextBlock = editorState.linkedList.findByIndex(currentIndex + 1);
-            if (nextBlock) {
-              nextBlock.crdt.currentCaret = 0;
-              editorCRDT.currentBlock = nextBlock;
+            let targetIndex = currentIndex + 1;
+            let targetBlock = findBlock(targetIndex);
+
+            while (targetBlock && targetBlock.type === "hr") {
+              targetIndex++;
+              targetBlock = findBlock(targetIndex);
+            }
+
+            if (targetBlock && targetBlock.type !== "hr") {
+              targetBlock.crdt.currentCaret = 0;
+              editorCRDT.currentBlock = targetBlock;
               setCaretPosition({
-                blockId: nextBlock.id,
+                blockId: targetBlock.id,
                 linkedList: editorCRDT.LinkedList,
                 position: 0,
                 pageId,
@@ -359,5 +423,45 @@ export const useMarkdownGrammer = ({
     [editorCRDT, editorState, setEditorState, pageId],
   );
 
-  return { handleKeyDown };
+  // hr은 --- 입력 시 생성되는 input 이벤트. KeyDown 입력과 관련이 없으므로 함수 분리
+  const handleInput = useCallback(
+    (block: Block, newContent: string) => {
+      if (newContent === "---") {
+        const currentContent = block.crdt.read();
+        currentContent.split("").forEach((_) => {
+          const operationNode = block.crdt.localDelete(0, block.id, pageId);
+          sendCharDeleteOperation(operationNode);
+        });
+
+        block.type = "hr";
+        sendBlockUpdateOperation(editorCRDT.localUpdate(block, pageId));
+
+        // 새로운 블록 생성
+        const currentIndex = editorCRDT.LinkedList.spread().findIndex((b) => b.id.equals(block.id));
+        const operation = editorCRDT.localInsert(currentIndex + 1, "");
+        operation.node.type = "p";
+        sendBlockInsertOperation({ node: operation.node, pageId });
+
+        editorCRDT.currentBlock = operation.node;
+        editorCRDT.currentBlock.crdt.currentCaret = 0;
+
+        setEditorState({
+          clock: editorCRDT.clock,
+          linkedList: editorCRDT.LinkedList,
+        });
+
+        return true;
+      }
+      return false;
+    },
+    [
+      editorCRDT,
+      sendCharDeleteOperation,
+      sendBlockUpdateOperation,
+      sendBlockInsertOperation,
+      pageId,
+    ],
+  );
+
+  return { handleKeyDown, handleInput };
 };

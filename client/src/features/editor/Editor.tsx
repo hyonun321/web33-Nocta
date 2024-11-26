@@ -91,7 +91,7 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       sendCharInsertOperation,
     });
 
-  const { handleKeyDown: onKeyDown } = useMarkdownGrammer({
+  const { handleKeyDown: onKeyDown, handleInput: handleHrInput } = useMarkdownGrammer({
     editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
@@ -146,11 +146,10 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       const newContent = element.textContent || "";
       const currentContent = block.crdt.read();
       const caretPosition = getAbsoluteCaretPosition(element);
-      console.log({
-        newContent,
-        currentContent,
-        caretPosition,
-      });
+
+      if (handleHrInput(block, newContent)) {
+        return;
+      }
 
       if (newContent.length > currentContent.length) {
         let charNode: RemoteCharInsertOperation;
