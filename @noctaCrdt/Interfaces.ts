@@ -3,7 +3,17 @@ import { Block, Char } from "./Node";
 import { Page } from "./Page";
 import { EditorCRDT } from "./Crdt";
 
-export type ElementType = "p" | "h1" | "h2" | "h3" | "ul" | "ol" | "li" | "checkbox" | "blockquote";
+export type ElementType =
+  | "p"
+  | "h1"
+  | "h2"
+  | "h3"
+  | "ul"
+  | "ol"
+  | "li"
+  | "checkbox"
+  | "blockquote"
+  | "hr";
 
 export type AnimationType = "none" | "highlight" | "gradation";
 
