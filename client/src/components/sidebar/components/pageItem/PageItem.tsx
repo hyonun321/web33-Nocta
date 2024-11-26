@@ -4,7 +4,7 @@ import CloseIcon from "@assets/icons/close.svg?react";
 import { useModal } from "@src/components/modal/useModal";
 import { PageIconButton } from "../pageIconButton/PageIconButton";
 import { PageIconModal } from "../pageIconButton/PageIconModal";
-import { pageItemContainer, iconBox, textBox, deleteBox } from "./PageItem.style";
+import { pageItemContainer, textBox, deleteBox } from "./PageItem.style";
 
 interface PageItemProps {
   id: string;
