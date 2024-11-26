@@ -25,7 +25,7 @@ export const WorkSpace = () => {
     initPagePosition,
     openPage,
   } = usePagesManage(workspace, clientId);
-  const visiblePages = pages.filter((page) => page.isVisible);
+  const visiblePages = pages.filter((page) => page.isVisible && page.isLoaded);
 
   useEffect(() => {
     if (workspaceMetadata) {
@@ -58,21 +58,24 @@ export const WorkSpace = () => {
           opacity: isInitialized && !isLoading ? 1 : 0,
         })}
       >
-        <Sidebar pages={pages} handlePageAdd={fetchPage} handlePageOpen={openPage} />
+        <Sidebar
+          pages={pages}
+          handlePageAdd={fetchPage}
+          handlePageOpen={openPage}
+          handlePageUpdate={updatePage}
+        />
         <div className={content}>
-          {visiblePages.map((page) =>
-            page.isLoaded ? (
-              <Page
-                key={page.id}
-                {...page}
-                handlePageSelect={selectPage}
-                handlePageClose={closePage}
-                handleTitleChange={updatePage}
-              />
-            ) : null,
-          )}
+          {visiblePages.map((page) => (
+            <Page
+              key={page.id}
+              {...page}
+              handlePageSelect={selectPage}
+              handlePageClose={closePage}
+              handleTitleChange={updatePage}
+            />
+          ))}
         </div>
-        <BottomNavigator pages={visiblePages} handlePageSelect={selectPage} />
+        <BottomNavigator pages={visiblePages} handlePageSelect={openPage} />
       </div>
     </>
   );

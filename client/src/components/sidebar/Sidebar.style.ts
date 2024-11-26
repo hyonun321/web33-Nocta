@@ -13,7 +13,6 @@ export const sidebarContainer = cx(
 );
 export const navWrapper = css({
   display: "flex",
-  gap: "md",
   flexDirection: "column",
   width: "100%",
   height: "calc(100% - 176px)",
