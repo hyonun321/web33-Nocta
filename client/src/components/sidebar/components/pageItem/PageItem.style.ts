@@ -2,6 +2,7 @@ import { css } from "@styled-system/css";
 
 export const pageItemContainer = css({
   display: "flex",
+  position: "relative",
   gap: "sm",
   alignItems: "center",
   width: "100%",
@@ -42,7 +43,6 @@ export const iconBox = css({
   width: "44px",
   height: "44px",
   fontSize: "24px",
-  background: "white",
 });
 
 export const textBox = css({

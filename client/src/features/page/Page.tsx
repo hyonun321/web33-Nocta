@@ -1,4 +1,4 @@
-import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
+import { PageIconType, serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Editor } from "@features/editor/Editor";
@@ -11,7 +11,11 @@ import { DIRECTIONS, usePage } from "./hooks/usePage";
 interface PageProps extends PageType {
   handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
   handlePageClose: (pageId: string) => void;
-  handleTitleChange: (pageId: string, newTitle: string) => void;
+  handleTitleChange: (
+    pageId: string,
+    updates: { title?: string; icon?: PageIconType },
+    syncWithServer: boolean,
+  ) => void;
   serializedEditorData: serializedEditorDataProps | null;
 }
 
@@ -31,8 +35,12 @@ export const Page = ({
   const [serializedEditorDatas, setSerializedEditorDatas] =
     useState<serializedEditorDataProps | null>(serializedEditorData);
 
-  const onTitleChange = (newTitle: string) => {
-    handleTitleChange(id, newTitle);
+  const onTitleChange = (newTitle: string, syncWithServer: boolean) => {
+    if (syncWithServer) {
+      handleTitleChange(id, { title: newTitle }, true);
+    } else {
+      handleTitleChange(id, { title: newTitle }, false);
+    }
   };
 
   const handlePageClick = () => {
@@ -73,6 +81,7 @@ export const Page = ({
         <Editor
           onTitleChange={onTitleChange}
           pageId={id}
+          pageTitle={title}
           serializedEditorData={serializedEditorDatas}
         />
         {DIRECTIONS.map((direction) => (

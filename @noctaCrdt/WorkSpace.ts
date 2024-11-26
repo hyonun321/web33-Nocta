@@ -1,5 +1,5 @@
 import { Page } from "./Page";
-import { WorkSpaceSerializedProps } from "./Interfaces";
+import { RemotePageUpdateOperation, WorkSpaceSerializedProps } from "./Interfaces";
 import { EditorCRDT } from "./Crdt";
 
 export class WorkSpace {
@@ -49,6 +49,29 @@ export class WorkSpace {
     if (pageIndex !== -1) {
       this.pageList.splice(pageIndex, 1);
     }
+  }
+
+  remotePageUpdate(operation: RemotePageUpdateOperation): Page {
+    const { pageId, title, icon } = operation;
+
+    // pageList에서 해당 페이지 찾기
+    const page = this.pageList.find((p) => p.id === pageId);
+
+    // 페이지가 없으면 에러 발생
+    if (!page) {
+      throw new Error(`Page with id ${pageId} not found in workspace ${this.id}`);
+    }
+
+    // 전달받은 새로운 메타데이터로 페이지 정보 업데이트
+    if (title !== undefined) {
+      page.title = title;
+    }
+
+    if (icon !== undefined) {
+      page.icon = icon;
+    }
+
+    return page;
   }
   getPage(data: string) {
     const page = this.pageList.find((page) => page.id === data);
