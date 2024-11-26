@@ -120,6 +120,13 @@ export interface ReorderNodesProps {
   afterId: BlockId | null;
 }
 
+export interface RemotePageUpdateOperation {
+  workspaceId: string;
+  pageId: string;
+  clientId: number;
+  title?: string;
+  icon?: string;
+}
 export interface WorkSpaceSerializedProps {
   id: string;
   pageList: Page[];

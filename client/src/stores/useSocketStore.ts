@@ -8,6 +8,7 @@ import {
   RemoteBlockReorderOperation,
   RemoteCharUpdateOperation,
   RemotePageDeleteOperation,
+  RemotePageUpdateOperation,
   CursorPosition,
   WorkSpaceSerializedProps,
 } from "@noctaCrdt/Interfaces";
@@ -23,6 +24,7 @@ interface SocketStore {
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
   sendPageCreateOperation: (operation: RemotePageCreateOperation) => void;
   sendPageDeleteOperation: (operation: RemotePageDeleteOperation) => void;
+  sendPageUpdateOperation: (operation: RemotePageUpdateOperation) => void;
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
@@ -50,6 +52,7 @@ interface RemoteOperationHandlers {
 interface PageOperationsHandlers {
   onRemotePageCreate: (operation: RemotePageCreateOperation) => void;
   onRemotePageDelete: (operation: RemotePageDeleteOperation) => void;
+  onRemotePageUpdate: (operation: RemotePageUpdateOperation) => void;
 }
 
 export const useSocketStore = create<SocketStore>((set, get) => ({
@@ -117,6 +120,12 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   fetchWorkspaceData: () => get().workspace,
 
   setWorkspace: (workspace: WorkSpaceSerializedProps) => set({ workspace }),
+
+  sendPageUpdateOperation: (operation: RemotePageUpdateOperation) => {
+    const { socket } = get();
+    socket?.emit("update/page", operation);
+    console.log("페이지 업데이트 송신", operation);
+  },
 
   sendPageCreateOperation: (operation: RemotePageCreateOperation) => {
     const { socket } = get();
@@ -198,9 +207,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     if (!socket) return;
     socket.on("create/page", handlers.onRemotePageCreate);
     socket.on("delete/page", handlers.onRemotePageDelete);
+    socket.on("update/page", handlers.onRemotePageUpdate);
     return () => {
       socket.off("create/page", handlers.onRemotePageCreate);
       socket.off("delete/page", handlers.onRemotePageDelete);
+      socket.off("update/page", handlers.onRemotePageUpdate);
     };
   },
 }));

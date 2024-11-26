@@ -10,7 +10,8 @@ const PAGE_OFFSET = 60;
 
 export const usePagesManage = (workspace: WorkSpace | null, clientId: number | null) => {
   const [pages, setPages] = useState<Page[]>([]);
-  const { subscribeToPageOperations, sendPageCreateOperation } = useSocketStore();
+  const { subscribeToPageOperations, sendPageCreateOperation, sendPageUpdateOperation } =
+    useSocketStore();
   const subscriptionRef = useRef(false);
   useEffect(() => {
     if (!workspace) return;
@@ -18,6 +19,27 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
     subscriptionRef.current = true;
 
     const unsubscribe = subscribeToPageOperations({
+      onRemotePageUpdate: (operation) => {
+        console.log(operation, "page : 업데이트 확인합니다이");
+        workspace.remotePageUpdate({
+          pageId: operation.pageId,
+          icon: operation.icon,
+          title: operation.title,
+          workspaceId: operation.workspaceId,
+          clientId: operation.clientId,
+        });
+        setPages((prevPages) =>
+          prevPages.map((page) =>
+            page.id === operation.pageId
+              ? {
+                  ...page,
+                  title: operation.title || page.title,
+                  icon: operation.icon || page.icon,
+                }
+              : page,
+          ),
+        );
+      },
       onRemotePageCreate: (operation) => {
         console.log(operation, "page : 생성 확인합니다이");
         const newPage = workspace.remotePageCreate({
@@ -161,10 +183,20 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
     );
   };
 
-  const updatePageTitle = (pageId: string, newTitle: string) => {
+  const updatePage = (pageId: string, updates: { title?: string; icon?: string }) => {
+    // UI 즉시 업데이트
     setPages((prevPages) =>
-      prevPages.map((page) => (page.id === pageId ? { ...page, title: newTitle } : page)),
+      prevPages.map((page) => (page.id === pageId ? { ...page, ...updates } : page)),
     );
+
+    if (clientId && workspace!.id) {
+      sendPageUpdateOperation({
+        pageId,
+        ...updates,
+        clientId,
+        workspaceId: workspace!.id,
+      });
+    }
   };
 
   // 서버에서 처음 불러올때는 좌표를 모르기에, 초기화 과정 필요
@@ -209,7 +241,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
     openPage,
     closePage,
     updatePageData,
-    updatePageTitle,
+    updatePage,
     initPages,
     initPagePosition,
   };
