@@ -35,7 +35,7 @@ export const Sidebar = ({
     syncWithServer: boolean,
   ) => void;
 }) => {
-  const visiblePages = pages.filter((page) => page.isVisible);
+  const visiblePages = pages.filter((page) => page.isVisible && page.isLoaded);
   const isMaxVisiblePage = visiblePages.length > MAX_VISIBLE_PAGE;
   const isSidebarOpen = useIsSidebarOpen();
   const { toggleSidebar } = useSidebarActions();
