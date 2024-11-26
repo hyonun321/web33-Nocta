@@ -1,4 +1,4 @@
-import { AnimationType, ElementType } from "@noctaCrdt/Interfaces";
+import { AnimationType, ElementType, TextStyleType } from "@noctaCrdt/Interfaces";
 
 export const OPTION_CATEGORIES = {
   TYPE: {
@@ -36,4 +36,18 @@ export const OPTION_CATEGORIES = {
   },
 };
 
+export const TEXT_OPTION_CATEGORIES = {
+  TYPE: {
+    id: "textType",
+    label: "글자",
+    options: [
+      { id: "bold", label: "굵게" },
+      { id: "italic", label: "기울임" },
+      { id: "underline", label: "밑줄" },
+      { id: "strikethrough", label: "취소선" },
+    ] as { id: TextStyleType; label: string }[],
+  },
+};
+
 export type OptionCategory = keyof typeof OPTION_CATEGORIES;
+export type TextOptionCategory = keyof typeof TEXT_OPTION_CATEGORIES;

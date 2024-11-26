@@ -33,7 +33,12 @@ export const plusIconBox = css({
   paddingInline: "md",
   justifyItems: "center",
 });
-
+export const placeholderMessage = css({
+  padding: "xs",
+  color: "gray.500",
+  textAlign: "center",
+  fontSize: "md",
+});
 export const sidebarToggleButton = css({
   zIndex: 10,
   position: "absolute",

@@ -9,6 +9,10 @@ import {
   CRDTSerializedProps,
   RemoteBlockReorderOperation,
   RemoteBlockUpdateOperation,
+  serializedEditorDataProps,
+  RemoteCharUpdateOperation,
+  TextColorType,
+  BackgroundColorType,
 } from "./Interfaces";
 
 export class CRDT<T extends Node<NodeId>> {
@@ -131,7 +135,7 @@ export class EditorCRDT extends CRDT<Block> {
 
     newNode.next = operation.node.next;
     newNode.prev = operation.node.prev;
-
+    newNode.indent = operation.node.indent;
     this.LinkedList.insertById(newNode);
 
     this.clock = Math.max(this.clock, operation.node.id.clock) + 1;
@@ -190,7 +194,7 @@ export class EditorCRDT extends CRDT<Block> {
     this.clock = Math.max(this.clock, clock) + 1;
   }
 
-  serialize(): CRDTSerializedProps<Block> {
+  serialize(): serializedEditorDataProps {
     return {
       ...super.serialize(),
       currentBlock: this.currentBlock ? this.currentBlock.serialize() : null,
@@ -217,14 +221,29 @@ export class BlockCRDT extends CRDT<Char> {
     value: string,
     blockId: BlockId,
     pageId: string,
+    style?: string[],
+    color?: TextColorType,
+    backgroundColor?: BackgroundColorType,
   ): RemoteCharInsertOperation {
     const id = new CharId(this.clock + 1, this.client);
-    const { node } = this.LinkedList.insertAtIndex(index, value, id);
+    const { node } = this.LinkedList.insertAtIndex(index, value, id) as { node: Char };
+    if (style && style.length > 0) {
+      node.style = style;
+    }
+    if (color) {
+      node.color = color;
+    }
+    if (backgroundColor) {
+      node.backgroundColor = backgroundColor;
+    }
     this.clock += 1;
     const operation: RemoteCharInsertOperation = {
       node,
       blockId,
       pageId,
+      style: node.style || [],
+      color: node.color,
+      backgroundColor: node.backgroundColor,
     };
 
     return operation;
@@ -253,12 +272,40 @@ export class BlockCRDT extends CRDT<Char> {
     return operation;
   }
 
+  localUpdate(node: Char, blockId: BlockId, pageId: string): RemoteCharUpdateOperation {
+    const updatedChar = this.LinkedList.nodeMap[JSON.stringify(node.id)];
+    if (node.style && node.style.length > 0) {
+      updatedChar.style = [...node.style];
+    }
+    if (node.color) {
+      updatedChar.color = node.color;
+    }
+    if (node.backgroundColor !== updatedChar.backgroundColor) {
+      updatedChar.backgroundColor = node.backgroundColor;
+    }
+    return { node: updatedChar, blockId, pageId };
+  }
+
   remoteInsert(operation: RemoteCharInsertOperation): void {
     const newNodeId = new CharId(operation.node.id.clock, operation.node.id.client);
     const newNode = new Char(operation.node.value, newNodeId);
 
     newNode.next = operation.node.next;
     newNode.prev = operation.node.prev;
+
+    if (operation.style && operation.style.length > 0) {
+      operation.style.forEach((style) => {
+        newNode.style.push(style);
+      });
+    }
+
+    if (operation.color) {
+      newNode.color = operation.color;
+    }
+
+    if (operation.backgroundColor) {
+      newNode.backgroundColor = operation.backgroundColor;
+    }
 
     this.LinkedList.insertById(newNode);
 
@@ -275,6 +322,20 @@ export class BlockCRDT extends CRDT<Char> {
     }
     if (this.clock <= clock) {
       this.clock = clock + 1;
+    }
+  }
+
+  remoteUpdate(operation: RemoteCharUpdateOperation): void {
+    const updatedChar = this.LinkedList.nodeMap[JSON.stringify(operation.node.id)];
+    console.log("remoteUpdate", updatedChar);
+    if (operation.node.style && operation.node.style.length > 0) {
+      updatedChar.style = [...operation.node.style];
+    }
+    if (operation.node.color) {
+      updatedChar.color = operation.node.color;
+    }
+    if (operation.node.backgroundColor) {
+      updatedChar.backgroundColor = operation.node.backgroundColor;
     }
   }
 

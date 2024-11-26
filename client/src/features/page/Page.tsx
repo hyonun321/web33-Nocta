@@ -2,7 +2,6 @@ import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Editor } from "@features/editor/Editor";
-import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page as PageType } from "@src/types/page";
 import { pageContainer, pageHeader, resizeHandles } from "./Page.style";
 import { PageControlButton } from "./components/PageControlButton/PageControlButton";
@@ -14,7 +13,7 @@ interface PageProps extends PageType {
   handlePageClose: (pageId: string) => void;
   handleTitleChange: (pageId: string, newTitle: string) => void;
   updatePageData: (pageId: string, newData: serializedEditorDataProps) => void;
-  serializedEditorData: serializedEditorDataProps;
+  serializedEditorData: serializedEditorDataProps | null;
 }
 
 export const Page = ({
@@ -31,7 +30,6 @@ export const Page = ({
   serializedEditorData,
 }: PageProps) => {
   const { position, size, pageDrag, pageResize, pageMinimize, pageMaximize } = usePage({ x, y });
-  const [isLoading, setIsLoading] = useState(true);
   const [serializedEditorDatas, setSerializedEditorDatas] =
     useState<serializedEditorDataProps | null>(serializedEditorData);
 
@@ -50,35 +48,13 @@ export const Page = ({
     setSerializedEditorDatas(serializedEditorData);
   }, [serializedEditorData, updatePageData]);
 
-  useEffect(() => {
-    const socketStore = useSocketStore.getState();
-    if (!socketStore.socket) return;
-    // 페이지 데이터 수신 핸들러
-    const handlePageData = (data: { pageId: string; serializedPage: any }) => {
-      if (data.pageId === id) {
-        console.log("Received new editor data:", data);
-        setSerializedEditorDatas(data.serializedPage.crdt);
-        updatePageData(id, data.serializedPage.crdt);
-        setIsLoading(false);
-      }
-    };
-    socketStore.socket.on("join/page", handlePageData);
-    socketStore.socket.emit("join/page", { pageId: id });
-
-    return () => {
-      if (socketStore.socket) {
-        socketStore.socket.emit("leave/page", { pageId: id });
-        socketStore.socket.off("join/page", handlePageData);
-      }
-    };
-  }, [id, updatePageData]);
-
-  if (isLoading || !serializedEditorDatas) {
-    return <div>Loading page content...</div>;
+  if (!serializedEditorDatas) {
+    return null;
   }
   return (
     <AnimatePresence>
       <div
+        id={id}
         className={pageContainer}
         style={{
           width: `${size.width}px`,
@@ -100,6 +76,7 @@ export const Page = ({
           onTitleChange={onTitleChange}
           pageId={id}
           serializedEditorData={serializedEditorDatas}
+          updatePageData={updatePageData}
         />
         {DIRECTIONS.map((direction) => (
           <motion.div
