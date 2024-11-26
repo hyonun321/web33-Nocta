@@ -74,7 +74,7 @@ export const textContainerStyle = cva({
       p: {
         textStyle: "display-medium16",
         fontWeight: "normal",
-        "&:empty::before": {
+        "&:empty:focus::before": {
           content: '"텍스트를 입력하세요..."',
         },
       },
