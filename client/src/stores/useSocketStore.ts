@@ -6,6 +6,8 @@ import {
   RemoteCharDeleteOperation,
   RemoteBlockUpdateOperation,
   RemoteBlockReorderOperation,
+  RemoteCharUpdateOperation,
+  RemotePageDeleteOperation,
   CursorPosition,
   WorkSpaceSerializedProps,
 } from "@noctaCrdt/Interfaces";
@@ -20,11 +22,13 @@ interface SocketStore {
   cleanup: () => void;
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
   sendPageCreateOperation: (operation: RemotePageCreateOperation) => void;
+  sendPageDeleteOperation: (operation: RemotePageDeleteOperation) => void;
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => void;
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => void;
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => void;
   sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => void;
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => void;
+  sendCharUpdateOperation: (operation: RemoteCharUpdateOperation) => void;
   sendBlockReorderOperation: (operation: RemoteBlockReorderOperation) => void;
   sendCursorPosition: (position: CursorPosition) => void;
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => (() => void) | undefined;
@@ -39,11 +43,13 @@ interface RemoteOperationHandlers {
   onRemoteBlockReorder: (operation: RemoteBlockReorderOperation) => void;
   onRemoteCharInsert: (operation: RemoteCharInsertOperation) => void;
   onRemoteCharDelete: (operation: RemoteCharDeleteOperation) => void;
+  onRemoteCharUpdate: (operation: RemoteCharUpdateOperation) => void;
   onRemoteCursor: (position: CursorPosition) => void;
 }
 
 interface PageOperationsHandlers {
   onRemotePageCreate: (operation: RemotePageCreateOperation) => void;
+  onRemotePageDelete: (operation: RemotePageDeleteOperation) => void;
 }
 
 export const useSocketStore = create<SocketStore>((set, get) => ({
@@ -117,17 +123,18 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket?.emit("create/page", operation);
     console.log("페이지 만들기 송신", operation);
   },
-
+  sendPageDeleteOperation: (operation: RemotePageDeleteOperation) => {
+    const { socket } = get();
+    socket?.emit("delete/page", operation);
+    console.log("페이지 삭제 송신", operation);
+  },
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => {
     const { socket } = get();
-    console.log("block insert operation", operation);
-    console.log("socket", socket);
     socket?.emit("insert/block", operation);
   },
 
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => {
     const { socket } = get();
-    console.log("char insert operation", operation);
     socket?.emit("insert/char", operation);
   },
 
@@ -144,6 +151,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => {
     const { socket } = get();
     socket?.emit("delete/char", operation);
+  },
+
+  sendCharUpdateOperation: (operation: RemoteCharUpdateOperation) => {
+    const { socket } = get();
+    socket?.emit("update/char", operation);
   },
 
   sendCursorPosition: (position: CursorPosition) => {
@@ -166,6 +178,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket.on("reorder/block", handlers.onRemoteBlockReorder);
     socket.on("insert/char", handlers.onRemoteCharInsert);
     socket.on("delete/char", handlers.onRemoteCharDelete);
+    socket.on("update/char", handlers.onRemoteCharUpdate);
     socket.on("cursor", handlers.onRemoteCursor);
 
     return () => {
@@ -175,6 +188,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("reorder/block", handlers.onRemoteBlockReorder);
       socket.off("insert/char", handlers.onRemoteCharInsert);
       socket.off("delete/char", handlers.onRemoteCharDelete);
+      socket.off("update/char", handlers.onRemoteCharUpdate);
       socket.off("cursor", handlers.onRemoteCursor);
     };
   },
@@ -183,8 +197,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const { socket } = get();
     if (!socket) return;
     socket.on("create/page", handlers.onRemotePageCreate);
+    socket.on("delete/page", handlers.onRemotePageDelete);
     return () => {
       socket.off("create/page", handlers.onRemotePageCreate);
+      socket.off("delete/page", handlers.onRemotePageDelete);
     };
   },
 }));

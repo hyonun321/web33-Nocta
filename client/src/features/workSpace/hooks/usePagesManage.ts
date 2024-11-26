@@ -27,6 +27,19 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         });
         addPage(newPage);
       },
+      onRemotePageDelete: (operation) => {
+        console.log(operation, "page : 삭제 확인합니다");
+        workspace.remotePageDelete?.({
+          pageId: operation.pageId,
+          workspaceId: operation.workspaceId,
+          clientId: operation.clientId,
+        });
+
+        setPages((prevPages) => {
+          const remainingPages = prevPages.filter((page) => page.id !== operation.pageId);
+          return remainingPages;
+        });
+      },
     });
 
     return () => {

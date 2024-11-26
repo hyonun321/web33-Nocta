@@ -18,6 +18,7 @@ import {
   RemoteBlockUpdateOperation,
   RemotePageCreateOperation,
   RemoteBlockReorderOperation,
+  RemoteCharUpdateOperation,
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
 import { Logger } from "@nestjs/common";
@@ -194,7 +195,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   /**
-   * 블록 삽입 연산 처리
+   * 페이지 삽입 연산 처리
    */
   @SubscribeMessage("create/page")
   async handlePageCreate(
@@ -229,6 +230,55 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       throw new WsException(`Page Create 연산 실패: ${error.message}`);
     }
   }
+
+  /**
+   * 페이지 삭제 연산 처리
+   */
+  @SubscribeMessage("delete/page")
+  async handlePageDelete(
+    @MessageBody() data: { workspaceId: string; pageId: string; clientId: number },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `Page delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+
+      // 현재 워크스페이스 가져오기
+      const currentWorkspace = this.workSpaceService.getWorkspace();
+
+      // pageList에서 해당 페이지 찾기
+      const pageIndex = currentWorkspace.pageList.findIndex((page) => page.id === data.pageId);
+
+      if (pageIndex === -1) {
+        throw new Error(`Page with id ${data.pageId} not found`);
+      }
+
+      // pageList에서 페이지 제거
+      currentWorkspace.pageList.splice(pageIndex, 1);
+
+      const operation = {
+        workspaceId: data.workspaceId,
+        pageId: data.pageId,
+        clientId: data.clientId,
+      };
+
+      // 삭제 이벤트를 모든 클라이언트에게 브로드캐스트
+      client.emit("delete/page", operation);
+      client.broadcast.emit("delete/page", operation);
+
+      this.logger.debug(`Page ${data.pageId} successfully deleted`);
+    } catch (error) {
+      this.logger.error(
+        `Page Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Page Delete 연산 실패: ${error.message}`);
+    }
+  }
+
   /**
    * 블록 업데이트 연산 처리
    */
@@ -339,6 +389,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         node: data.node,
         blockId: data.blockId,
         pageId: data.pageId,
+        style: data.style || [],
       };
       client.to(data.pageId).emit("insert/char", operation);
     } catch (error) {
@@ -463,6 +514,44 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     } catch (error) {
       this.logger.error(
         `블록 Reorder 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Update 연산 실패: ${error.message}`);
+    }
+  }
+
+  @SubscribeMessage("update/char")
+  async handleCharUpdate(
+    @MessageBody() data: RemoteCharUpdateOperation,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `Update 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+
+      const currentPage = this.workSpaceService
+        .getWorkspace()
+        .pageList.find((p) => p.id === data.pageId);
+      if (!currentPage) {
+        throw new Error(`Page with id ${data.pageId} not found`);
+      }
+      const currentBlock = currentPage.crdt.LinkedList.nodeMap[JSON.stringify(data.blockId)];
+      if (!currentBlock) {
+        throw new Error(`Block with id ${data.blockId} not found`);
+      }
+      currentBlock.crdt.remoteUpdate(data);
+      const operation = {
+        node: data.node,
+        blockId: data.blockId,
+        pageId: data.pageId,
+      };
+      client.broadcast.emit("update/char", operation);
+    } catch (error) {
+      this.logger.error(
+        `Char Update 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
         error.stack,
       );
       throw new WsException(`Update 연산 실패: ${error.message}`);

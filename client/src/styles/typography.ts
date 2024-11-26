@@ -60,4 +60,30 @@ export const textStyles = defineTextStyles({
       textTransform: "None",
     },
   },
+
+  bold: {
+    value: {
+      fontWeight: "bold",
+    },
+  },
+  italic: {
+    value: {
+      fontStyle: "italic",
+    },
+  },
+  underline: {
+    value: {
+      textDecoration: "underline",
+    },
+  },
+  strikethrough: {
+    value: {
+      textDecoration: "line-through",
+    },
+  },
+  "underline-strikethrough": {
+    value: {
+      textDecoration: "underline line-through",
+    },
+  },
 });

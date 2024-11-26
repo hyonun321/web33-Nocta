@@ -1,6 +1,6 @@
 // Node.ts
 import { NodeId, BlockId, CharId } from "./NodeId";
-import { AnimationType, ElementType } from "./Interfaces";
+import { AnimationType, ElementType, TextColorType, BackgroundColorType } from "./Interfaces";
 import { BlockCRDT } from "./Crdt";
 
 export abstract class Node<T extends NodeId> {
@@ -8,12 +8,14 @@ export abstract class Node<T extends NodeId> {
   value: string;
   next: T | null;
   prev: T | null;
+  style: string[];
 
   constructor(value: string, id: T) {
     this.id = id;
     this.value = value;
     this.next = null;
     this.prev = null;
+    this.style = [];
   }
 
   precedes(node: Node<T>): boolean {
@@ -32,6 +34,7 @@ export abstract class Node<T extends NodeId> {
       value: this.value,
       next: this.next ? this.next.serialize() : null,
       prev: this.prev ? this.prev.serialize() : null,
+      style: this.style,
     };
   }
 
@@ -86,12 +89,23 @@ export class Block extends Node<BlockId> {
 }
 
 export class Char extends Node<CharId> {
+  style: string[];
+  color: TextColorType;
+  backgroundColor: BackgroundColorType;
+
   constructor(value: string, id: CharId) {
     super(value, id);
+    this.style = [];
+    this.color = "black";
+    this.backgroundColor = "transparent";
   }
 
   serialize(): any {
-    return super.serialize();
+    return {
+      ...super.serialize(),
+      color: this.color,
+      backgroundColor: this.backgroundColor,
+    };
   }
 
   static deserialize(data: any): Char {
@@ -99,6 +113,9 @@ export class Char extends Node<CharId> {
     const char = new Char(data.value, id);
     char.next = data.next ? CharId.deserialize(data.next) : null;
     char.prev = data.prev ? CharId.deserialize(data.prev) : null;
+    char.style = data.style ? data.style : [];
+    char.color = data.color ? data.color : "black";
+    char.backgroundColor = data.backgroundColor ? data.backgroundColor : "transparent";
     return char;
   }
 }

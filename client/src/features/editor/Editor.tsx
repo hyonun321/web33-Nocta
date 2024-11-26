@@ -1,13 +1,16 @@
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-import { RemoteCharInsertOperation, serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { useRef, useState, useCallback, useEffect } from "react";
-import { useSocketStore } from "@src/stores/useSocketStore";
-import { setCaretPosition } from "@src/utils/caretUtils";
+import {
+  RemoteCharInsertOperation,
+  serializedEditorDataProps,
+} from "node_modules/@noctaCrdt/Interfaces.ts";
+import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { useSocketStore } from "@src/stores/useSocketStore.ts";
+import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils.ts";
 import {
   editorContainer,
   editorTitleContainer,
@@ -18,6 +21,7 @@ import { Block } from "./components/block/Block";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
 import { useBlockOptionSelect } from "./hooks/useBlockOption";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
+import { useTextOptionSelect } from "./hooks/useTextOptions.ts";
 
 interface EditorProps {
   onTitleChange: (title: string) => void;
@@ -108,13 +112,34 @@ export const Editor = ({
     editorRef,
   });
 
+  const { onTextStyleUpdate, onTextColorUpdate, onTextBackgroundColorUpdate } = useTextOptionSelect(
+    {
+      editorCRDT,
+      setEditorState,
+      pageId,
+    },
+  );
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTitleChange(e.target.value);
   };
 
-  const handleBlockClick = (blockId: BlockId) => {
+  const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
     if (editorCRDT) {
-      editorCRDT.currentBlock = editorCRDT.LinkedList.nodeMap[JSON.stringify(blockId)];
+      const selection = window.getSelection();
+      if (!selection) return;
+
+      const clickedElement = (e.target as HTMLElement).closest(
+        '[contenteditable="true"]',
+      ) as HTMLDivElement;
+      if (!clickedElement) return;
+
+      editorCRDT.current.currentBlock =
+        editorCRDT.current.LinkedList.nodeMap[JSON.stringify(blockId)];
+      const caretPosition = getAbsoluteCaretPosition(clickedElement);
+
+      // 계산된 캐럿 위치 저장
+      editorCRDT.current.currentBlock.crdt.currentCaret = caretPosition;
     }
   };
 
@@ -129,66 +154,43 @@ export const Editor = ({
       const element = e.currentTarget;
       const newContent = element.textContent || "";
       const currentContent = block.crdt.read();
-      const selection = window.getSelection();
-      const caretPosition = selection?.focusOffset || 0;
+      const caretPosition = getAbsoluteCaretPosition(element);
+      console.log({
+        newContent,
+        currentContent,
+        caretPosition,
+      });
 
       if (newContent.length > currentContent.length) {
         let charNode: RemoteCharInsertOperation;
+        // 캐럿 위치 유효성 검사
+        const validCaretPosition = Math.min(Math.max(0, caretPosition), currentContent.length);
+        // 맨 앞에 삽입
         if (caretPosition === 0) {
           const [addedChar] = newContent;
           charNode = block.crdt.localInsert(0, addedChar, block.id, pageId);
-          editorCRDT.currentBlock = block;
-          editorCRDT.currentBlock.crdt.currentCaret = caretPosition;
-          requestAnimationFrame(() => {
-            setCaretPosition({
-              blockId: block.id,
-              linkedList: editorCRDT.LinkedList,
-              position: caretPosition,
-              rootElement: editorRef.current,
-            });
-          });
         } else if (caretPosition > currentContent.length) {
+          // 맨 뒤에 삽입
           const addedChar = newContent[newContent.length - 1];
           charNode = block.crdt.localInsert(currentContent.length, addedChar, block.id, pageId);
-          editorCRDT.currentBlock = block;
-          editorCRDT.currentBlock.crdt.currentCaret = caretPosition;
-          requestAnimationFrame(() => {
-            setCaretPosition({
-              blockId: block.id,
-              linkedList: editorCRDT.LinkedList,
-              position: caretPosition,
-              rootElement: editorRef.current,
-            });
-          });
         } else {
-          const addedChar = newContent[caretPosition - 1];
-          charNode = block.crdt.localInsert(caretPosition - 1, addedChar, block.id, pageId);
-          editorCRDT.currentBlock = block;
-          editorCRDT.currentBlock.crdt.currentCaret = caretPosition;
-          requestAnimationFrame(() => {
-            setCaretPosition({
-              blockId: block.id,
-              linkedList: editorCRDT.LinkedList,
-              position: caretPosition,
-              rootElement: editorRef.current,
-            });
-          });
+          // 중간에 삽입
+          const addedChar = newContent[validCaretPosition - 1];
+          charNode = block.crdt.localInsert(validCaretPosition - 1, addedChar, block.id, pageId);
         }
+        editorCRDT.currentBlock!.crdt.currentCaret = caretPosition;
         sendCharInsertOperation({ node: charNode.node, blockId: block.id, pageId });
       } else if (newContent.length < currentContent.length) {
         // 문자가 삭제된 경우
-        operationNode = block.crdt.localDelete(caretPosition, block.id, pageId);
-        sendCharDeleteOperation(operationNode);
-        editorCRDT.currentBlock = block;
-        editorCRDT.currentBlock.crdt.currentCaret = caretPosition;
-        requestAnimationFrame(() => {
-          setCaretPosition({
-            blockId: block.id,
-            linkedList: editorCRDT.LinkedList,
-            position: caretPosition,
-            rootElement: editorRef.current,
-          });
-        });
+        // 삭제 위치 계산
+        const deletePosition = Math.max(0, caretPosition);
+        if (deletePosition >= 0 && deletePosition < currentContent.length) {
+          operationNode = block.crdt.localDelete(deletePosition, block.id, pageId);
+          sendCharDeleteOperation(operationNode);
+
+          // 캐럿 위치 업데이트
+          editorCRDT.current.currentBlock!.crdt.currentCaret = deletePosition;
+        }
       }
       setEditorState({
         clock: editorCRDT.clock,
@@ -237,7 +239,8 @@ export const Editor = ({
       position: editorCRDT.currentBlock?.crdt.currentCaret,
       rootElement: editorRef.current,
     });
-  }, [editorCRDT, editorCRDT?.currentBlock?.crdt.read().length]);
+    // 서윤님 피드백 반영
+  }, [editorCRDT, editorCRDT?.currentBlock?.id.serialize()]);
 
   useEffect(() => {
     if (!editorCRDT) return;
@@ -311,6 +314,30 @@ export const Editor = ({
         });
       },
 
+      onRemoteCharUpdate: (operation) => {
+        console.log(operation, "char : 업데이트 확인합니다이");
+        if (!editorCRDT.current) return;
+        const targetBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+        targetBlock.crdt.remoteUpdate(operation);
+        setEditorState({
+          clock: editorCRDT.clock,
+          linkedList: editorCRDT.LinkedList,
+        });
+      },
+
+      onRemoteCharUpdate: (operation) => {
+        console.log(operation, "char : 업데이트 확인합니다이");
+        if (!editorCRDT.current) return;
+        const targetBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+        targetBlock.crdt.remoteUpdate(operation);
+        setEditorState({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+        });
+      },
+
       onRemoteCursor: (position) => {
         console.log(position, "커서위치 수신");
       },
@@ -326,6 +353,7 @@ export const Editor = ({
     if (!editorCRDT) return;
     const index = editorCRDT.LinkedList.spread().length;
     const operation = editorCRDT.localInsert(index, "");
+    editorCRDT.current.currentBlock = operation.node;
     sendBlockInsertOperation({ node: operation.node, pageId });
     setEditorState(() => ({
       clock: editorCRDT.clock,
@@ -347,6 +375,7 @@ export const Editor = ({
           onChange={handleTitleChange}
           className={editorTitle}
         />
+        <div style={{ height: "36px" }}></div>
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <SortableContext
             items={editorState.linkedList
@@ -368,6 +397,9 @@ export const Editor = ({
                 onTypeSelect={handleTypeSelect}
                 onCopySelect={handleCopySelect}
                 onDeleteSelect={handleDeleteSelect}
+                onTextStyleUpdate={onTextStyleUpdate}
+                onTextColorUpdate={onTextColorUpdate}
+                onTextBackgroundColorUpdate={onTextBackgroundColorUpdate}
               />
             ))}
           </SortableContext>
