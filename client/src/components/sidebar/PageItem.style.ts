@@ -10,9 +10,29 @@ export const pageItemContainer = css({
   "&:hover": {
     background: "white/50",
     cursor: "pointer",
+    "& .delete_box": {
+      visibility: "visible",
+      opacity: 1,
+    },
   },
 });
-
+export const deleteBox = css({
+  display: "flex",
+  visibility: "hidden",
+  position: "absolute",
+  right: "md",
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: "xs",
+  width: "24px",
+  height: "24px",
+  opacity: 0,
+  transition: "all 0.2s ease-in-out",
+  cursor: "pointer",
+  "&:hover": {
+    background: "gray.100",
+  },
+});
 export const iconBox = css({
   display: "flex",
   flexShrink: 0,
