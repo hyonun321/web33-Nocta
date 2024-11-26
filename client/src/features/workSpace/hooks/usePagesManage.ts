@@ -182,19 +182,21 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
       ),
     );
   };
-
-  const updatePage = (pageId: string, updates: { title?: string; icon?: string }) => {
-    // UI 즉시 업데이트
+  const updatePage = (
+    pageId: string,
+    updates: { title?: string; icon?: string },
+    syncWithServer: boolean = true,
+  ) => {
     setPages((prevPages) =>
       prevPages.map((page) => (page.id === pageId ? { ...page, ...updates } : page)),
     );
 
-    if (clientId && workspace!.id) {
+    if (syncWithServer && clientId && workspace?.id) {
       sendPageUpdateOperation({
         pageId,
         ...updates,
         clientId,
-        workspaceId: workspace!.id,
+        workspaceId: workspace.id,
       });
     }
   };
