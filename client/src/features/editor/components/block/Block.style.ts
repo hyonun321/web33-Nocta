@@ -114,7 +114,8 @@ export const textContainerStyle = cva({
       },
       blockquote: {
         borderLeft: "4px solid token(colors.gray.300)",
-        paddingLeft: "spacing.md",
+        borderRadius: "none",
+        paddingLeft: "8px",
         color: "gray.500",
         fontStyle: "italic",
         "&:empty::before": {
