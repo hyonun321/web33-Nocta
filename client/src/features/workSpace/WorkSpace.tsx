@@ -20,7 +20,7 @@ export const WorkSpace = () => {
     fetchPage,
     selectPage,
     closePage,
-    updatePageTitle,
+    updatePage,
     initPages,
     initPagePosition,
     openPage,
@@ -67,7 +67,7 @@ export const WorkSpace = () => {
                 {...page}
                 handlePageSelect={selectPage}
                 handlePageClose={closePage}
-                handleTitleChange={updatePageTitle}
+                handleTitleChange={updatePage}
               />
             ) : null,
           )}
