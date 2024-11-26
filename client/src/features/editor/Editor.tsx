@@ -8,7 +8,7 @@ import {
   RemoteCharInsertOperation,
   serializedEditorDataProps,
 } from "node_modules/@noctaCrdt/Interfaces.ts";
-import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils.ts";
 import {
@@ -134,12 +134,11 @@ export const Editor = ({
       ) as HTMLDivElement;
       if (!clickedElement) return;
 
-      editorCRDT.current.currentBlock =
-        editorCRDT.current.LinkedList.nodeMap[JSON.stringify(blockId)];
+      editorCRDT.currentBlock = editorCRDT.LinkedList.nodeMap[JSON.stringify(blockId)];
       const caretPosition = getAbsoluteCaretPosition(clickedElement);
 
       // 계산된 캐럿 위치 저장
-      editorCRDT.current.currentBlock.crdt.currentCaret = caretPosition;
+      editorCRDT.currentBlock.crdt.currentCaret = caretPosition;
     }
   };
 
@@ -189,7 +188,7 @@ export const Editor = ({
           sendCharDeleteOperation(operationNode);
 
           // 캐럿 위치 업데이트
-          editorCRDT.current.currentBlock!.crdt.currentCaret = deletePosition;
+          editorCRDT.currentBlock!.crdt.currentCaret = deletePosition;
         }
       }
       setEditorState({
@@ -316,25 +315,12 @@ export const Editor = ({
 
       onRemoteCharUpdate: (operation) => {
         console.log(operation, "char : 업데이트 확인합니다이");
-        if (!editorCRDT.current) return;
-        const targetBlock =
-          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+        if (!editorCRDT) return;
+        const targetBlock = editorCRDT.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
         targetBlock.crdt.remoteUpdate(operation);
         setEditorState({
           clock: editorCRDT.clock,
           linkedList: editorCRDT.LinkedList,
-        });
-      },
-
-      onRemoteCharUpdate: (operation) => {
-        console.log(operation, "char : 업데이트 확인합니다이");
-        if (!editorCRDT.current) return;
-        const targetBlock =
-          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
-        targetBlock.crdt.remoteUpdate(operation);
-        setEditorState({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
         });
       },
 
@@ -353,7 +339,7 @@ export const Editor = ({
     if (!editorCRDT) return;
     const index = editorCRDT.LinkedList.spread().length;
     const operation = editorCRDT.localInsert(index, "");
-    editorCRDT.current.currentBlock = operation.node;
+    editorCRDT.currentBlock = operation.node;
     sendBlockInsertOperation({ node: operation.node, pageId });
     setEditorState(() => ({
       clock: editorCRDT.clock,

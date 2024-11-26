@@ -135,7 +135,7 @@ export class EditorCRDT extends CRDT<Block> {
 
     newNode.next = operation.node.next;
     newNode.prev = operation.node.prev;
-
+    newNode.indent = operation.node.indent;
     this.LinkedList.insertById(newNode);
 
     this.clock = Math.max(this.clock, operation.node.id.clock) + 1;

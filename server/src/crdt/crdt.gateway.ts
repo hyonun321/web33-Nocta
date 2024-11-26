@@ -245,9 +245,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         `Page delete 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-
+      const { userId } = client.data;
       // 현재 워크스페이스 가져오기
-      const currentWorkspace = this.workSpaceService.getWorkspace();
+      const currentWorkspace = this.workSpaceService.getWorkspace(userId);
 
       // pageList에서 해당 페이지 찾기
       const pageIndex = currentWorkspace.pageList.findIndex((page) => page.id === data.pageId);
@@ -531,9 +531,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         `Update 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-
+      const { userId } = client.data;
       const currentPage = this.workSpaceService
-        .getWorkspace()
+        .getWorkspace(userId)
         .pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
