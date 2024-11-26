@@ -146,10 +146,28 @@ export const useBlockOptionSelect = ({
   };
 
   const handleDeleteSelect = (blockId: BlockId) => {
-    const currentIndex = editorCRDT.LinkedList.spread().findIndex((block) =>
-      block.id.equals(blockId),
-    );
-    sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
+    const blocks = editorCRDT.LinkedList.spread(); // spread() 한 번만 호출
+    const currentIndex = blocks.findIndex((block) => block.id.equals(blockId));
+
+    const currentBlock = blocks[currentIndex];
+    if (!currentBlock) return;
+
+    const deleteIndices = [];
+    const currentIndent = currentBlock.indent;
+
+    // 현재 블록과 자식 블록들의 인덱스를 한 번에 수집
+    for (let i = currentIndex; i < blocks.length; i++) {
+      if (i === currentIndex || blocks[i].indent > currentIndent) {
+        deleteIndices.push(i);
+      } else if (blocks[i].indent <= currentIndent) {
+        break; // 더 이상 자식 블록이 없으면 종료
+      }
+    }
+
+    // 인덱스 역순으로 삭제
+    for (let i = deleteIndices.length - 1; i >= 0; i--) {
+      sendBlockDeleteOperation(editorCRDT.localDelete(deleteIndices[i], undefined, pageId));
+    }
 
     // 삭제할 블록이 현재 활성화된 블록인 경우
     if (editorCRDT.currentBlock?.id.equals(blockId)) {
