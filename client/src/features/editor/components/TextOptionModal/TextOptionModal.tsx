@@ -56,18 +56,9 @@ export const TextOptionModal = ({
     setHoveredType(type);
   };
 
-  const handleClickButton = (type: "text" | "background") => {
-    if (hoveredType === type) {
-      setHoveredType(null);
-    } else {
-      setHoveredType(type);
-    }
-  };
-
-  const handleModalClick = () => {
-    if (hoveredType !== null) {
-      setHoveredType(null);
-    }
+  const handleModalClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setHoveredType(null);
   };
 
   useEffect(() => {
@@ -175,6 +166,7 @@ export const TextOptionModal = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
+        onMouseDown={handleModalClick}
       >
         <div className={modalContainer} onClick={handleModalClick}>
           <button
@@ -245,11 +237,7 @@ export const TextOptionModal = ({
             </span>
           </button>
           {/* 텍스트 색상 버튼들 */}
-          <div
-            className={optionButton}
-            onMouseEnter={() => handleMouseEnter("text")}
-            onClick={() => handleClickButton("text")}
-          >
+          <div className={optionButton} onMouseEnter={() => handleMouseEnter("text")}>
             <span className={optionButtonText}>A</span>
             {hoveredType === "text" && (
               <TextColorOptionModal
@@ -262,11 +250,7 @@ export const TextOptionModal = ({
             )}
           </div>
           {/* 배경 색상 버튼들 */}
-          <div
-            className={optionButton}
-            onMouseEnter={() => handleMouseEnter("background")}
-            onClick={() => handleClickButton("background")}
-          >
+          <div className={optionButton} onMouseEnter={() => handleMouseEnter("background")}>
             <span className={optionButtonText}>BG</span>
 
             {hoveredType === "background" && (
