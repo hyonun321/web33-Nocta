@@ -10,6 +10,7 @@ import {
 import { BlockId } from "@noctaCrdt/NodeId";
 import { BlockLinkedList } from "node_modules/@noctaCrdt/LinkedList";
 import { EditorStateProps } from "../Editor";
+import { Block } from "@noctaCrdt/Node";
 
 interface useBlockOptionSelectProps {
   editorCRDT: EditorCRDT;
@@ -87,38 +88,51 @@ export const useBlockOptionSelect = ({
       block.id.equals(blockId),
     );
 
-    const operation = editorCRDT.localInsert(currentIndex + 1, "");
-    operation.node.type = currentBlock.type;
-    operation.node.indent = currentBlock.indent;
-    operation.node.animation = currentBlock.animation;
-    operation.node.style = currentBlock.style;
-    operation.node.icon = currentBlock.icon;
-    operation.node.crdt = new BlockCRDT(editorCRDT.client);
+    const copyBlock = (block: Block, targetIndex: number) => {
+      const operation = editorCRDT.localInsert(targetIndex, "");
+      operation.node.type = block.type;
+      operation.node.indent = block.indent;
+      operation.node.animation = block.animation;
+      operation.node.style = block.style;
+      operation.node.icon = block.icon;
+      operation.node.crdt = new BlockCRDT(editorCRDT.client);
 
-    // 먼저 새로운 블록을 만들고
-    sendBlockInsertOperation({ node: operation.node, pageId });
+      // 먼저 새로운 블록을 만들고
+      sendBlockInsertOperation({ node: operation.node, pageId });
 
-    // 내부 문자 노드 복사
-    currentBlock.crdt.LinkedList.spread().forEach((char, index) => {
-      const insertOperation = operation.node.crdt.localInsert(
-        index,
-        char.value,
-        operation.node.id,
+      // 내부 문자 노드 복사
+      block.crdt.LinkedList.spread().forEach((char, index) => {
+        const insertOperation = operation.node.crdt.localInsert(
+          index,
+          char.value,
+          operation.node.id,
+          pageId,
+        );
+        sendCharInsertOperation(insertOperation);
+      });
+
+      // 여기서 update를 한번 더 해주면 된다. (block의 속성 (animation, type, style, icon)을 복사하기 위함)
+      sendBlockUpdateOperation({
+        node: operation.node,
         pageId,
-      );
-      insertOperation.node.style = char.style;
-      insertOperation.node.color = char.color;
-      insertOperation.node.backgroundColor = char.backgroundColor;
-      sendCharInsertOperation(insertOperation);
+      });
+
+      return operation.node;
+    };
+
+    const childBlocks = editorCRDT.LinkedList.spread()
+      .slice(currentIndex + 1)
+      .filter((block) => block.indent > currentBlock.indent);
+
+    let targetIndex = currentIndex + childBlocks.length + 1;
+    const copiedParent = copyBlock(currentBlock, targetIndex);
+
+    childBlocks.forEach((child) => {
+      targetIndex += 1;
+      copyBlock(child, targetIndex);
     });
 
-    // 여기서 update를 한번 더 해주면 된다. (block의 속성 (animation, type, style, icon)을 복사하기 위함)
-    sendBlockUpdateOperation({
-      node: operation.node,
-      pageId,
-    });
-
-    editorCRDT.currentBlock = operation.node;
+    editorCRDT.currentBlock = copiedParent;
     setEditorState({
       clock: editorCRDT.clock,
       linkedList: editorCRDT.LinkedList,
