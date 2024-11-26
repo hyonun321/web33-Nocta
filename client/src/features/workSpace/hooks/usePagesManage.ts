@@ -172,9 +172,10 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
             : { ...p, isActive: false },
         ),
       );
-      // setTimeout을 사용하여 다음 렌더링 사이클에서 포커스
+
       setTimeout(() => {
-        const titleInput = document.querySelector(`#${pageId} input`);
+        const titleInput = document.querySelector(`#${CSS.escape(pageId)} input`);
+        console.log(titleInput);
         if (titleInput instanceof HTMLInputElement) {
           titleInput.focus();
         }
