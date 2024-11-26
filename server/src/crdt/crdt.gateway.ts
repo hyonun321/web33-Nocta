@@ -212,7 +212,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const workspace = this.workSpaceService.getWorkspace(userId);
 
       const newEditorCRDT = new EditorCRDT(data.clientId);
-      const newPage = new Page(nanoid(), "새로운 페이지", "📄", newEditorCRDT);
+      const newPage = new Page(nanoid(), "새로운 페이지", "Docs", newEditorCRDT);
       workspace.pageList.push(newPage);
 
       const operation = {

@@ -5,7 +5,6 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page } from "@src/types/page";
 
-const INIT_ICON = "📄";
 const PAGE_OFFSET = 60;
 
 export const usePagesManage = (workspace: WorkSpace | null, clientId: number | null) => {
@@ -76,7 +75,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
       {
         id: newPage.id, // 여기
         title: newPage.title,
-        icon: newPage.icon || INIT_ICON,
+        icon: "Docs",
         x: PAGE_OFFSET * newPageIndex,
         y: PAGE_OFFSET * newPageIndex,
         zIndex: getZIndex(),
@@ -184,7 +183,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         ({
           id: crdtPage.id,
           title: crdtPage.title,
-          icon: crdtPage.icon || INIT_ICON,
+          icon: crdtPage.icon || "Doccs",
           x: PAGE_OFFSET * index,
           y: PAGE_OFFSET * index,
           zIndex: index,
