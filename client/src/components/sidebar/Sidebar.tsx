@@ -1,4 +1,6 @@
+import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { motion } from "framer-motion";
+import { PageIconType } from "node_modules/@noctaCrdt/Interfaces";
 import { useState } from "react";
 import { IconButton } from "@components/button/IconButton";
 import { Modal } from "@components/modal/modal";
@@ -7,7 +9,6 @@ import { MAX_VISIBLE_PAGE } from "@src/constants/page";
 import { AuthButton } from "@src/features/auth/AuthButton";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page } from "@src/types/page";
-import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
 import {
   sidebarContainer,
@@ -23,10 +24,16 @@ export const Sidebar = ({
   pages,
   handlePageAdd,
   handlePageOpen,
+  handlePageUpdate,
 }: {
   pages: Page[];
   handlePageAdd: () => void;
   handlePageOpen: ({ pageId }: { pageId: string }) => void;
+  handlePageUpdate: (
+    pageId: string,
+    updates: { title?: string; icon?: PageIconType },
+    syncWithServer: boolean,
+  ) => void;
 }) => {
   const visiblePages = pages.filter((page) => page.isVisible);
   const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
@@ -100,6 +107,7 @@ export const Sidebar = ({
                 {...item}
                 onClick={() => handlePageItemClick(item.id)}
                 onDelete={() => confirmPageDelete(item)}
+                handleIconUpdate={handlePageUpdate}
               />
             </motion.div>
           ))
