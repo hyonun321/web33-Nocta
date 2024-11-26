@@ -355,7 +355,6 @@ export const Editor = ({
       });
 
       block.crdt.currentCaret = caretPosition;
-      // updatePageData(pageId, editorCRDT.current.serialize());
     },
     [editorCRDT, pageId, sendCharInsertOperation, updatePageData],
   );
@@ -481,7 +480,6 @@ export const Editor = ({
       clock: editorCRDT.current.clock,
       linkedList: editorCRDT.current.LinkedList,
     }));
-    // updatePageData(pageId, editorCRDT.current.serialize());
   };
 
   // 로딩 상태 체크
