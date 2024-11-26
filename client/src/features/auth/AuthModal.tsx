@@ -56,7 +56,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       secondaryButtonLabel="취소"
       secondaryButtonOnClick={closeModal}
     >
-      <div className={container({ mode })}>
+      <div className={container}>
         <h1 className={title}>{mode === "login" ? "Login" : "Sign Up"}</h1>
         <div className={formContainer}>
           {mode === "register" && (
