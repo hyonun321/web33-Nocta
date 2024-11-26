@@ -180,7 +180,7 @@ export const useMarkdownGrammer = ({
               let targetBlock = findBlock(targetIndex);
 
               while (targetBlock && targetBlock.type === "hr") {
-                targetIndex--;
+                targetIndex -= 1;
                 targetBlock = findBlock(targetIndex);
               }
 
@@ -225,12 +225,12 @@ export const useMarkdownGrammer = ({
                 let targetBlock = findBlock(targetIndex);
 
                 while (targetBlock && targetBlock.type === "hr") {
-                  targetIndex--;
+                  targetIndex -= 1;
                   targetBlock = findBlock(targetIndex);
                 }
-
-                if (prevBlock.type === "hr") {
+                if (targetBlock && prevBlock.type === "hr") {
                   editorCRDT.currentBlock = targetBlock;
+                  editorCRDT.currentBlock.crdt.currentCaret = targetBlock.crdt.read().length; // 커서 이동
                   updateEditorState();
                   break;
                 }
@@ -366,7 +366,7 @@ export const useMarkdownGrammer = ({
             let targetBlock = findBlock(targetIndex);
 
             while (targetBlock && targetBlock.type === "hr") {
-              targetIndex--;
+              targetIndex -= 1;
               targetBlock = findBlock(targetIndex);
             }
 
@@ -392,7 +392,7 @@ export const useMarkdownGrammer = ({
             let targetBlock = findBlock(targetIndex);
 
             while (targetBlock && targetBlock.type === "hr") {
-              targetIndex++;
+              targetIndex += 1;
               targetBlock = findBlock(targetIndex);
             }
 

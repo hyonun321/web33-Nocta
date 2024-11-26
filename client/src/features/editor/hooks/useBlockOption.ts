@@ -38,7 +38,7 @@ export const useBlockOptionSelect = ({
   sendCharInsertOperation,
 }: useBlockOptionSelectProps) => {
   const handleTypeSelect = (blockId: BlockId, type: ElementType) => {
-    let block = editorState.linkedList.getNode(blockId);
+    const block = editorState.linkedList.getNode(blockId);
     if (!block) return;
 
     block.type = type;
