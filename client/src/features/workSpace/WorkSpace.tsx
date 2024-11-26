@@ -15,8 +15,17 @@ export const WorkSpace = () => {
   const { isLoading, isInitialized, error } = useWorkspaceInit();
   const { workspace: workspaceMetadata, clientId } = useSocketStore();
 
-  const { pages, fetchPage, selectPage, closePage, updatePageTitle, initPages, initPagePosition } =
-    usePagesManage(workspace, clientId);
+  const {
+    pages,
+    fetchPage,
+    selectPage,
+    closePage,
+    updatePageTitle,
+    initPages,
+    initPagePosition,
+    updatePageData,
+    openPage,
+  } = usePagesManage(workspace, clientId);
   const visiblePages = pages.filter((page) => page.isVisible);
 
   useEffect(() => {
@@ -50,17 +59,20 @@ export const WorkSpace = () => {
           opacity: isInitialized && !isLoading ? 1 : 0,
         })}
       >
-        <Sidebar pages={pages} handlePageAdd={fetchPage} handlePageSelect={selectPage} />
+        <Sidebar pages={pages} handlePageAdd={fetchPage} handlePageOpen={openPage} />
         <div className={content}>
-          {visiblePages.map((page) => (
-            <Page
-              key={page.id}
-              {...page}
-              handlePageSelect={selectPage}
-              handlePageClose={closePage}
-              handleTitleChange={updatePageTitle}
-            />
-          ))}
+          {visiblePages.map((page) =>
+            page.isLoaded ? (
+              <Page
+                key={page.id}
+                {...page}
+                handlePageSelect={selectPage}
+                handlePageClose={closePage}
+                handleTitleChange={updatePageTitle}
+                updatePageData={updatePageData}
+              />
+            ) : null,
+          )}
         </div>
         <BottomNavigator pages={visiblePages} handlePageSelect={selectPage} />
       </div>

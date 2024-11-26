@@ -4,7 +4,10 @@ import { BlockId } from "@noctaCrdt/NodeId";
 interface SetCaretPositionProps {
   blockId: BlockId;
   linkedList: BlockLinkedList | TextLinkedList;
-  position?: number; // 특정 위치로 캐럿을 설정하고 싶을 때 사용
+  clientX?: number;
+  clientY?: number;
+  position?: number; // Used to set the caret at a specific position
+  pageId: string; // Add rootElement to scope the query
 }
 
 export const getAbsoluteCaretPosition = (element: HTMLElement): number => {
@@ -73,15 +76,19 @@ export const setCaretPosition = ({
   blockId,
   linkedList,
   position,
+  pageId,
 }: SetCaretPositionProps): void => {
   try {
     if (position === undefined) return;
     const selection = window.getSelection();
     if (!selection) return;
 
+    const currentPage = document.getElementById(pageId);
+
     const blockElements = Array.from(
-      document.querySelectorAll('.d_flex.pos_relative.w_full[data-group="true"]'),
+      currentPage?.querySelectorAll('.d_flex.pos_relative.w_full[data-group="true"]') || [],
     );
+
     const currentIndex = linkedList.spread().findIndex((b) => b.id === blockId);
     const targetElement = blockElements[currentIndex];
     if (!targetElement) return;

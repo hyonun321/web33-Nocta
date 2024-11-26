@@ -9,6 +9,7 @@ import {
   CRDTSerializedProps,
   RemoteBlockReorderOperation,
   RemoteBlockUpdateOperation,
+  serializedEditorDataProps,
   RemoteCharUpdateOperation,
   TextColorType,
   BackgroundColorType,
@@ -134,7 +135,7 @@ export class EditorCRDT extends CRDT<Block> {
 
     newNode.next = operation.node.next;
     newNode.prev = operation.node.prev;
-
+    newNode.indent = operation.node.indent;
     this.LinkedList.insertById(newNode);
 
     this.clock = Math.max(this.clock, operation.node.id.clock) + 1;
@@ -193,7 +194,7 @@ export class EditorCRDT extends CRDT<Block> {
     this.clock = Math.max(this.clock, clock) + 1;
   }
 
-  serialize(): CRDTSerializedProps<Block> {
+  serialize(): serializedEditorDataProps {
     return {
       ...super.serialize(),
       currentBlock: this.currentBlock ? this.currentBlock.serialize() : null,
@@ -241,6 +242,8 @@ export class BlockCRDT extends CRDT<Char> {
       blockId,
       pageId,
       style: node.style || [],
+      color: node.color,
+      backgroundColor: node.backgroundColor,
     };
 
     return operation;
@@ -324,6 +327,7 @@ export class BlockCRDT extends CRDT<Char> {
 
   remoteUpdate(operation: RemoteCharUpdateOperation): void {
     const updatedChar = this.LinkedList.nodeMap[JSON.stringify(operation.node.id)];
+    console.log("remoteUpdate", updatedChar);
     if (operation.node.style && operation.node.style.length > 0) {
       updatedChar.style = [...operation.node.style];
     }

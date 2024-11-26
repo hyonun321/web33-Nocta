@@ -22,11 +22,11 @@ import {
 export const Sidebar = ({
   pages,
   handlePageAdd,
-  handlePageSelect,
+  handlePageOpen,
 }: {
   pages: Page[];
   handlePageAdd: () => void;
-  handlePageSelect: ({ pageId }: { pageId: string }) => void;
+  handlePageOpen: ({ pageId }: { pageId: string }) => void;
 }) => {
   const visiblePages = pages.filter((page) => page.isVisible);
   const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
@@ -43,7 +43,7 @@ export const Sidebar = ({
       openModal();
       return;
     }
-    handlePageSelect({ pageId: id });
+    handlePageOpen({ pageId: id });
   };
 
   const handleAddPageButtonClick = () => {

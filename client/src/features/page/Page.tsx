@@ -1,5 +1,6 @@
 import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Editor } from "@features/editor/Editor";
 import { Page as PageType } from "@src/types/page";
 import { pageContainer, pageHeader, resizeHandles } from "./Page.style";
@@ -11,7 +12,8 @@ interface PageProps extends PageType {
   handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
   handlePageClose: (pageId: string) => void;
   handleTitleChange: (pageId: string, newTitle: string) => void;
-  serializedEditorData: serializedEditorDataProps;
+  updatePageData: (pageId: string, newData: serializedEditorDataProps) => void;
+  serializedEditorData: serializedEditorDataProps | null;
 }
 
 export const Page = ({
@@ -24,12 +26,12 @@ export const Page = ({
   handlePageSelect,
   handlePageClose,
   handleTitleChange,
+  updatePageData,
   serializedEditorData,
 }: PageProps) => {
   const { position, size, pageDrag, pageResize, pageMinimize, pageMaximize } = usePage({ x, y });
-
-  // TODO: workspace에서 pageId, editorCRDT props로 받아와야 함
-  // const {} = useSocket();
+  const [serializedEditorDatas, setSerializedEditorDatas] =
+    useState<serializedEditorDataProps | null>(serializedEditorData);
 
   const onTitleChange = (newTitle: string) => {
     handleTitleChange(id, newTitle);
@@ -41,9 +43,18 @@ export const Page = ({
     }
   };
 
+  // serializedEditorData prop이 변경되면 local state도 업데이트
+  useEffect(() => {
+    setSerializedEditorDatas(serializedEditorData);
+  }, [serializedEditorData, updatePageData]);
+
+  if (!serializedEditorDatas) {
+    return null;
+  }
   return (
     <AnimatePresence>
       <div
+        id={id}
         className={pageContainer}
         style={{
           width: `${size.width}px`,
@@ -64,7 +75,8 @@ export const Page = ({
         <Editor
           onTitleChange={onTitleChange}
           pageId={id}
-          serializedEditorData={serializedEditorData}
+          serializedEditorData={serializedEditorDatas}
+          updatePageData={updatePageData}
         />
         {DIRECTIONS.map((direction) => (
           <motion.div
