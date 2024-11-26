@@ -39,6 +39,7 @@ export class workSpaceService implements OnModuleInit {
    */
   private async cleanupWorkspaces() {
     try {
+      const bulkOps = [];
       for (const [roomId, workspace] of this.workspaces.entries()) {
         // guest workspace는 제외
         if (roomId === "guest") continue;
@@ -47,15 +48,25 @@ export class workSpaceService implements OnModuleInit {
         const room = this.server.sockets.adapter.rooms.get(roomId);
         const clientCount = room ? room.size : 0;
 
+        // 연결된 클라이언트가 없으면 DB에 저장하고 메모리에서 제거
         if (clientCount === 0) {
-          // DB에 workspace 상태 저장
-          await this.updateWorkspaceInDB(roomId, workspace);
+          const serializedWorkspace = workspace.serialize();
+          bulkOps.push({
+            updateOne: {
+              filter: { id: roomId },
+              update: { $set: { ...serializedWorkspace } },
+              upsert: true,
+            },
+          });
 
-          // Map에서 제거
           this.workspaces.delete(roomId);
-
-          console.log(`Workspace ${roomId} has been saved to DB and removed from memory`);
+          console.log(`Workspace ${roomId} will be saved to DB and removed from memory`);
         }
+      }
+
+      // DB에 저장할 작업이 있으면 한 번에 실행
+      if (bulkOps.length > 0) {
+        await this.workspaceModel.bulkWrite(bulkOps, { ordered: false });
       }
 
       console.log("Workspace cleanup completed, current workspaces: ", this.workspaces.keys());
@@ -64,6 +75,7 @@ export class workSpaceService implements OnModuleInit {
     }
   }
 
+  /*
   private async updateWorkspaceInDB(roomId: string, workspace: CRDTWorkSpace) {
     const serializedWorkspace = workspace.serialize();
     // console.log(JSON.stringify(serializedWorkspace, null, 2));
@@ -82,7 +94,6 @@ export class workSpaceService implements OnModuleInit {
       .exec();
   }
 
-  /*
   getWorkspace(userId: string): CRDTWorkSpace {
     if (!this.workspaces.has(userId)) {
       // 새로운 워크스페이스 생성
