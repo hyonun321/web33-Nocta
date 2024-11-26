@@ -172,6 +172,13 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
             : { ...p, isActive: false },
         ),
       );
+      // setTimeout을 사용하여 다음 렌더링 사이클에서 포커스
+      setTimeout(() => {
+        const titleInput = document.querySelector(`#${pageId} input`);
+        if (titleInput instanceof HTMLInputElement) {
+          titleInput.focus();
+        }
+      }, 0);
     }
   };
   const closePage = (pageId: string) => {
