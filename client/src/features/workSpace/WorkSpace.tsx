@@ -77,7 +77,7 @@ export const WorkSpace = () => {
             ) : null,
           )}
         </div>
-        <BottomNavigator pages={visiblePages} handlePageSelect={selectPage} />
+        <BottomNavigator pages={visiblePages} handlePageSelect={openPage} />
       </div>
     </>
   );
