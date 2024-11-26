@@ -172,6 +172,14 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
             : { ...p, isActive: false },
         ),
       );
+
+      setTimeout(() => {
+        const titleInput = document.querySelector(`#${CSS.escape(pageId)} input`);
+        console.log(titleInput);
+        if (titleInput instanceof HTMLInputElement) {
+          titleInput.focus();
+        }
+      }, 0);
     }
   };
   const closePage = (pageId: string) => {

@@ -54,6 +54,10 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
   } = useSocketStore();
   const { clientId } = useSocketStore();
 
+  const [displayTitle, setDisplayTitle] = useState(
+    pageTitle === "새로운 페이지" || pageTitle === "" ? "" : pageTitle,
+  );
+
   const editorCRDTInstance = useMemo(() => {
     let newEditorCRDT;
     if (serializedEditorData) {
@@ -113,12 +117,19 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
   );
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 낙관적업데이트
-    onTitleChange(e.target.value, false);
+    const newTitle = e.target.value;
+    setDisplayTitle(newTitle); // 로컬 상태 업데이트
+    onTitleChange(newTitle, false); // 낙관적 업데이트
   };
 
   const handleBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onTitleChange(e.target.value, true);
+    const newTitle = e.target.value;
+    if (newTitle === "") {
+      setDisplayTitle(""); // 입력이 비어있으면 로컬상태는 빈 문자열로
+      onTitleChange("새로운 페이지", true); // 서버에는 "새로운 페이지"로 저장
+    } else {
+      onTitleChange(newTitle, true);
+    }
   };
   const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
     if (editorCRDT) {
@@ -386,6 +397,11 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
 
   useEffect(() => {
     if (!editorCRDT || !editorCRDT.current.currentBlock) return;
+
+    const { activeElement } = document;
+    if (activeElement?.tagName.toLowerCase() === "input") {
+      return; // input에 포커스가 있으면 캐럿 위치 변경하지 않음
+    }
     setCaretPosition({
       blockId: editorCRDT.current.currentBlock.id,
       linkedList: editorCRDT.current.LinkedList,
@@ -517,7 +533,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
           placeholder="제목을 입력하세요..."
           onChange={handleTitleChange}
           onBlur={handleBlur}
-          defaultValue={pageTitle == "새로운 페이지" ? "" : pageTitle}
+          value={displayTitle}
           className={editorTitle}
         />
         <div style={{ height: "36px" }}></div>
