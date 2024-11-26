@@ -127,6 +127,10 @@ export const textContainerStyle = cva({
           content: '"텍스트를 입력하세요..."',
         },
       },
+      hr: {
+        borderTop: "2px solid token(colors.gray.300)",
+        height: "1px",
+      },
     },
   },
   defaultVariants: {
