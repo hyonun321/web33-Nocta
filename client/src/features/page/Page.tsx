@@ -11,7 +11,7 @@ import { DIRECTIONS, usePage } from "./hooks/usePage";
 interface PageProps extends PageType {
   handlePageSelect: ({ pageId, isSidebar }: { pageId: string; isSidebar?: boolean }) => void;
   handlePageClose: (pageId: string) => void;
-  handleTitleChange: (pageId: string, newTitle: string) => void;
+  handleTitleChange: (pageId: string, updates: { title?: string; icon?: string }) => void;
   serializedEditorData: serializedEditorDataProps | null;
 }
 
@@ -32,7 +32,7 @@ export const Page = ({
     useState<serializedEditorDataProps | null>(serializedEditorData);
 
   const onTitleChange = (newTitle: string) => {
-    handleTitleChange(id, newTitle);
+    handleTitleChange(id, { title: newTitle });
   };
 
   const handlePageClick = () => {
@@ -73,6 +73,7 @@ export const Page = ({
         <Editor
           onTitleChange={onTitleChange}
           pageId={id}
+          pageTitle={title}
           serializedEditorData={serializedEditorDatas}
         />
         {DIRECTIONS.map((direction) => (

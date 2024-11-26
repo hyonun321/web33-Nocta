@@ -35,6 +35,7 @@ interface EditorProps {
   onTitleChange: (title: string) => void;
   pageId: string;
   serializedEditorData: serializedEditorDataProps;
+  pageTitle: string;
 }
 interface ClipboardMetadata {
   value: string;
@@ -42,7 +43,7 @@ interface ClipboardMetadata {
   color: TextColorType | undefined;
   backgroundColor: BackgroundColorType | undefined;
 }
-export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorProps) => {
+export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData }: EditorProps) => {
   const {
     sendCharInsertOperation,
     sendCharDeleteOperation,
@@ -115,6 +116,9 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     onTitleChange(e.target.value);
   };
 
+  const handleBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onTitleChange(e.target.value);
+  };
   const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
     if (editorCRDT) {
       const selection = window.getSelection();
@@ -486,7 +490,9 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
         <input
           type="text"
           placeholder="제목을 입력하세요..."
-          onChange={handleTitleChange}
+          // onChange={handleTitleChange}
+          onBlur={handleBlur}
+          defaultValue={pageTitle == "새로운 페이지" ? "" : pageTitle}
           className={editorTitle}
         />
         <div style={{ height: "36px" }}></div>
