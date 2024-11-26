@@ -21,7 +21,9 @@ export const TypeOptionModal = ({
 }: TypeOptionModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const options = OPTION_CATEGORIES.TYPE.options;
+  const {
+    TYPE: { options },
+  } = OPTION_CATEGORIES;
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
