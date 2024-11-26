@@ -8,8 +8,6 @@ import { AuthButton } from "@src/features/auth/AuthButton";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page } from "@src/types/page";
 import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
-import { MenuButton } from "./MenuButton";
-import { PageItem } from "./PageItem";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
 import {
   sidebarContainer,
@@ -18,6 +16,8 @@ import {
   sidebarToggleButton,
   placeholderMessage,
 } from "./Sidebar.style";
+import { MenuButton } from "./components/menuButton/MenuButton";
+import { PageItem } from "./components/pageItem/PageItem";
 
 export const Sidebar = ({
   pages,
@@ -106,7 +106,7 @@ export const Sidebar = ({
         )}
       </motion.nav>
       <motion.div className={plusIconBox} variants={contentVariants}>
-        <IconButton icon="➕" onClick={handleAddPageButtonClick} size="sm" />
+        <IconButton icon="plus" onClick={handleAddPageButtonClick} size="sm" />
         <AuthButton />
       </motion.div>
 

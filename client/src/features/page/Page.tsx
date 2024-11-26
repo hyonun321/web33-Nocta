@@ -1,4 +1,4 @@
-import { serializedEditorDataProps } from "@noctaCrdt/Interfaces";
+import { PageIconType, serializedEditorDataProps } from "@noctaCrdt/Interfaces";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Editor } from "@features/editor/Editor";
@@ -13,7 +13,7 @@ interface PageProps extends PageType {
   handlePageClose: (pageId: string) => void;
   handleTitleChange: (
     pageId: string,
-    updates: { title?: string; icon?: string },
+    updates: { title?: string; icon?: PageIconType },
     syncWithServer: boolean,
   ) => void;
   serializedEditorData: serializedEditorDataProps | null;

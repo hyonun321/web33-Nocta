@@ -46,15 +46,16 @@ interface ClientInfo {
 })
 export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(CrdtGateway.name);
-  private server: Server;
+  // private server: Server;
   private clientIdCounter: number = 1;
   private clientMap: Map<string, ClientInfo> = new Map();
   constructor(
     private readonly workSpaceService: workSpaceService,
     private readonly jwtService: JwtService, // JwtService 주입
   ) {}
+
   afterInit(server: Server) {
-    this.server = server;
+    this.workSpaceService.setServer(server);
   }
   /**
    * 클라이언트 연결 처리
@@ -69,7 +70,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       client.data.userId = userId;
       client.join(userId);
       // userId라는 방.
-      const currentWorkSpace = await this.workSpaceService.getWorkspace(userId).serialize();
+      const currentWorkSpace = (await this.workSpaceService.getWorkspace(userId)).serialize();
       client.emit("workspace", currentWorkSpace);
 
       const assignedId = (this.clientIdCounter += 1);
@@ -134,7 +135,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const { userId } = client.data;
 
       // 워크스페이스에서 해당 페이지 찾기
-      const workspace = this.workSpaceService.getWorkspace(userId);
+      const workspace = await this.workSpaceService.getWorkspace(userId);
       const page = workspace.pageList.find((p) => p.id === pageId);
 
       // pageId에 가입 시키기
@@ -145,11 +146,11 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       const start = process.hrtime();
       const [seconds, nanoseconds] = process.hrtime(start);
-      this.logger.log(
-        `Page join operation took ${seconds}s ${nanoseconds / 1000000}ms\n` +
-          `Active connections: ${this.server.engine.clientsCount}\n` +
-          `Connected clients: ${this.clientMap.size}`,
-      );
+      // this.logger.log(
+      //   `Page join operation took ${seconds}s ${nanoseconds / 1000000}ms\n` +
+      //     `Active connections: ${this.server.engine.clientsCount}\n` +
+      //     `Connected clients: ${this.clientMap.size}`,
+      // );
       console.log(`Memory usage: ${process.memoryUsage().heapUsed}`),
         client.emit("join/page", {
           pageId,
@@ -218,7 +219,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const { userId } = client.data;
 
       // 현재 워크스페이스 가져오기
-      const workspace = this.workSpaceService.getWorkspace(userId);
+      const workspace = await this.workSpaceService.getWorkspace(userId);
 
       // 해당 페이지 찾기
       const page = workspace.pageList.find((p) => p.id === pageId);
@@ -275,10 +276,10 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
       const { userId } = client.data;
-      const workspace = this.workSpaceService.getWorkspace(userId);
+      const workspace = await this.workSpaceService.getWorkspace(userId);
 
       const newEditorCRDT = new EditorCRDT(data.clientId);
-      const newPage = new Page(nanoid(), "새로운 페이지", "📄", newEditorCRDT);
+      const newPage = new Page(nanoid(), "새로운 페이지", "Docs", newEditorCRDT);
       workspace.pageList.push(newPage);
 
       const operation = {
@@ -313,7 +314,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
       const { userId } = client.data;
       // 현재 워크스페이스 가져오기
-      const currentWorkspace = this.workSpaceService.getWorkspace(userId);
+      const currentWorkspace = await this.workSpaceService.getWorkspace(userId);
 
       // pageList에서 해당 페이지 찾기
       const pageIndex = currentWorkspace.pageList.findIndex((page) => page.id === data.pageId);
@@ -361,7 +362,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
 
       const { userId } = client.data;
-      const workspace = this.workSpaceService.getWorkspace(userId);
+      const workspace = await this.workSpaceService.getWorkspace(userId);
 
       const currentPage = workspace.pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
@@ -400,9 +401,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
 
       const { userId } = client.data;
-      const currentPage = this.workSpaceService
-        .getWorkspace(userId)
-        .pageList.find((p) => p.id === data.pageId);
+      const currentPage = (await this.workSpaceService.getWorkspace(userId)).pageList.find(
+        (p) => p.id === data.pageId,
+      );
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
@@ -439,9 +440,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       );
 
       const { userId } = client.data;
-      const currentPage = this.workSpaceService
-        .getWorkspace(userId)
-        .pageList.find((p) => p.id === data.pageId);
+      const currentPage = (await this.workSpaceService.getWorkspace(userId)).pageList.find(
+        (p) => p.id === data.pageId,
+      );
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
@@ -486,9 +487,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
       const { userId } = client.data;
-      const currentPage = this.workSpaceService
-        .getWorkspace(userId)
-        .pageList.find((p) => p.id === data.pageId);
+      const currentPage = (await this.workSpaceService.getWorkspace(userId)).pageList.find(
+        (p) => p.id === data.pageId,
+      );
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
@@ -524,9 +525,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
       const { userId } = client.data;
-      const currentPage = this.workSpaceService
-        .getWorkspace(userId)
-        .pageList.find((p) => p.id === data.pageId);
+      const currentPage = (await this.workSpaceService.getWorkspace(userId)).pageList.find(
+        (p) => p.id === data.pageId,
+      );
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
@@ -564,7 +565,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
       const { userId } = client.data;
-      const workspace = this.workSpaceService.getWorkspace(userId);
+      const workspace = await this.workSpaceService.getWorkspace(userId);
 
       const currentPage = workspace.pageList.find((p) => p.id === data.pageId);
       if (!currentPage) {
@@ -601,9 +602,9 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         JSON.stringify(data),
       );
       const { userId } = client.data;
-      const currentPage = this.workSpaceService
-        .getWorkspace(userId)
-        .pageList.find((p) => p.id === data.pageId);
+      const currentPage = (await this.workSpaceService.getWorkspace(userId)).pageList.find(
+        (p) => p.id === data.pageId,
+      );
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }

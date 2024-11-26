@@ -57,6 +57,7 @@ const baseTextStyle = {
   backgroundColor: "transparent",
   display: "inline",
   alignItems: "center",
+  letterSpacing: "1.5px",
 };
 
 export const textContainerStyle = cva({
