@@ -1,4 +1,3 @@
-import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { motion } from "framer-motion";
 import { PageIconType } from "node_modules/@noctaCrdt/Interfaces";
 import { useState } from "react";
@@ -9,6 +8,7 @@ import { MAX_VISIBLE_PAGE } from "@src/constants/page";
 import { AuthButton } from "@src/features/auth/AuthButton";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { Page } from "@src/types/page";
+import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
 import {
   sidebarContainer,
@@ -36,7 +36,7 @@ export const Sidebar = ({
   ) => void;
 }) => {
   const visiblePages = pages.filter((page) => page.isVisible);
-  const isMaxVisiblePage = visiblePages.length >= MAX_VISIBLE_PAGE;
+  const isMaxVisiblePage = visiblePages.length > MAX_VISIBLE_PAGE;
   const isSidebarOpen = useIsSidebarOpen();
   const { toggleSidebar } = useSidebarActions();
   const { isOpen, openModal, closeModal } = useModal();
