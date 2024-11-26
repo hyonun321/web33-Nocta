@@ -14,8 +14,7 @@ import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtil
 
 interface useMarkdownGrammerProps {
   editorCRDT: EditorCRDT;
-  editorState: EditorStateProps;
-  editorRef: React.RefObject<HTMLDivElement>; // Add editorRef
+  editorState: EditorStateProps; // Add editorRef
   setEditorState: React.Dispatch<
     React.SetStateAction<{
       clock: number;
@@ -40,7 +39,6 @@ export const useMarkdownGrammer = ({
   sendCharDeleteOperation,
   sendCharInsertOperation,
   sendBlockUpdateOperation,
-  editorRef,
 }: useMarkdownGrammerProps) => {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -300,7 +298,7 @@ export const useMarkdownGrammer = ({
             blockId: targetBlock.id,
             linkedList: editorCRDT.LinkedList,
             position: Math.min(caretPosition, targetBlock.crdt.read().length),
-            rootElement: editorRef.current,
+            pageId,
           });
           break;
         }
@@ -322,7 +320,7 @@ export const useMarkdownGrammer = ({
                 blockId: prevBlock.id,
                 linkedList: editorCRDT.LinkedList,
                 position: prevBlock.crdt.read().length,
-                rootElement: editorRef.current,
+                pageId,
               });
             }
             break;
@@ -341,7 +339,7 @@ export const useMarkdownGrammer = ({
                 blockId: nextBlock.id,
                 linkedList: editorCRDT.LinkedList,
                 position: 0,
-                rootElement: editorRef.current,
+                pageId,
               });
             }
             break;

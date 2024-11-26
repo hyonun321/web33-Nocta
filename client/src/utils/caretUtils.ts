@@ -7,7 +7,7 @@ interface SetCaretPositionProps {
   clientX?: number;
   clientY?: number;
   position?: number; // Used to set the caret at a specific position
-  rootElement: HTMLElement | null; // Add rootElement to scope the query
+  pageId: string; // Add rootElement to scope the query
 }
 
 export const getAbsoluteCaretPosition = (element: HTMLElement): number => {
@@ -76,17 +76,19 @@ export const setCaretPosition = ({
   blockId,
   linkedList,
   position,
-  rootElement,
+  pageId,
 }: SetCaretPositionProps): void => {
   try {
-    if (!rootElement) return;
     if (position === undefined) return;
     const selection = window.getSelection();
     if (!selection) return;
 
+    const currentPage = document.getElementById(pageId);
+
     const blockElements = Array.from(
-      document.querySelectorAll('.d_flex.pos_relative.w_full[data-group="true"]'),
+      currentPage?.querySelectorAll('.d_flex.pos_relative.w_full[data-group="true"]') || [],
     );
+
     const currentIndex = linkedList.spread().findIndex((b) => b.id === blockId);
     const targetElement = blockElements[currentIndex];
     if (!targetElement) return;

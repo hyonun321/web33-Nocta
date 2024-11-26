@@ -54,6 +54,7 @@ export const Page = ({
   return (
     <AnimatePresence>
       <div
+        id={id}
         className={pageContainer}
         style={{
           width: `${size.width}px`,

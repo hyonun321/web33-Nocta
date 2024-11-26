@@ -307,7 +307,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         node: data.node,
         pageId: data.pageId,
       } as RemoteBlockUpdateOperation;
-      client.to(client.data.pageId).emit("update/block", operation);
+      // 여기서 문제가?
+      client.to(data.pageId).emit("update/block", operation);
     } catch (error) {
       this.logger.error(
         `블록 Update 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
