@@ -212,7 +212,7 @@ export class Workspace {
   pageList: Page[];
 
   @Prop({ type: Object, of: Object })
-  authUser: {};
+  authUser: object;
 
   @Prop({ default: Date.now })
   updatedAt: Date;

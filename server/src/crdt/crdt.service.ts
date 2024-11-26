@@ -4,8 +4,8 @@ import { Workspace, WorkspaceDocument } from "./schemas/workspace.schema";
 import { WorkSpace as CRDTWorkSpace } from "@noctaCrdt/WorkSpace";
 import { Model } from "mongoose";
 import { Server } from "socket.io";
-import { EditorCRDT, BlockCRDT } from "@noctaCrdt/Crdt";
-import { Page as CRDTPage } from "@noctaCrdt/Page";
+// import { EditorCRDT, BlockCRDT } from "@noctaCrdt/Crdt";
+// import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
 
 @Injectable()
@@ -103,7 +103,7 @@ export class workSpaceService implements OnModuleInit {
     // DB에서 찾기
     const workspaceJSON = await this.workspaceModel.findOne({ id: userId });
 
-    let workspace = new CRDTWorkSpace(userId, []);
+    const workspace = new CRDTWorkSpace(userId, []);
 
     if (workspaceJSON) {
       // DB에 있으면 JSON을 객체로 복원
