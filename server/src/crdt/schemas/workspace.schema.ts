@@ -1,3 +1,4 @@
+/*
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 
@@ -19,8 +20,8 @@ export class Workspace {
 
 export type WorkspaceDocument = Document & Workspace;
 export const WorkspaceSchema = SchemaFactory.createForClass(Workspace);
+*/
 
-/*
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 
@@ -210,8 +211,8 @@ export class Workspace {
   @Prop({ type: [Page], default: [] })
   pageList: Page[];
 
-  @Prop({ type: Map, of: Object })
-  authUser: Map<string, any>;
+  @Prop({ type: Object, of: Object })
+  authUser: {};
 
   @Prop({ default: Date.now })
   updatedAt: Date;
@@ -219,4 +220,3 @@ export class Workspace {
 
 export type WorkspaceDocument = Document & Workspace;
 export const WorkspaceSchema = SchemaFactory.createForClass(Workspace);
-*/

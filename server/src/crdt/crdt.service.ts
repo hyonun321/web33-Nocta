@@ -66,19 +66,23 @@ export class workSpaceService implements OnModuleInit {
 
   private async updateWorkspaceInDB(roomId: string, workspace: CRDTWorkSpace) {
     const serializedWorkspace = workspace.serialize();
+    // console.log(JSON.stringify(serializedWorkspace, null, 2));
 
-    await this.workspaceModel.findOneAndUpdate(
-      { id: roomId },
-      {
-        $set: {
-          ...serializedWorkspace,
-          updatedAt: new Date(),
+    await this.workspaceModel
+      .findOneAndUpdate(
+        { id: roomId },
+        {
+          $set: {
+            ...serializedWorkspace,
+            updatedAt: new Date(),
+          },
         },
-      },
-      { upsert: true },
-    );
+        { upsert: true },
+      )
+      .exec();
   }
 
+  /*
   getWorkspace(userId: string): CRDTWorkSpace {
     if (!this.workspaces.has(userId)) {
       // 새로운 워크스페이스 생성
@@ -87,8 +91,8 @@ export class workSpaceService implements OnModuleInit {
     }
     return this.workspaces.get(userId);
   }
+  */
 
-  /*
   async getWorkspace(userId: string): Promise<CRDTWorkSpace> {
     // 인메모리에서 먼저 찾기
     const cachedWorkspace = this.workspaces.get(userId);
@@ -107,14 +111,13 @@ export class workSpaceService implements OnModuleInit {
         id: workspaceJSON.id,
         pageList: workspaceJSON.pageList,
         authUser: workspaceJSON.authUser,
-      });
+      } as WorkSpaceSerializedProps);
     }
 
     // 메모리에 캐시하고 반환
     this.workspaces.set(userId, workspace);
     return workspace;
   }
-  */
 }
 
 // // 1. 연산마다 mongoDB값을 조작할 것인지,
