@@ -35,7 +35,6 @@ interface EditorProps {
   onTitleChange: (title: string) => void;
   pageId: string;
   serializedEditorData: serializedEditorDataProps;
-  updatePageData: (pageId: string, newData: serializedEditorDataProps) => void;
 }
 interface ClipboardMetadata {
   value: string;
@@ -43,12 +42,7 @@ interface ClipboardMetadata {
   color: TextColorType | undefined;
   backgroundColor: BackgroundColorType | undefined;
 }
-export const Editor = ({
-  onTitleChange,
-  pageId,
-  serializedEditorData,
-  updatePageData,
-}: EditorProps) => {
+export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorProps) => {
   const {
     sendCharInsertOperation,
     sendCharDeleteOperation,
@@ -194,7 +188,7 @@ export const Editor = ({
         linkedList: editorCRDT.current.LinkedList,
       });
     },
-    [sendCharInsertOperation, sendCharDeleteOperation, editorCRDT, pageId, updatePageData],
+    [sendCharInsertOperation, sendCharDeleteOperation, editorCRDT, pageId],
   );
 
   const handleKeyDown = (
@@ -356,7 +350,7 @@ export const Editor = ({
 
       block.crdt.currentCaret = caretPosition;
     },
-    [editorCRDT, pageId, sendCharInsertOperation, updatePageData],
+    [editorCRDT, pageId, sendCharInsertOperation],
   );
 
   const subscriptionRef = useRef(false);
