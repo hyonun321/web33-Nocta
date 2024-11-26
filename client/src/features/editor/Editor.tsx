@@ -386,6 +386,11 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
 
   useEffect(() => {
     if (!editorCRDT || !editorCRDT.current.currentBlock) return;
+
+    const { activeElement } = document;
+    if (activeElement?.tagName.toLowerCase() === "input") {
+      return; // input에 포커스가 있으면 캐럿 위치 변경하지 않음
+    }
     setCaretPosition({
       blockId: editorCRDT.current.currentBlock.id,
       linkedList: editorCRDT.current.LinkedList,

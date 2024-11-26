@@ -12,9 +12,21 @@ interface PageItemProps {
   icon: PageIconType;
   onClick: () => void;
   onDelete?: (id: string) => void; // 추가: 삭제 핸들러
+  handleIconUpdate: (
+    pageId: string,
+    updates: { title?: string; icon?: PageIconType },
+    syncWithServer: boolean,
+  ) => void;
 }
 
-export const PageItem = ({ id, icon, title, onClick, onDelete }: PageItemProps) => {
+export const PageItem = ({
+  id,
+  icon,
+  title,
+  onClick,
+  onDelete,
+  handleIconUpdate,
+}: PageItemProps) => {
   const { isOpen, openModal, closeModal } = useModal();
   const [pageIcon, setPageIcon] = useState<PageIconType>(icon);
   // 삭제 버튼 클릭 핸들러
@@ -39,6 +51,7 @@ export const PageItem = ({ id, icon, title, onClick, onDelete }: PageItemProps) 
   const handleSelectIcon = (e: React.MouseEvent, type: PageIconType) => {
     e.stopPropagation();
     setPageIcon(type);
+    handleIconUpdate(id, { icon: type }, true);
     closeModal();
   };
 
