@@ -297,6 +297,14 @@ export class BlockCRDT extends CRDT<Char> {
       });
     }
 
+    if (operation.color) {
+      newNode.color = operation.color;
+    }
+
+    if (operation.backgroundColor) {
+      newNode.backgroundColor = operation.backgroundColor;
+    }
+
     this.LinkedList.insertById(newNode);
 
     if (this.clock <= newNode.id.clock) {

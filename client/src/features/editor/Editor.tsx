@@ -7,6 +7,8 @@ import { BlockId } from "@noctaCrdt/NodeId";
 import {
   RemoteCharInsertOperation,
   serializedEditorDataProps,
+  TextColorType,
+  BackgroundColorType,
 } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
@@ -22,19 +24,25 @@ import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
 import { useBlockOptionSelect } from "./hooks/useBlockOption";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 import { useTextOptionSelect } from "./hooks/useTextOptions.ts";
-
-interface EditorProps {
-  onTitleChange: (title: string) => void;
-  pageId: string;
-  serializedEditorData: serializedEditorDataProps | null;
-  updatePageData: (pageId: string, newData: serializedEditorDataProps) => void;
-}
+import { getTextOffset } from "./utils/domSyncUtils.ts";
 
 export interface EditorStateProps {
   clock: number;
   linkedList: BlockLinkedList;
 }
 
+interface EditorProps {
+  onTitleChange: (title: string) => void;
+  pageId: string;
+  serializedEditorData: serializedEditorDataProps;
+  updatePageData: (pageId: string, newData: serializedEditorDataProps) => void;
+}
+interface ClipboardMetadata {
+  value: string;
+  style: string[];
+  color: TextColorType | undefined;
+  backgroundColor: BackgroundColorType | undefined;
+}
 export const Editor = ({
   onTitleChange,
   pageId,
@@ -99,7 +107,7 @@ export const Editor = ({
       sendCharInsertOperation,
     });
 
-  const { handleKeyDown } = useMarkdownGrammer({
+  const { handleKeyDown: onKeyDown } = useMarkdownGrammer({
     editorCRDT,
     editorState,
     setEditorState,
@@ -195,12 +203,146 @@ export const Editor = ({
         clock: editorCRDT.clock,
         linkedList: editorCRDT.LinkedList,
       });
-
-      // 페이지 데이터 업데이트
-      // updatePageData(pageId, editorCRDT.serialize());
     },
     [sendCharInsertOperation, sendCharDeleteOperation, editorCRDT, pageId, updatePageData],
   );
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    blockRef: HTMLDivElement | null,
+    block: CRDTBlock,
+  ) => {
+    if (!blockRef || !block) return;
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || !blockRef) {
+      // 선택된 텍스트가 없으면 기존 onKeyDown 로직 실행
+      onKeyDown(e);
+      return;
+    }
+
+    if (e.key === "Backspace") {
+      e.preventDefault();
+
+      const range = selection.getRangeAt(0);
+      if (!blockRef.contains(range.commonAncestorContainer)) return;
+
+      const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
+      const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
+
+      // 선택된 범위의 문자들을 역순으로 삭제
+      for (let i = endOffset - 1; i >= startOffset; i--) {
+        const operationNode = block.crdt.localDelete(i, block.id, pageId);
+        sendCharDeleteOperation(operationNode);
+      }
+
+      block.crdt.currentCaret = startOffset;
+      setEditorState({
+        clock: editorCRDT.clock,
+        linkedList: editorCRDT.LinkedList,
+      });
+    } else {
+      onKeyDown(e);
+    }
+  };
+
+  const handleCopy = (
+    e: React.ClipboardEvent<HTMLDivElement>,
+    blockRef: HTMLDivElement | null,
+    block: CRDTBlock,
+  ) => {
+    e.preventDefault();
+    if (!blockRef) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || !blockRef) return;
+
+    const range = selection.getRangeAt(0);
+    if (!blockRef.contains(range.commonAncestorContainer)) return;
+
+    // 선택된 텍스트의 시작과 끝 위치 계산
+    const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
+    const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
+
+    // 선택된 텍스트와 스타일 정보 추출
+    const selectedChars = block.crdt.LinkedList.spread().slice(startOffset, endOffset);
+
+    // 커스텀 데이터 포맷으로 저장
+    const customData = {
+      text: selectedChars.map((char) => char.value).join(""),
+      metadata: selectedChars.map(
+        (char) =>
+          ({
+            value: char.value,
+            style: char.style,
+            color: char.color,
+            backgroundColor: char.backgroundColor,
+          }) as ClipboardMetadata,
+      ),
+    };
+
+    // 일반 텍스트와 커스텀 데이터 모두 클립보드에 저장
+    e.clipboardData.setData("text/plain", customData.text);
+    e.clipboardData.setData("application/x-nocta-formatted", JSON.stringify(customData));
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>, block: CRDTBlock) => {
+    e.preventDefault();
+
+    const customData = e.clipboardData.getData("application/x-nocta-formatted");
+
+    if (customData) {
+      const { metadata } = JSON.parse(customData);
+      const caretPosition = block.crdt.currentCaret;
+
+      metadata.forEach((char: ClipboardMetadata, index: number) => {
+        const insertPosition = caretPosition + index;
+        const charNode = block.crdt.localInsert(
+          insertPosition,
+          char.value,
+          block.id,
+          pageId,
+          char.style,
+          char.color,
+          char.backgroundColor,
+        );
+        sendCharInsertOperation({
+          node: charNode.node,
+          blockId: block.id,
+          pageId,
+          style: char.style,
+          color: char.color,
+          backgroundColor: char.backgroundColor,
+        });
+      });
+
+      editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + metadata.length;
+    } else {
+      const text = e.clipboardData.getData("text/plain");
+
+      if (!block || text.length === 0) return;
+
+      const caretPosition = block.crdt.currentCaret;
+
+      // 텍스트를 한 글자씩 순차적으로 삽입
+      text.split("").forEach((char, index) => {
+        const insertPosition = caretPosition + index;
+        const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
+        sendCharInsertOperation({
+          node: charNode.node,
+          blockId: block.id,
+          pageId,
+        });
+      });
+
+      // 캐럿 위치 업데이트
+      editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + text.length;
+    }
+
+    setEditorState({
+      clock: editorCRDT.clock,
+      linkedList: editorCRDT.LinkedList,
+    });
+  };
 
   const handleCompositionEnd = useCallback(
     (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => {
@@ -378,6 +520,8 @@ export const Editor = ({
                 onInput={handleBlockInput}
                 onCompositionEnd={handleCompositionEnd}
                 onKeyDown={handleKeyDown}
+                onCopy={handleCopy}
+                onPaste={handlePaste}
                 onClick={handleBlockClick}
                 onAnimationSelect={handleAnimationSelect}
                 onTypeSelect={handleTypeSelect}

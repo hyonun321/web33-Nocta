@@ -58,6 +58,8 @@ export interface RemoteCharInsertOperation {
   blockId: BlockId;
   pageId: string;
   style?: string[];
+  color?: TextColorType;
+  backgroundColor?: BackgroundColorType;
 }
 
 export interface RemoteBlockDeleteOperation {
