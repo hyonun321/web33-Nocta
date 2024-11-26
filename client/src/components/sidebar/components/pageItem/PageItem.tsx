@@ -58,7 +58,7 @@ export const PageItem = ({
   return (
     <div className={pageItemContainer} onClick={onClick}>
       <PageIconButton type={pageIcon ?? "Docs"} onClick={handleToggleModal} />
-      <span className={textBox}>{title}</span>
+      <span className={textBox}>{title || "새로운 페이지"}</span>
       <span className={`delete_box ${deleteBox}`} onClick={handleDelete}>
         <CloseIcon width={16} height={16} />
       </span>
