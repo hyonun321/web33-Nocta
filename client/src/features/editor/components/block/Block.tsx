@@ -20,6 +20,7 @@ import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { TextOptionModal } from "../TextOptionModal/TextOptionModal";
 import { blockAnimation } from "./Block.animation";
 import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
+import { TypeOptionModal } from "../TypeOptionModal/TypeOptionModal";
 
 interface BlockProps {
   id: string;
@@ -86,6 +87,9 @@ export const Block: React.FC<BlockProps> = memo(
       },
     });
 
+    const [slashModalOpen, setSlashModalOpen] = useState(false);
+    const [slashModalPosition, setSlashModalPosition] = useState({ top: 0, left: 0 });
+
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
       const currentElement = e.currentTarget;
       // 텍스트를 삭제하면 <br> 태그가 생김
@@ -115,7 +119,18 @@ export const Block: React.FC<BlockProps> = memo(
 
       const caretPosition = getAbsoluteCaretPosition(e.currentTarget);
       block.crdt.currentCaret = caretPosition;
-      onInput(e, block);
+
+      const element = e.currentTarget;
+      const newContent = element.textContent || "";
+
+      if (newContent === "/" && !slashModalOpen) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setSlashModalPosition({
+          top: rect.top,
+          left: rect.left + 0,
+        });
+        setSlashModalOpen(true);
+      }
     };
 
     const handleAnimationSelect = (animation: AnimationType) => {
@@ -257,6 +272,12 @@ export const Block: React.FC<BlockProps> = memo(
           onStrikeSelect={() => handleStyleSelect("strikethrough")}
           onTextColorSelect={handleTextColorSelect}
           onTextBackgroundColorSelect={handleTextBackgroundColorSelect}
+        />
+        <TypeOptionModal
+          isOpen={slashModalOpen}
+          onClose={() => setSlashModalOpen(false)}
+          onTypeSelect={(type) => handleTypeSelect(type)}
+          position={slashModalPosition}
         />
       </motion.div>
     );
