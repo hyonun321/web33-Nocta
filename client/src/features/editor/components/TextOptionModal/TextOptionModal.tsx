@@ -166,9 +166,8 @@ export const TextOptionModal = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
-        onMouseDown={handleModalClick}
       >
-        <div className={modalContainer} onClick={handleModalClick}>
+        <div className={modalContainer} onClick={handleModalClick} onMouseDown={handleModalClick}>
           <button
             className={optionButton}
             onClick={onBoldSelect}
@@ -239,31 +238,30 @@ export const TextOptionModal = ({
           {/* 텍스트 색상 버튼들 */}
           <div className={optionButton} onMouseEnter={() => handleMouseEnter("text")}>
             <span className={optionButtonText}>A</span>
-            {hoveredType === "text" && (
-              <TextColorOptionModal
-                onColorSelect={handleTextColorClick}
-                position={{
-                  top: 40,
-                  left: 0,
-                }}
-              />
-            )}
           </div>
           {/* 배경 색상 버튼들 */}
           <div className={optionButton} onMouseEnter={() => handleMouseEnter("background")}>
             <span className={optionButtonText}>BG</span>
-
-            {hoveredType === "background" && (
-              <BackgroundColorOptionModal
-                onColorSelect={handleTextBackgroundSelect}
-                position={{
-                  top: 40,
-                  left: -53,
-                }}
-              />
-            )}
           </div>
         </div>
+        {hoveredType === "text" && (
+          <TextColorOptionModal
+            onColorSelect={handleTextColorClick}
+            position={{
+              top: 44,
+              left: 84,
+            }}
+          />
+        )}
+        {hoveredType === "background" && (
+          <BackgroundColorOptionModal
+            onColorSelect={handleTextBackgroundSelect}
+            position={{
+              top: 44,
+              left: 84,
+            }}
+          />
+        )}
       </motion.div>
     </ModalPortal>
   );
