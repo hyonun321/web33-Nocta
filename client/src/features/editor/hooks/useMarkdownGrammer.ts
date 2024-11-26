@@ -7,11 +7,11 @@ import {
   RemoteCharDeleteOperation,
 } from "@noctaCrdt/Interfaces";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
+import { Block } from "@noctaCrdt/Node";
 import { useCallback } from "react";
 import { EditorStateProps } from "@features/editor/Editor";
 import { checkMarkdownPattern } from "@src/features/editor/utils/markdownPatterns";
 import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils";
-import { Block } from "node_modules/@noctaCrdt/Node";
 
 interface useMarkdownGrammerProps {
   editorCRDT: EditorCRDT;
@@ -83,10 +83,14 @@ export const useMarkdownGrammer = ({
           const currentCharNodes = currentBlock.crdt.spread();
 
           if (!currentContent && currentBlock.type !== "p") {
+            const wasOrderedList = currentBlock.type === "ol";
             currentBlock.type = "p";
             sendBlockUpdateOperation(editorCRDT.localUpdate(currentBlock, pageId));
             editorCRDT.currentBlock = currentBlock;
             editorCRDT.currentBlock.crdt.currentCaret = 0;
+            if (wasOrderedList) {
+              editorCRDT.LinkedList.updateAllOrderedListIndices();
+            }
             updateEditorState();
             break;
           }
@@ -143,6 +147,12 @@ export const useMarkdownGrammer = ({
 
           editorCRDT.currentBlock = operation.node;
           editorCRDT.currentBlock.crdt.currentCaret = 0;
+
+          // 모든 ordered list 인덱스 재계산
+          if (currentBlock.type === "ol") {
+            editorCRDT.LinkedList.updateAllOrderedListIndices();
+          }
+
           updateEditorState();
           break;
         }
@@ -153,18 +163,54 @@ export const useMarkdownGrammer = ({
           if (currentContent === "") {
             e.preventDefault();
             if (currentBlock.indent > 0) {
+              const wasOrderedList = currentBlock.type === "ol";
               currentBlock.indent -= 1;
               sendBlockUpdateOperation(editorCRDT.localUpdate(currentBlock, pageId));
               editorCRDT.currentBlock = currentBlock;
+              if (wasOrderedList) {
+                editorCRDT.LinkedList.updateAllOrderedListIndices();
+              }
               updateEditorState();
               break;
             }
 
+            // 현재 블록이 기본 블록이면서 앞뒤가 ordered list인 경우 확인
+            if (currentBlock.type === "p") {
+              const prevBlock = currentBlock.prev
+                ? editorCRDT.LinkedList.getNode(currentBlock.prev)
+                : null;
+              const nextBlock = currentBlock.next
+                ? editorCRDT.LinkedList.getNode(currentBlock.next)
+                : null;
+
+              if (prevBlock?.type === "ol" && nextBlock?.type === "ol") {
+                // 현재 블록 삭제
+                sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
+
+                // 리스트 인덱스 재계산
+                editorCRDT.LinkedList.updateAllOrderedListIndices();
+
+                // 이전 블록으로 캐럿 이동
+                editorCRDT.currentBlock = prevBlock;
+                editorCRDT.currentBlock.crdt.currentCaret = prevBlock.crdt.read().length;
+
+                updateEditorState();
+                break;
+              }
+            }
+
             if (currentBlock.type !== "p") {
+              const wasOrderedList = currentBlock.type === "ol";
               // 마지막 블록이면 기본 블록으로 변경
               currentBlock.type = "p";
               sendBlockUpdateOperation(editorCRDT.localUpdate(currentBlock, pageId));
               editorCRDT.currentBlock = currentBlock;
+
+              // ol이었던 경우에만 ordered list 인덱스 재계산
+              if (wasOrderedList) {
+                editorCRDT.LinkedList.updateAllOrderedListIndices();
+              }
+
               updateEditorState();
               break;
             }
@@ -274,18 +320,26 @@ export const useMarkdownGrammer = ({
             if (e.shiftKey) {
               // shift + tab: 들여쓰기 감소
               if (currentBlock.indent > 0) {
+                const isOrderedList = currentBlock.type === "ol";
                 currentBlock.indent -= 1;
                 sendBlockUpdateOperation(editorCRDT.localUpdate(currentBlock, pageId));
                 editorCRDT.currentBlock = currentBlock;
+                if (isOrderedList) {
+                  editorCRDT.LinkedList.updateAllOrderedListIndices();
+                }
                 updateEditorState();
               }
             } else {
               // tab: 들여쓰기 증가
               const maxIndent = 3;
               if (currentBlock.indent < maxIndent) {
+                const isOrderedList = currentBlock.type === "ol";
                 currentBlock.indent += 1;
                 sendBlockUpdateOperation(editorCRDT.localUpdate(currentBlock, pageId));
                 editorCRDT.currentBlock = currentBlock;
+                if (isOrderedList) {
+                  editorCRDT.LinkedList.updateAllOrderedListIndices();
+                }
                 updateEditorState();
               }
             }
@@ -309,6 +363,9 @@ export const useMarkdownGrammer = ({
             sendBlockUpdateOperation(editorCRDT.localUpdate(currentBlock, pageId));
             currentBlock.crdt.currentCaret = 0;
             editorCRDT.currentBlock = currentBlock;
+            if (markdownElement.type === "ol") {
+              editorCRDT.LinkedList.updateAllOrderedListIndices();
+            }
             updateEditorState();
           }
 
