@@ -35,7 +35,6 @@ interface EditorProps {
   onTitleChange: (title: string) => void;
   pageId: string;
   serializedEditorData: serializedEditorDataProps;
-  updatePageData: (pageId: string, newData: serializedEditorDataProps) => void;
 }
 interface ClipboardMetadata {
   value: string;
@@ -43,12 +42,7 @@ interface ClipboardMetadata {
   color: TextColorType | undefined;
   backgroundColor: BackgroundColorType | undefined;
 }
-export const Editor = ({
-  onTitleChange,
-  pageId,
-  serializedEditorData,
-  updatePageData,
-}: EditorProps) => {
+export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorProps) => {
   const {
     sendCharInsertOperation,
     sendCharDeleteOperation,
@@ -194,7 +188,7 @@ export const Editor = ({
         linkedList: editorCRDT.current.LinkedList,
       });
     },
-    [sendCharInsertOperation, sendCharDeleteOperation, editorCRDT, pageId, updatePageData],
+    [sendCharInsertOperation, sendCharDeleteOperation, editorCRDT, pageId],
   );
 
   const handleKeyDown = (
@@ -355,9 +349,8 @@ export const Editor = ({
       });
 
       block.crdt.currentCaret = caretPosition;
-      updatePageData(pageId, editorCRDT.current.serialize());
     },
-    [editorCRDT, pageId, sendCharInsertOperation, updatePageData],
+    [editorCRDT, pageId, sendCharInsertOperation],
   );
 
   const subscriptionRef = useRef(false);
@@ -481,7 +474,6 @@ export const Editor = ({
       clock: editorCRDT.current.clock,
       linkedList: editorCRDT.current.LinkedList,
     }));
-    updatePageData(pageId, editorCRDT.current.serialize());
   };
 
   // 로딩 상태 체크

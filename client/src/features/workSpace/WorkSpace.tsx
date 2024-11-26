@@ -23,7 +23,6 @@ export const WorkSpace = () => {
     updatePageTitle,
     initPages,
     initPagePosition,
-    updatePageData,
     openPage,
   } = usePagesManage(workspace, clientId);
   const visiblePages = pages.filter((page) => page.isVisible);
@@ -69,7 +68,6 @@ export const WorkSpace = () => {
                 handlePageSelect={selectPage}
                 handlePageClose={closePage}
                 handleTitleChange={updatePageTitle}
-                updatePageData={updatePageData}
               />
             ) : null,
           )}
