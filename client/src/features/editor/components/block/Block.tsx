@@ -14,7 +14,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useModal } from "@src/components/modal/useModal";
 import { getAbsoluteCaretPosition } from "@src/utils/caretUtils";
 import { useBlockAnimation } from "../../hooks/useBlockAnimtaion";
-import { setInnerHTML } from "../../utils/domSyncUtils";
+import { setInnerHTML, getTextOffset } from "../../utils/domSyncUtils";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { TextOptionModal } from "../TextOptionModal/TextOptionModal";
@@ -27,7 +27,17 @@ interface BlockProps {
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  onKeyDown: (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    blockRef: HTMLDivElement | null,
+    block: CRDTBlock,
+  ) => void;
+  onCopy: (
+    e: React.ClipboardEvent<HTMLDivElement>,
+    blockRef: HTMLDivElement | null,
+    block: CRDTBlock,
+  ) => void;
+  onPaste: (e: React.ClipboardEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
   onTypeSelect: (blockId: BlockId, type: ElementType) => void;
@@ -53,6 +63,8 @@ export const Block: React.FC<BlockProps> = memo(
     onInput,
     onCompositionEnd,
     onKeyDown,
+    onCopy,
+    onPaste,
     onClick,
     onAnimationSelect,
     onTypeSelect,
@@ -137,26 +149,8 @@ export const Block: React.FC<BlockProps> = memo(
         return;
       }
 
-      // 실제 텍스트 위치 계산
-      const getTextOffset = (container: Node, offset: number): number => {
-        let totalOffset = 0;
-        const walker = document.createTreeWalker(blockRef.current!, NodeFilter.SHOW_TEXT, null);
-
-        let node = walker.nextNode();
-        while (node) {
-          if (node === container) {
-            return totalOffset + offset;
-          }
-          if (node.compareDocumentPosition(container) & Node.DOCUMENT_POSITION_FOLLOWING) {
-            totalOffset += node.textContent?.length || 0;
-          }
-          node = walker.nextNode();
-        }
-        return totalOffset;
-      };
-
-      const startOffset = getTextOffset(range.startContainer, range.startOffset);
-      const endOffset = getTextOffset(range.endContainer, range.endOffset);
+      const startOffset = getTextOffset(blockRef.current, range.startContainer, range.startOffset);
+      const endOffset = getTextOffset(blockRef.current, range.endContainer, range.endOffset);
 
       const nodes = block.crdt.LinkedList.spread().slice(startOffset, endOffset);
       console.log("nodes", nodes);
@@ -169,11 +163,10 @@ export const Block: React.FC<BlockProps> = memo(
 
     const handleStyleSelect = (styleType: TextStyleType) => {
       if (blockRef.current && selectedNodes) {
-        const selection = window.getSelection();
         // CRDT 상태 업데이트 및 서버 전송
         onTextStyleUpdate(styleType, block.id, selectedNodes);
 
-        const position = selection?.focusOffset || 0;
+        const position = getAbsoluteCaretPosition(blockRef.current);
         block.crdt.currentCaret = position;
 
         closeModal();
@@ -182,10 +175,9 @@ export const Block: React.FC<BlockProps> = memo(
 
     const handleTextColorSelect = (color: TextColorType) => {
       if (blockRef.current && selectedNodes) {
-        const selection = window.getSelection();
         onTextColorUpdate(color, block.id, selectedNodes);
 
-        const position = selection?.focusOffset || 0;
+        const position = getAbsoluteCaretPosition(blockRef.current);
         block.crdt.currentCaret = position;
 
         closeModal();
@@ -194,10 +186,9 @@ export const Block: React.FC<BlockProps> = memo(
 
     const handleTextBackgroundColorSelect = (color: BackgroundColorType) => {
       if (blockRef.current && selectedNodes) {
-        const selection = window.getSelection();
         onTextBackgroundColorUpdate(color, block.id, selectedNodes);
 
-        const position = selection?.focusOffset || 0;
+        const position = getAbsoluteCaretPosition(blockRef.current);
         block.crdt.currentCaret = position;
 
         closeModal();
@@ -241,9 +232,11 @@ export const Block: React.FC<BlockProps> = memo(
           <IconBlock type={block.type} index={1} />
           <div
             ref={blockRef}
-            onKeyDown={onKeyDown}
+            onKeyDown={(e) => onKeyDown(e, blockRef.current, block)}
             onInput={handleInput}
             onClick={(e) => onClick(block.id, e)}
+            onCopy={(e) => onCopy(e, blockRef.current, block)}
+            onPaste={(e) => onPaste(e, block)}
             onMouseUp={handleMouseUp}
             onCompositionEnd={(e) => onCompositionEnd(e, block)}
             contentEditable
