@@ -167,12 +167,34 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
           charNode = block.crdt.localInsert(0, addedChar, block.id, pageId);
         } else if (caretPosition > currentContent.length) {
           // 맨 뒤에 삽입
+          const prevChar = editorCRDT.current.currentBlock?.crdt.LinkedList.findByIndex(
+            currentContent.length - 1,
+          );
           const addedChar = newContent[newContent.length - 1];
-          charNode = block.crdt.localInsert(currentContent.length, addedChar, block.id, pageId);
+          charNode = block.crdt.localInsert(
+            currentContent.length,
+            addedChar,
+            block.id,
+            pageId,
+            prevChar?.style,
+            prevChar?.color,
+            prevChar?.backgroundColor,
+          );
         } else {
           // 중간에 삽입
+          const prevChar = editorCRDT.current.currentBlock?.crdt.LinkedList.findByIndex(
+            validCaretPosition - 1,
+          );
           const addedChar = newContent[validCaretPosition - 1];
-          charNode = block.crdt.localInsert(validCaretPosition - 1, addedChar, block.id, pageId);
+          charNode = block.crdt.localInsert(
+            validCaretPosition - 1,
+            addedChar,
+            block.id,
+            pageId,
+            prevChar?.style,
+            prevChar?.color,
+            prevChar?.backgroundColor,
+          );
         }
         editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
         sendCharInsertOperation({ node: charNode.node, blockId: block.id, pageId });
