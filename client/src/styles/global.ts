@@ -23,4 +23,8 @@ export const globalStyles = defineGlobalStyles({
     background: "white/50",
     borderRadius: "lg",
   },
+
+  "input:-webkit-autofill": {
+    transition: "background-color 5000s ease-in-out 0s",
+  },
 });
