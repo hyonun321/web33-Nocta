@@ -130,6 +130,8 @@ export const Block: React.FC<BlockProps> = memo(
           left: rect.left + 0,
         });
         setSlashModalOpen(true);
+      } else {
+        onInput(e, block);
       }
     };
 
