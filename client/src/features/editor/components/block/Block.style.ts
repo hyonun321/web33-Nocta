@@ -64,6 +64,8 @@ export const textContainerStyle = cva({
   base: {
     ...baseTextStyle,
     position: "relative",
+    wordBreak: "break-word",
+    whiteSpace: "pre-wrap",
     "&:empty::before": {
       color: "gray.300",
       pointerEvents: "none",
