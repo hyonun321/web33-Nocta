@@ -18,9 +18,9 @@ import { setInnerHTML, getTextOffset } from "../../utils/domSyncUtils";
 import { IconBlock } from "../IconBlock/IconBlock";
 import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { TextOptionModal } from "../TextOptionModal/TextOptionModal";
+import { TypeOptionModal } from "../TypeOptionModal/TypeOptionModal";
 import { blockAnimation } from "./Block.animation";
 import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
-import { TypeOptionModal } from "../TypeOptionModal/TypeOptionModal";
 
 interface BlockProps {
   id: string;
@@ -246,7 +246,7 @@ export const Block: React.FC<BlockProps> = memo(
             onCopySelect={handleCopySelect}
             onDeleteSelect={handleDeleteSelect}
           />
-          <IconBlock type={block.type} index={1} />
+          <IconBlock type={block.type} index={block.listIndex} />
           <div
             ref={blockRef}
             onKeyDown={(e) => onKeyDown(e, blockRef.current, block)}

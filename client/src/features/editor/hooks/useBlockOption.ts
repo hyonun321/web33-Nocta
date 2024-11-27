@@ -133,6 +133,7 @@ export const useBlockOptionSelect = ({
     });
 
     editorCRDT.currentBlock = copiedParent;
+    editorCRDT.LinkedList.updateAllOrderedListIndices();
     setEditorState({
       clock: editorCRDT.clock,
       linkedList: editorCRDT.LinkedList,
@@ -177,6 +178,9 @@ export const useBlockOptionSelect = ({
       const prevBlock = findBlock(editorCRDT.LinkedList, currentIndex - 1); // ✅ 이미 삭제한 후라, prev는 currentIndex - 1
       editorCRDT.currentBlock = nextBlock || prevBlock || null;
     }
+
+    // ol 노드의 index를 다시 설정
+    editorCRDT.LinkedList.updateAllOrderedListIndices();
 
     setEditorState({
       clock: editorCRDT.clock,
