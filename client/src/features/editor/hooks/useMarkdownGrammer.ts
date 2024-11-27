@@ -342,8 +342,17 @@ export const useMarkdownGrammer = ({
                 updateEditorState();
               }
             } else {
-              // tab: 들여쓰기 증가
-              const maxIndent = 3;
+              if (!currentBlock.prev) return;
+
+              let parentIndent =
+                editorCRDT.LinkedList.nodeMap[JSON.stringify(currentBlock.prev)].indent;
+
+              const maxIndent = Math.min(
+                parentIndent + 1, // 부모 indent + 1
+                2, // 들여쓰기 최대 indent
+              );
+
+              // 현재 indent가 허용된 최대값보다 작을 때만 들여쓰기 증가
               if (currentBlock.indent < maxIndent) {
                 const isOrderedList = currentBlock.type === "ol";
                 currentBlock.indent += 1;
