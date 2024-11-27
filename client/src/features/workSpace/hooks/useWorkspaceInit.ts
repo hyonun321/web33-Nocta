@@ -12,9 +12,10 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { socket } = useSocketStore();
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = import.meta.env.VITE_ENVIRONMENT === "development";
 
   const IntroWaitTime = isDevelopment ? 0 : 5500;
+  console.log(IntroWaitTime, import.meta.env.VITE_ENVIRONMENT);
   useEffect(() => {
     const initializeWorkspace = async () => {
       try {
