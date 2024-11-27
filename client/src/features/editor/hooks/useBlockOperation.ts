@@ -53,6 +53,15 @@ export const useBlockOperation = ({
         return;
       }
 
+      // 드래그 선택 상태 확인
+      const selection = window.getSelection();
+      if (selection && !selection.isCollapsed) {
+        // 드래그 선택된 상태면 input 이벤트 무시
+        console.log("dragging");
+        e.preventDefault();
+        return;
+      }
+
       let operationNode;
       const element = e.currentTarget;
       const newContent = element.textContent || "";
@@ -155,8 +164,7 @@ export const useBlockOperation = ({
         }
 
         if (isCharacterKey) {
-          const insertOperation = block.crdt.localInsert(startOffset, e.key, block.id, pageId);
-          sendCharInsertOperation(insertOperation);
+          sendCharInsertOperation(block.crdt.localInsert(startOffset, e.key, block.id, pageId));
         }
 
         block.crdt.currentCaret = startOffset + (isCharacterKey ? 1 : 0);
