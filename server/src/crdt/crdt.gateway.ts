@@ -55,15 +55,16 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.workSpaceService.setServer(server);
   }
 
-  emitOperation(roomId: string, event: string, operation: any, batch: boolean) {
+  emitOperation(clientId: string, roomId: string, event: string, operation: any, batch: boolean) {
+    const key = `${clientId}:${roomId}`;
     if (batch) {
-      if (!this.batchMap.has(roomId)) {
-        this.batchMap.set(roomId, []);
+      if (!this.batchMap.has(key)) {
+        this.batchMap.set(key, []);
       }
-      this.batchMap.get(roomId).push({ event, operation });
+      this.batchMap.get(key).push({ event, operation });
     } else {
       const server = this.workSpaceService.getServer();
-      server.to(roomId).emit(event, operation);
+      server.to(roomId).except(clientId).emit(event, operation);
     }
   }
 
@@ -228,7 +229,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         clientId: data.clientId,
         page: newPage.serialize(),
       } as RemotePageCreateOperation;
-      this.emitOperation(userId, "create/page", operation, batch);
+      client.emit("create/page", operation);
+      this.emitOperation(client.id, userId, "create/page", operation, batch);
     } catch (error) {
       this.logger.error(
         `Page Create 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -270,7 +272,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         pageId: data.pageId,
         clientId: data.clientId,
       } as RemotePageDeleteOperation;
-      this.emitOperation(userId, "delete/page", operation, batch);
+      client.emit("delete/page", operation);
+      this.emitOperation(client.id, userId, "delete/page", operation, batch);
 
       this.logger.debug(`Page ${data.pageId} successfully deleted`);
     } catch (error) {
@@ -326,7 +329,8 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         icon,
         clientId: clientInfo.clientId,
       } as RemotePageUpdateOperation;
-      this.emitOperation(userId, "update/page", operation, batch);
+      client.emit("update/page", operation);
+      this.emitOperation(client.id, userId, "update/page", operation, batch);
 
       this.logger.log(`Page ${pageId} updated successfully by client ${clientInfo.clientId}`);
     } catch (error) {
@@ -366,7 +370,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         node: data.node,
         pageId: data.pageId,
       } as RemoteBlockInsertOperation;
-      this.emitOperation(data.pageId, "insert/block", operation, batch);
+      this.emitOperation(client.id, data.pageId, "insert/block", operation, batch);
     } catch (error) {
       this.logger.error(
         `Block Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -404,7 +408,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         clock: data.clock,
         pageId: data.pageId,
       } as RemoteBlockDeleteOperation;
-      this.emitOperation(data.pageId, "delete/block", operation, batch);
+      this.emitOperation(client.id, data.pageId, "delete/block", operation, batch);
     } catch (error) {
       this.logger.error(
         `Block Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -442,7 +446,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         node: data.node,
         pageId: data.pageId,
       } as RemoteBlockUpdateOperation;
-      this.emitOperation(data.pageId, "update/block", operation, batch);
+      this.emitOperation(client.id, data.pageId, "update/block", operation, batch);
     } catch (error) {
       this.logger.error(
         `Block Update 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -487,7 +491,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         afterId: data.afterId,
         pageId: data.pageId,
       } as RemoteBlockReorderOperation;
-      this.emitOperation(data.pageId, "reorder/block", operation, batch);
+      this.emitOperation(client.id, data.pageId, "reorder/block", operation, batch);
     } catch (error) {
       this.logger.error(
         `Block Reorder 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -530,7 +534,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         color: data.color ? data.color : "black",
         backgroundColor: data.backgroundColor ? data.backgroundColor : "transparent",
       } as RemoteCharInsertOperation;
-      this.emitOperation(data.pageId, "insert/char", operation, batch);
+      this.emitOperation(client.id, data.pageId, "insert/char", operation, batch);
     } catch (error) {
       this.logger.error(
         `Char Insert 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -569,7 +573,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         blockId: data.blockId,
         pageId: data.pageId,
       } as RemoteCharDeleteOperation;
-      this.emitOperation(data.pageId, "delete/char", operation, batch);
+      this.emitOperation(client.id, data.pageId, "delete/char", operation, batch);
     } catch (error) {
       this.logger.error(
         `Char Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -607,7 +611,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         blockId: data.blockId,
         pageId: data.pageId,
       } as RemoteCharUpdateOperation;
-      this.emitOperation(data.pageId, "update/char", operation, batch);
+      this.emitOperation(client.id, data.pageId, "update/char", operation, batch);
     } catch (error) {
       this.logger.error(
         `Char Update 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -639,7 +643,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         position: data.position,
       } as CursorPosition;
       const { userId } = client.data;
-      this.emitOperation(userId, "cursor", operation, batch);
+      this.emitOperation(client.id, userId, "cursor", operation, batch);
     } catch (error) {
       this.logger.error(
         `Cursor 업데이트 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -681,10 +685,11 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   executeBatch() {
     const server = this.workSpaceService.getServer();
-    for (const [roomId, batch] of this.batchMap) {
+    for (const [room, batch] of this.batchMap) {
       if (batch.length > 0) {
-        server.to(roomId).emit("batch/operations", batch);
-        this.batchMap.delete(roomId);
+        const [clientId, roomId] = room.split(":");
+        server.to(roomId).except(clientId).emit("batch/operations", batch);
+        this.batchMap.delete(room);
       }
     }
   }
