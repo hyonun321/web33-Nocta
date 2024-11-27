@@ -200,7 +200,13 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteBlockInsert: (operation) => {
         console.log(operation, "block : 입력 확인합니다이");
         if (operation.pageId !== pageId) return;
+        const prevBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.node.prev)];
         editorCRDT.current.remoteInsert(operation);
+        if (prevBlock.type === "ol") {
+          editorCRDT.current.LinkedList.updateAllOrderedListIndices();
+          console.log("ol update");
+        }
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -210,7 +216,14 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteBlockDelete: (operation) => {
         console.log(operation, "block : 삭제 확인합니다이");
         if (operation.pageId !== pageId) return;
+        const targetBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.targetId)];
+        const prevBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(targetBlock.prev)];
+        const nextBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(targetBlock.next)];
         editorCRDT.current.remoteDelete(operation);
+        if (prevBlock.type === "ol" && nextBlock.type === "ol") {
+          editorCRDT.current.LinkedList.updateAllOrderedListIndices();
+        }
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -248,7 +261,12 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteBlockUpdate: (operation) => {
         console.log(operation, "block : 업데이트 확인합니다이");
         if (operation.pageId !== pageId) return;
+        const prevBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.node.prev)];
         editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
+        if (prevBlock.type === "ol") {
+          editorCRDT.current.LinkedList.updateAllOrderedListIndices();
+        }
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -259,6 +277,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
         console.log(operation, "block : 재정렬 확인합니다이");
         if (operation.pageId !== pageId) return;
         editorCRDT.current.remoteReorder(operation);
+        editorCRDT.current.LinkedList.updateAllOrderedListIndices();
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
