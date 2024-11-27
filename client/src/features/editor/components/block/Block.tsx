@@ -272,7 +272,7 @@ export const Block: React.FC<BlockProps> = memo(
               onCopySelect={handleCopySelect}
               onDeleteSelect={handleDeleteSelect}
             />
-            <IconBlock type={block.type} index={block.listIndex} />
+            <IconBlock type={block.type} index={block.listIndex} indent={block.indent} />
             <div
               ref={blockRef}
               onKeyDown={(e) => onKeyDown(e, blockRef.current, block)}

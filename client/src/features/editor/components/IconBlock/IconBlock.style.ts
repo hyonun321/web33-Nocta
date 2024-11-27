@@ -20,7 +20,7 @@ export const iconStyle = cva({
   variants: {
     type: {
       ul: {
-        fontSize: "16px", // bullet point size
+        fontSize: "6px", // bullet point size
       },
       ol: {
         paddingRight: "4px",
