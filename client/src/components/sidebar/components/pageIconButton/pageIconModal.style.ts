@@ -4,7 +4,7 @@ export const IconModal = css({
   zIndex: 9000,
   position: "absolute",
   top: 14,
-  left: 14,
+  left: 5,
 });
 
 export const IconModalContainer = css({
@@ -13,7 +13,7 @@ export const IconModalContainer = css({
   borderRadius: "4px",
   width: "100%",
   maxHeight: "80vh",
-  padding: "28px 16px 12px 16px",
+  padding: "16px 16px 4px 16px",
   backgroundColor: "white",
   boxShadow: "lg",
   overflowY: "auto",
@@ -21,9 +21,10 @@ export const IconModalContainer = css({
 
 export const IconModalClose = css({
   display: "flex",
+  zIndex: 1002,
   position: "absolute",
-  top: "4px",
-  right: "4px",
+  top: "2px",
+  right: "2px",
   justifyContent: "center",
   alignItems: "center",
   border: "none",
@@ -55,7 +56,7 @@ export const IconButton = (isSelected: boolean) =>
     border: "none",
     borderRadius: "4px",
     padding: "8px",
-    backgroundColor: isSelected ? "rgba(220, 215, 255, 0.65)" : "transparent",
+    backgroundColor: isSelected ? "rgba(220, 215, 255, 0.35)" : "transparent",
     transition: "all 0.1s ease-in-out",
     cursor: "pointer",
     _hover: {
