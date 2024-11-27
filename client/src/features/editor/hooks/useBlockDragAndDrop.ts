@@ -109,7 +109,7 @@ export const useBlockDragAndDrop = ({
 
   const handleDragEnd = (
     event: DragEndEvent,
-    dragBlockList: string[],
+    dragBlockList: sstring[],
     initDraggingBlock: () => void,
   ) => {
     // 커서 다시 원래대로
