@@ -137,7 +137,9 @@ export const useBlockOperation = ({
         return;
       }
 
-      if (e.key === "Backspace") {
+      const isCharacterKey = e.key.length === 1 && !e.ctrlKey && !e.metaKey;
+
+      if (e.key === "Backspace" || isCharacterKey) {
         e.preventDefault();
 
         const range = selection.getRangeAt(0);
@@ -152,7 +154,12 @@ export const useBlockOperation = ({
           sendCharDeleteOperation(operationNode);
         }
 
-        block.crdt.currentCaret = startOffset;
+        if (isCharacterKey) {
+          const insertOperation = block.crdt.localInsert(startOffset, e.key, block.id, pageId);
+          sendCharInsertOperation(insertOperation);
+        }
+
+        block.crdt.currentCaret = startOffset + (isCharacterKey ? 1 : 0);
         setEditorState({
           clock: editorCRDT.clock,
           linkedList: editorCRDT.LinkedList,
