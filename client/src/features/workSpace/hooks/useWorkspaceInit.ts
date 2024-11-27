@@ -12,7 +12,9 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { socket } = useSocketStore();
+  const isDevelopment = process.env.NODE_ENV === "development";
 
+  const IntroWaitTime = isDevelopment ? 0 : 5500;
   useEffect(() => {
     const initializeWorkspace = async () => {
       try {
@@ -24,7 +26,7 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
         //   fetchWorkspaceData(),
         // ]);
         // 개발 중에는 임시로 딜레이를 줘서 스플래시 화면 확인
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, IntroWaitTime));
 
         setIsInitialized(true);
       } catch (err) {
