@@ -32,7 +32,7 @@ export const PageIconModal = ({ onClose, onSelect, currentType }: PageIconModalP
                 marginBottom: "12px",
               })}
             >
-              <h3 className={IconName}>{group.title}</h3>
+              {/* <h3 className={IconName}>{group.title}</h3>*/}
               <div
                 className={css({
                   display: "grid",
