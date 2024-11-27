@@ -8,10 +8,10 @@ export const IconBox = css({
   borderRadius: "4px",
   width: "24px",
   height: "24px",
-
+  transition: "all 0.1s ease-in-out",
   cursor: "pointer",
   "&:hover": {
-    transform: "scale(1.1)",
+    transform: "translateY(-2px) scale(1.1)",
   },
 });
 
