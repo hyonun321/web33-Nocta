@@ -14,7 +14,7 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
   const { socket } = useSocketStore();
   const isDevelopment = import.meta.env.VITE_ENVIRONMENT === "development";
 
-  const IntroWaitTime = isDevelopment ? 0 : 5500;
+  const IntroWaitTime = isDevelopment ? 0 : 4700;
   console.log(IntroWaitTime, import.meta.env.VITE_ENVIRONMENT);
   useEffect(() => {
     const initializeWorkspace = async () => {
