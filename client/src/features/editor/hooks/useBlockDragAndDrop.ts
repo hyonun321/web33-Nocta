@@ -1,8 +1,13 @@
 // hooks/useBlockDragAndDrop.ts
 import { DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
+import { Block } from "@noctaCrdt/Node";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { EditorStateProps } from "../Editor";
+import {
+  RemoteBlockReorderOperation,
+  RemoteBlockUpdateOperation,
+} from "node_modules/@noctaCrdt/Interfaces";
 
 interface UseBlockDragAndDropProps {
   editorCRDT: EditorCRDT;
@@ -25,12 +30,99 @@ export const useBlockDragAndDrop = ({
     }),
   );
 
-  const { sendBlockReorderOperation } = useSocketStore();
+  const { sendBlockReorderOperation, sendBlockUpdateOperation } = useSocketStore();
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const getChildBlocks = (nodes: Block[], parentIndex: number, parentIndent: number): Block[] => {
+    const children = [];
+    let i = parentIndex + 1;
+
+    while (i < nodes.length && nodes[i].indent > parentIndent) {
+      children.push(nodes[i]);
+      i += 1;
+    }
+
+    return children;
+  };
+
+  const reorderBlocksWithChildren = (
+    nodes: Block[],
+    targetNode: Block,
+    beforeNode: Block | null,
+    afterNode: Block | null,
+  ) => {
+    const operations = [];
+    const targetIndex = nodes.indexOf(targetNode);
+    const childBlocks = getChildBlocks(nodes, targetIndex, targetNode.indent);
+
+    // 이동할 위치의 부모 블록 indent 찾기
+    let newIndent = 0;
+    console.log("beforeNode", beforeNode, afterNode);
+    if (beforeNode) {
+      // 앞 블록이 있는 경우, 그 블록의 indent를 기준으로
+      newIndent = beforeNode.indent;
+    } else if (afterNode) {
+      // 뒤 블록이 있는 경우, 그 블록의 indent를 기준으로
+      newIndent = afterNode.indent;
+    }
+
+    // indent 변화량 계산 -> 추후 자식 블록들에 indentDiff만큼 적용
+    const indentDiff = newIndent - targetNode.indent;
+
+    // 타겟 블록 업데이트
+    targetNode.indent = newIndent;
+
+    // Reorder 연산
+    const reorderOp = editorCRDT.localReorder({
+      targetId: targetNode.id,
+      beforeId: beforeNode?.id || null,
+      afterId: afterNode?.id || null,
+      pageId,
+    });
+    operations.push({ type: "reorder", operation: reorderOp });
+
+    // Update 연산 (indent 갱신)
+    const updateOp = editorCRDT.localUpdate(targetNode, pageId);
+    operations.push({ type: "update", operation: updateOp });
+
+    // 자식 블록들 처리
+    let prevBlock = targetNode;
+    childBlocks.forEach((child) => {
+      const childNewIndent = Math.max(0, child.indent + indentDiff);
+      child.indent = childNewIndent;
+
+      const childReorderOp = editorCRDT.localReorder({
+        targetId: child.id,
+        beforeId: prevBlock.id,
+        afterId: afterNode?.id || null,
+        pageId,
+      });
+      operations.push({ type: "reorder", operation: childReorderOp });
+
+      const childUpdateOp = editorCRDT.localUpdate(child, pageId);
+      operations.push({ type: "update", operation: childUpdateOp });
+
+      prevBlock = child;
+    });
+
+    return operations;
+  };
+
+  const handleDragEnd = (
+    event: DragEndEvent,
+    draggingBlock: String[],
+    initDraggingBlock: () => void,
+  ) => {
+    // 커서 다시 원래대로
+    document.body.style.cursor = "auto";
+    initDraggingBlock();
+
     const { active, over } = event;
+    if (!over) return;
 
-    if (!over || active.id === over.id) return;
+    // 지금 놓으려는 블록(over)이 드래깅 중인 블록이거나, 드래깅 중인 블록의 자식 블록이면 무시
+    const disableDrag = draggingBlock.some((item) => item === over.data.current?.id);
+
+    if (disableDrag) return;
 
     try {
       const nodes = editorState.linkedList.spread();
@@ -53,13 +145,11 @@ export const useBlockDragAndDrop = ({
         (block) => block.id.client === overInfo.client && block.id.clock === overInfo.clock,
       );
 
-      if (!targetNode || !overNode) {
-        throw new Error("Unable to find target or destination node");
-      }
+      if (!targetNode || !overNode) return;
 
+      // 드래그 방향에 따라 beforeNode와 afterNode 결정
       const targetIndex = nodes.indexOf(targetNode);
       const overIndex = nodes.indexOf(overNode);
-
       // 드래그 방향 결정
       const isMoveDown = targetIndex < overIndex;
 
@@ -76,18 +166,18 @@ export const useBlockDragAndDrop = ({
         beforeNode = overIndex > 0 ? nodes[overIndex - 1] : null;
         afterNode = overNode;
       }
-
       // EditorCRDT의 현재 상태로 작업
-      const operation = editorCRDT.localReorder({
-        targetId: targetNode.id,
-        beforeId: beforeNode?.id || null,
-        afterId: afterNode?.id || null,
-        pageId,
+      const operations = reorderBlocksWithChildren(nodes, targetNode, beforeNode, afterNode);
+
+      // 각 operation type에 따라 함수 호출 (reorder + update(indent 갱신))
+      operations.forEach((op) => {
+        if (op.type === "reorder") {
+          sendBlockReorderOperation(op.operation as RemoteBlockReorderOperation);
+        } else if (op.type === "update") {
+          sendBlockUpdateOperation(op.operation as RemoteBlockUpdateOperation);
+        }
       });
 
-      sendBlockReorderOperation(operation);
-
-      // EditorState 업데이트
       setEditorState({
         clock: editorCRDT.clock,
         linkedList: editorCRDT.LinkedList,
@@ -97,8 +187,11 @@ export const useBlockDragAndDrop = ({
     }
   };
 
+  const handleDragStart = (block: Block) => {};
+
   return {
     sensors,
     handleDragEnd,
+    handleDragStart,
   };
 };
