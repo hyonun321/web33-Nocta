@@ -3,7 +3,7 @@ import { defineTextStyles } from "@pandacss/dev";
 export const textStyles = defineTextStyles({
   "display-medium16": {
     value: {
-      fontFamily: "Inter",
+      fontFamily: "pretendard",
       fontWeight: "500",
       fontSize: "16px",
       lineHeight: "24px",
@@ -15,7 +15,7 @@ export const textStyles = defineTextStyles({
 
   "display-medium20": {
     value: {
-      fontFamily: "Inter",
+      fontFamily: "pretendard",
       fontWeight: "500",
       fontSize: "20px",
       lineHeight: "28px",
@@ -27,7 +27,7 @@ export const textStyles = defineTextStyles({
 
   "display-medium24": {
     value: {
-      fontFamily: "Inter",
+      fontFamily: "pretendard",
       fontWeight: "500",
       fontSize: "24px",
       lineHeight: "32px",
@@ -39,7 +39,7 @@ export const textStyles = defineTextStyles({
 
   "display-medium28": {
     value: {
-      fontFamily: "Inter",
+      fontFamily: "pretendard",
       fontWeight: "700",
       fontSize: "28px",
       lineHeight: "36px",
@@ -51,7 +51,7 @@ export const textStyles = defineTextStyles({
 
   "display-medium32": {
     value: {
-      fontFamily: "Inter",
+      fontFamily: "pretendard",
       fontWeight: "700",
       fontSize: "32px",
       lineHeight: "40px",
