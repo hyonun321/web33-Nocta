@@ -115,6 +115,9 @@ export const useMarkdownGrammer = ({
           // 새 블록 생성
           const operation = createNewBlock(currentIndex + 1);
           operation.node.crdt = new BlockCRDT(editorCRDT.client);
+          if (currentBlock.type === "ol") {
+            operation.node.listIndex = currentBlock.listIndex! + 1;
+          }
           operation.node.indent = currentBlock.indent;
           sendBlockInsertOperation({ type: "blockInsert", node: operation.node, pageId });
 
@@ -378,6 +381,71 @@ export const useMarkdownGrammer = ({
             updateEditorState();
           }
 
+          break;
+        }
+
+        case "Delete": {
+          const currentContent = currentBlock.crdt.read();
+          if (!currentBlock.next || currentContent) return;
+          const nextBlock = editorCRDT.LinkedList.getNode(currentBlock.next);
+          if (!nextBlock) return;
+          sendCharDeleteOperation(
+            currentBlock.crdt.localDelete(currentIndex + 1, currentBlock.id, pageId),
+          );
+          updateEditorState();
+          break;
+        }
+
+        case "Home":
+        case "End": {
+          currentBlock.crdt.currentCaret = e.key === "Home" ? 0 : currentBlock.crdt.read().length;
+          setCaretPosition({
+            blockId: currentBlock.id,
+            linkedList: editorCRDT.LinkedList,
+            position: currentBlock.crdt.currentCaret,
+            pageId,
+          });
+          break;
+        }
+
+        case "PageUp": {
+          e.preventDefault();
+          const currentCaretPosition = currentBlock.crdt.currentCaret;
+          const headBlock = editorCRDT.LinkedList.getNode(editorCRDT.LinkedList.head);
+          if (!headBlock) return;
+          headBlock.crdt.currentCaret = Math.min(
+            currentCaretPosition,
+            headBlock.crdt.read().length,
+          );
+          editorCRDT.currentBlock = headBlock;
+          setCaretPosition({
+            blockId: headBlock.id,
+            linkedList: editorCRDT.LinkedList,
+            position: currentCaretPosition,
+            pageId,
+          });
+          break;
+        }
+
+        case "PageDown": {
+          e.preventDefault();
+          if (!currentBlock.next) return;
+          const currentCaretPosition = currentBlock.crdt.currentCaret;
+          let lastBlock = currentBlock;
+          while (lastBlock.next && editorCRDT.LinkedList.getNode(lastBlock.next)) {
+            lastBlock = editorCRDT.LinkedList.getNode(lastBlock.next)!;
+          }
+          lastBlock.crdt.currentCaret = Math.min(
+            currentCaretPosition,
+            lastBlock.crdt.read().length,
+          );
+          editorCRDT.currentBlock = lastBlock;
+          setCaretPosition({
+            blockId: lastBlock.id,
+            linkedList: editorCRDT.LinkedList,
+            position: currentCaretPosition,
+            pageId,
+          });
           break;
         }
 

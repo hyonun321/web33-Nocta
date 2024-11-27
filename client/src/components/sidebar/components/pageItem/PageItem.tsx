@@ -44,8 +44,9 @@ export const PageItem = ({
     }
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (e: React.MouseEvent) => {
     closeModal();
+    e.stopPropagation();
   };
 
   const handleSelectIcon = (e: React.MouseEvent, type: PageIconType) => {

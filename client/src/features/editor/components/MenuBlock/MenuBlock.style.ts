@@ -3,7 +3,9 @@ import { css } from "@styled-system/css";
 export const menuBlockStyle = css({
   display: "flex",
   zIndex: 1,
-  position: "relative",
+  position: "absolute",
+  top: 0,
+  left: 0,
   justifyContent: "center",
   alignItems: "center",
   width: "20px",

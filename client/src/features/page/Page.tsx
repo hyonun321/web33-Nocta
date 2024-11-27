@@ -25,6 +25,7 @@ export const Page = ({
   y,
   title,
   zIndex,
+  icon,
   isActive,
   handlePageSelect,
   handlePageClose,
@@ -71,7 +72,7 @@ export const Page = ({
         onPointerDown={handlePageClick}
       >
         <div className={pageHeader} onPointerDown={pageDrag} onClick={handlePageClick}>
-          <PageTitle title={title} />
+          <PageTitle title={title} icon={icon} />
           <PageControlButton
             onPageClose={() => handlePageClose(id)}
             onPageMaximize={pageMaximize}

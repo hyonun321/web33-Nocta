@@ -139,13 +139,7 @@ const setsEqual = (a: Set<string>, b: Set<string>): boolean => {
 };
 
 const sanitizeText = (text: string): string => {
-  return text
-    .replace(/<br>/g, "&nbsp;")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return text.replace(/<br>/g, "\u00A0");
 };
 
 // 배열 비교 헬퍼 함수

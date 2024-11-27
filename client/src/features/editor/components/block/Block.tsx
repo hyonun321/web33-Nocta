@@ -38,7 +38,11 @@ interface BlockProps {
     blockRef: HTMLDivElement | null,
     block: CRDTBlock,
   ) => void;
-  onPaste: (e: React.ClipboardEvent<HTMLDivElement>, block: CRDTBlock) => void;
+  onPaste: (
+    e: React.ClipboardEvent<HTMLDivElement>,
+    blockRef: HTMLDivElement | null,
+    block: CRDTBlock,
+  ) => void;
   onClick: (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => void;
   onAnimationSelect: (blockId: BlockId, animation: AnimationType) => void;
   onTypeSelect: (blockId: BlockId, type: ElementType) => void;
@@ -253,7 +257,7 @@ export const Block: React.FC<BlockProps> = memo(
             onInput={handleInput}
             onClick={(e) => onClick(block.id, e)}
             onCopy={(e) => onCopy(e, blockRef.current, block)}
-            onPaste={(e) => onPaste(e, block)}
+            onPaste={(e) => onPaste(e, blockRef.current, block)}
             onMouseUp={handleMouseUp}
             onCompositionEnd={(e) => onCompositionEnd(e, block)}
             contentEditable={block.type !== "hr"}
