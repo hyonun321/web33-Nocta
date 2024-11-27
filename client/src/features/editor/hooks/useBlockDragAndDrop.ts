@@ -1,5 +1,5 @@
 // hooks/useBlockDragAndDrop.ts
-import { DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { Block } from "@noctaCrdt/Node";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
@@ -109,7 +109,7 @@ export const useBlockDragAndDrop = ({
 
   const handleDragEnd = (
     event: DragEndEvent,
-    draggingBlock: String[],
+    dragBlockList: string[],
     initDraggingBlock: () => void,
   ) => {
     // 커서 다시 원래대로
@@ -120,7 +120,7 @@ export const useBlockDragAndDrop = ({
     if (!over) return;
 
     // 지금 놓으려는 블록(over)이 드래깅 중인 블록이거나, 드래깅 중인 블록의 자식 블록이면 무시
-    const disableDrag = draggingBlock.some((item) => item === over.data.current?.id);
+    const disableDrag = dragBlockList.some((item) => item === over.data.current?.id);
 
     if (disableDrag) return;
 
@@ -187,7 +187,43 @@ export const useBlockDragAndDrop = ({
     }
   };
 
-  const handleDragStart = (block: Block) => {};
+  const handleDragStart = (
+    event: DragStartEvent,
+
+    setDragBlockList: React.Dispatch<React.SetStateAction<string[]>>,
+  ) => {
+    document.body.style.cursor = "grabbing";
+    const { active } = event;
+    const parentId = active.data.current?.id;
+    const parentIndent = active.data.current?.block.indent;
+
+    if (!parentId) return;
+
+    const findChildBlocks = (parentId: string) => {
+      const blocks = editorState.linkedList.spread();
+      const parentIndex = blocks.findIndex(
+        (block) => `${block.id.client}-${block.id.clock}` === parentId,
+      );
+
+      if (parentIndex === -1) return [];
+
+      const childBlockId = [];
+
+      for (let i = parentIndex + 1; i < blocks.length; i++) {
+        if (blocks[i].indent > parentIndent) {
+          childBlockId.push(`${blocks[i].id.client}-${blocks[i].id.clock}`);
+        } else {
+          break;
+        }
+      }
+
+      return childBlockId;
+    };
+
+    const childBlockId = findChildBlocks(parentId);
+
+    setDragBlockList([parentId, ...childBlockId]);
+  };
 
   return {
     sensors,
