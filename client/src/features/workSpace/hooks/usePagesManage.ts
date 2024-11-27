@@ -88,6 +88,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
 
   const fetchPage = () => {
     const operation = {
+      type: "pageCreate",
       workspaceId: workspace!.id!,
       clientId: clientId!,
     } as RemotePageCreateOperation;
@@ -205,6 +206,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
 
     if (syncWithServer && clientId && workspace?.id) {
       sendPageUpdateOperation({
+        type: "pageUpdate",
         pageId,
         ...updates,
         clientId,

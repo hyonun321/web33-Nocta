@@ -192,10 +192,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   sendBlockReorderOperation: (operation: RemoteBlockReorderOperation) => {
-    // const { socket } = get();
-    // socket?.emit("reorder/block", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("reorder/block", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => {
