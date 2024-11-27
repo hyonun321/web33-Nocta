@@ -156,13 +156,13 @@ export const dropIndicatorStyle = cva({
         backgroundColor: "#ADADFF",
       },
       second: {
-        left: "14px",
-        width: "calc(100% - 14px)",
+        left: "10px",
+        width: "calc(100% - 10px)",
         backgroundColor: "#9B9BFF ",
       },
       third: {
-        left: "26px",
-        width: "calc(100% - 26px)",
+        left: "20px",
+        width: "calc(100% - 20px)",
         backgroundColor: "#8989FF",
       },
     },
