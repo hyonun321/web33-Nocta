@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { NoctaIcon } from "@components/lotties/NoctaIcon";
 import { containerVariants, bottomTextVariants, topTextVariants } from "./IntroScreen.animation";
-import { IntroScreenContainer, topText, bottomText } from "./IntroScreen.style";
+import { IntroScreenContainer, topText, bottomText, overLayContainer } from "./IntroScreen.style";
 
 export const IntroScreen = () => {
   return (
@@ -20,6 +20,7 @@ export const IntroScreen = () => {
       <motion.div variants={bottomTextVariants} className={bottomText}>
         Nocta
       </motion.div>
+      <div className={overLayContainer}></div>
     </motion.div>
   );
 };

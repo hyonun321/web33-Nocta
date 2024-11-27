@@ -1,5 +1,5 @@
 import { Player } from "@lottiefiles/react-lottie-player";
-import noctaIcon from "@assets/lotties/noctaIcon.json";
+import noctaIcon from "@assets/lotties/noctaDayIcon.json";
 
 export const NoctaIcon = ({ size = 200 }) => {
   return (

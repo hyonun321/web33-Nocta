@@ -22,6 +22,7 @@ export const topText = css({
   fontSize: "2xl",
   opacity: 1,
   animation: "fadeIn",
+  textShadow: "0px 0px 5px white",
   animationDelay: "0.5s",
 });
 
@@ -32,9 +33,20 @@ export const bottomText = css({
   width: "100%",
   color: "gray.900",
   textAlign: "center",
+  textShadow: "0px 0px 5px white",
   fontSize: "4xl",
   fontWeight: "bold",
   opacity: 1,
   animation: "",
   animationDelay: "0.5s",
+});
+
+export const overLayContainer = css({
+  zIndex: -1,
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  backgroundColor: "gray.500/30",
 });
