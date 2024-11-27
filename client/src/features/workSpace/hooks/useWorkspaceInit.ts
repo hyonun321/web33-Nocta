@@ -12,23 +12,21 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { socket } = useSocketStore();
-  const isDevelopment = import.meta.env.VITE_ENVIRONMENT === "development";
 
-  const IntroWaitTime = isDevelopment ? 0 : 4700;
-  console.log(IntroWaitTime, import.meta.env.VITE_ENVIRONMENT);
+  const isFirstVisit = !sessionStorage.getItem("hasVisitedBefore");
+
   useEffect(() => {
     const initializeWorkspace = async () => {
       try {
-        // TODO: 필요한 초기 데이터 로드
-        // 예시:
-        // await Promise.all([
-        //   fetchUserSettings(),
-        //   fetchInitialPages(),
-        //   fetchWorkspaceData(),
-        // ]);
-        // 개발 중에는 임시로 딜레이를 줘서 스플래시 화면 확인
+        // 첫 방문이 아니면 IntroScreen 시간을 0으로 설정
+        const IntroWaitTime = isFirstVisit ? 4700 : 0;
+
         await new Promise((resolve) => setTimeout(resolve, IntroWaitTime));
 
+        // 첫 방문 표시 저장 (sessionStorage 사용)
+        if (isFirstVisit) {
+          sessionStorage.setItem("hasVisitedBefore", "true");
+        }
         setIsInitialized(true);
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to initialize workspace"));
@@ -41,7 +39,7 @@ export const useWorkspaceInit = (): UseWorkspaceInitReturn => {
     };
 
     initializeWorkspace();
-  }, [socket]);
+  }, [socket, isFirstVisit]);
 
-  return { isLoading, isInitialized, error };
+  return { isLoading: isLoading && isFirstVisit, isInitialized, error };
 };
