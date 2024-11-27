@@ -1,4 +1,4 @@
-import { cva } from "@styled-system/css";
+import { css, cva } from "@styled-system/css";
 
 const baseBlockStyle = {
   display: "flex",
@@ -139,5 +139,32 @@ export const textContainerStyle = cva({
   },
   defaultVariants: {
     type: "p",
+  },
+});
+
+export const dropIndicatorStyle = cva({
+  base: {
+    zIndex: "10",
+    position: "absolute",
+    height: "2px",
+  },
+  variants: {
+    indent: {
+      first: {
+        left: "0",
+        width: "100%",
+        backgroundColor: "#ADADFF",
+      },
+      second: {
+        left: "14px",
+        width: "calc(100% - 14px)",
+        backgroundColor: "#9B9BFF ",
+      },
+      third: {
+        left: "26px",
+        width: "calc(100% - 26px)",
+        backgroundColor: "#8989FF",
+      },
+    },
   },
 });
