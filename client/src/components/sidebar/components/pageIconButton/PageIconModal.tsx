@@ -2,13 +2,7 @@ import { PageIconType } from "@noctaCrdt/Interfaces";
 import { RiCloseLine } from "react-icons/ri";
 import { iconGroups, iconComponents } from "@constants/PageIconButton.config";
 import { css } from "@styled-system/css";
-import {
-  IconModal,
-  IconModalContainer,
-  IconModalClose,
-  IconName,
-  IconButton,
-} from "./pageIconModal.style";
+import { IconModal, IconModalContainer, IconModalClose, IconButton } from "./pageIconModal.style";
 
 export interface PageIconModalProps {
   isOpen: boolean;

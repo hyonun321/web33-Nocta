@@ -3,7 +3,7 @@ import { css } from "@styled-system/css";
 export const pageItemContainer = css({
   display: "flex",
   position: "relative",
-  gap: "sm",
+  gap: "lg",
   alignItems: "center",
   width: "100%",
   height: "56px",

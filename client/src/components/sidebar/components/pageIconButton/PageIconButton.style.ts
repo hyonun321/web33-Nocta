@@ -11,8 +11,7 @@ export const IconBox = css({
 
   cursor: "pointer",
   "&:hover": {
-    transform: "scale(1.05)",
-    opacity: 0.8,
+    transform: "scale(1.1)",
   },
 });
 
