@@ -20,7 +20,7 @@ interface UseCopyAndPasteProps {
 }
 
 export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyAndPasteProps) => {
-  const { sendCharInsertOperation } = useSocketStore();
+  const { sendCharInsertOperation, sendCharDeleteOperation } = useSocketStore();
 
   const handleCopy = useCallback(
     (e: React.ClipboardEvent<HTMLDivElement>, blockRef: HTMLDivElement | null, block: Block) => {
@@ -61,64 +61,84 @@ export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyA
     [],
   );
 
-  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLDivElement>, block: Block) => {
-    e.preventDefault();
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLDivElement>, blockRef: HTMLDivElement | null, block: Block) => {
+      e.preventDefault();
+      if (!blockRef) return;
 
-    const customData = e.clipboardData.getData("application/x-nocta-formatted");
+      const selection = window.getSelection();
 
-    if (customData) {
-      const { metadata } = JSON.parse(customData);
-      const caretPosition = block.crdt.currentCaret;
+      if (selection && !selection.isCollapsed) {
+        const range = selection.getRangeAt(0);
+        if (!blockRef.contains(range.commonAncestorContainer)) return;
 
-      metadata.forEach((char: ClipboardMetadata, index: number) => {
-        const insertPosition = caretPosition + index;
-        const charNode = block.crdt.localInsert(
-          insertPosition,
-          char.value,
-          block.id,
-          pageId,
-          char.style,
-          char.color,
-          char.backgroundColor,
-        );
-        sendCharInsertOperation({
-          node: charNode.node,
-          blockId: block.id,
-          pageId,
-          style: char.style,
-          color: char.color,
-          backgroundColor: char.backgroundColor,
+        const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
+        const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
+
+        // 선택된 범위의 문자들을 역순으로 삭제
+        for (let i = endOffset - 1; i >= startOffset; i--) {
+          const operationNode = block.crdt.localDelete(i, block.id, pageId);
+          sendCharDeleteOperation(operationNode);
+        }
+      }
+
+      const customData = e.clipboardData.getData("application/x-nocta-formatted");
+
+      if (customData) {
+        const { metadata } = JSON.parse(customData);
+        const caretPosition = block.crdt.currentCaret;
+
+        metadata.forEach((char: ClipboardMetadata, index: number) => {
+          const insertPosition = caretPosition + index;
+          const charNode = block.crdt.localInsert(
+            insertPosition,
+            char.value,
+            block.id,
+            pageId,
+            char.style,
+            char.color,
+            char.backgroundColor,
+          );
+          sendCharInsertOperation({
+            node: charNode.node,
+            blockId: block.id,
+            pageId,
+            style: char.style,
+            color: char.color,
+            backgroundColor: char.backgroundColor,
+          });
         });
-      });
 
-      editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + metadata.length;
-    } else {
-      const text = e.clipboardData.getData("text/plain");
+        editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + metadata.length;
+      } else {
+        const text = e.clipboardData.getData("text/plain");
 
-      if (!block || text.length === 0) return;
+        if (!block || text.length === 0) return;
 
-      const caretPosition = block.crdt.currentCaret;
+        const caretPosition = block.crdt.currentCaret;
 
-      // 텍스트를 한 글자씩 순차적으로 삽입
-      text.split("").forEach((char, index) => {
-        const insertPosition = caretPosition + index;
-        const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
-        sendCharInsertOperation({
-          node: charNode.node,
-          blockId: block.id,
-          pageId,
+        // 텍스트를 한 글자씩 순차적으로 삽입
+        text.split("").forEach((char, index) => {
+          const insertPosition = caretPosition + index;
+          const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
+          sendCharInsertOperation({
+            node: charNode.node,
+            blockId: block.id,
+            pageId,
+          });
         });
+
+        // 캐럿 위치 업데이트
+        editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + text.length;
+      }
+
+      setEditorState({
+        clock: editorCRDT.clock,
+        linkedList: editorCRDT.LinkedList,
       });
-
-      // 캐럿 위치 업데이트
-      editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + text.length;
-    }
-
-    setEditorState({
-      clock: editorCRDT.clock,
-      linkedList: editorCRDT.LinkedList,
-    });
-  }, []);
+    },
+    [],
+  );
 
   return { handleCopy, handlePaste };
 };
