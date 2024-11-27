@@ -7,10 +7,10 @@ import {
   RemoteBlockUpdateOperation,
   RemoteCharInsertOperation,
 } from "@noctaCrdt/Interfaces";
+import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { BlockLinkedList } from "node_modules/@noctaCrdt/LinkedList";
 import { EditorStateProps } from "../Editor";
-import { Block } from "@noctaCrdt/Node";
 
 interface useBlockOptionSelectProps {
   editorCRDT: EditorCRDT;
@@ -51,6 +51,7 @@ export const useBlockOptionSelect = ({
     }
 
     sendBlockUpdateOperation({
+      type: "blockUpdate",
       node: block,
       pageId,
     });
@@ -70,6 +71,7 @@ export const useBlockOptionSelect = ({
     editorCRDT.remoteUpdate(block, pageId);
 
     sendBlockUpdateOperation({
+      type: "blockUpdate",
       node: block,
       pageId,
     });
@@ -98,7 +100,7 @@ export const useBlockOptionSelect = ({
       operation.node.crdt = new BlockCRDT(editorCRDT.client);
 
       // 먼저 새로운 블록을 만들고
-      sendBlockInsertOperation({ node: operation.node, pageId });
+      sendBlockInsertOperation({ type: "blockInsert", node: operation.node, pageId });
 
       // 내부 문자 노드 복사
       block.crdt.LinkedList.spread().forEach((char, index) => {
@@ -113,6 +115,7 @@ export const useBlockOptionSelect = ({
 
       // 여기서 update를 한번 더 해주면 된다. (block의 속성 (animation, type, style, icon)을 복사하기 위함)
       sendBlockUpdateOperation({
+        type: "blockUpdate",
         node: operation.node,
         pageId,
       });

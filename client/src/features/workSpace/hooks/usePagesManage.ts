@@ -1,4 +1,9 @@
-import { PageIconType, serializedEditorDataProps } from "@noctaCrdt/Interfaces";
+import {
+  PageIconType,
+  RemotePageCreateOperation,
+  RemotePageUpdateOperation,
+  serializedEditorDataProps,
+} from "@noctaCrdt/Interfaces";
 import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { WorkSpace } from "@noctaCrdt/WorkSpace";
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -26,7 +31,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
           title: operation.title,
           workspaceId: operation.workspaceId,
           clientId: operation.clientId,
-        });
+        } as RemotePageUpdateOperation);
         setPages((prevPages) =>
           prevPages.map((page) =>
             page.id === operation.pageId
@@ -85,7 +90,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
     const operation = {
       workspaceId: workspace!.id!,
       clientId: clientId!,
-    };
+    } as RemotePageCreateOperation;
     sendPageCreateOperation(operation);
   };
 
@@ -204,7 +209,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         ...updates,
         clientId,
         workspaceId: workspace.id,
-      });
+      } as RemotePageUpdateOperation);
     }
   };
 

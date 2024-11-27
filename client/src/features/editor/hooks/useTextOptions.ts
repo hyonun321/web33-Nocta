@@ -60,6 +60,7 @@ export const useTextOptionSelect = ({
         // 업데이트 및 전송
         block.crdt.localUpdate(char, node.id, pageId);
         sendCharUpdateOperation({
+          type: "charUpdate",
           node: char,
           blockId,
           pageId,
@@ -91,6 +92,7 @@ export const useTextOptionSelect = ({
         // 업데이트 및 전송
         block.crdt.localUpdate(char, node.id, pageId);
         sendCharUpdateOperation({
+          type: "charUpdate",
           node: char,
           blockId,
           pageId,
@@ -122,6 +124,7 @@ export const useTextOptionSelect = ({
         // 업데이트 및 전송
         block.crdt.localUpdate(char, node.id, pageId);
         sendCharUpdateOperation({
+          type: "charUpdate",
           node: char,
           blockId,
           pageId,

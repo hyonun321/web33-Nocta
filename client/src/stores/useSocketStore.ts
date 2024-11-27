@@ -1,3 +1,4 @@
+import { BatchProcessor } from "@noctaCrdt/BatchProcessor";
 import {
   RemotePageCreateOperation,
   RemoteBlockInsertOperation,
@@ -19,6 +20,7 @@ interface SocketStore {
   socket: Socket | null;
   clientId: number | null;
   workspace: WorkSpaceSerializedProps | null;
+  batchProcessor: BatchProcessor;
   init: (accessToken: string | null) => void;
   cleanup: () => void;
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
@@ -36,6 +38,7 @@ interface SocketStore {
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => (() => void) | undefined;
   subscribeToPageOperations: (handlers: PageOperationsHandlers) => (() => void) | undefined;
   setWorkspace: (workspace: WorkSpaceSerializedProps) => void;
+  sendOperation: (operation: any) => void;
 }
 
 interface RemoteOperationHandlers {
@@ -47,6 +50,7 @@ interface RemoteOperationHandlers {
   onRemoteCharDelete: (operation: RemoteCharDeleteOperation) => void;
   onRemoteCharUpdate: (operation: RemoteCharUpdateOperation) => void;
   onRemoteCursor: (position: CursorPosition) => void;
+  onBatchOperations: (batch: any[]) => void;
 }
 
 interface PageOperationsHandlers {
@@ -59,6 +63,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
   clientId: null,
   workspace: null,
+  batchProcessor: new BatchProcessor((batch) => {
+    const { socket } = get();
+    socket?.emit("batch/operations", batch);
+  }),
 
   init: (id: string | null) => {
     const { socket: existingSocket } = get();
@@ -124,47 +132,58 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   sendPageUpdateOperation: (operation: RemotePageUpdateOperation) => {
     const { socket } = get();
     socket?.emit("update/page", operation);
-    console.log("페이지 업데이트 송신", operation);
   },
 
   sendPageCreateOperation: (operation: RemotePageCreateOperation) => {
     const { socket } = get();
     socket?.emit("create/page", operation);
-    console.log("페이지 만들기 송신", operation);
   },
+
   sendPageDeleteOperation: (operation: RemotePageDeleteOperation) => {
     const { socket } = get();
     socket?.emit("delete/page", operation);
-    console.log("페이지 삭제 송신", operation);
   },
+
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => {
-    const { socket } = get();
-    socket?.emit("insert/block", operation);
+    // const { socket } = get();
+    // socket?.emit("insert/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => {
-    const { socket } = get();
-    socket?.emit("insert/char", operation);
+    // const { socket } = get();
+    // socket?.emit("insert/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => {
-    const { socket } = get();
-    socket?.emit("update/block", operation);
+    // const { socket } = get();
+    // socket?.emit("update/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => {
-    const { socket } = get();
-    socket?.emit("delete/block", operation);
+    // const { socket } = get();
+    // socket?.emit("delete/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => {
-    const { socket } = get();
-    socket?.emit("delete/char", operation);
+    // const { socket } = get();
+    // socket?.emit("delete/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharUpdateOperation: (operation: RemoteCharUpdateOperation) => {
-    const { socket } = get();
-    socket?.emit("update/char", operation);
+    // const { socket } = get();
+    // socket?.emit("update/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCursorPosition: (position: CursorPosition) => {
@@ -173,8 +192,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   sendBlockReorderOperation: (operation: RemoteBlockReorderOperation) => {
-    const { socket } = get();
-    socket?.emit("reorder/block", operation);
+    // const { socket } = get();
+    // socket?.emit("reorder/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => {
@@ -189,6 +210,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket.on("delete/char", handlers.onRemoteCharDelete);
     socket.on("update/char", handlers.onRemoteCharUpdate);
     socket.on("cursor", handlers.onRemoteCursor);
+    socket.on("batch/operations", handlers.onBatchOperations);
 
     return () => {
       socket.off("update/block", handlers.onRemoteBlockUpdate);
@@ -199,6 +221,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("delete/char", handlers.onRemoteCharDelete);
       socket.off("update/char", handlers.onRemoteCharUpdate);
       socket.off("cursor", handlers.onRemoteCursor);
+      socket.off("batch/operations", handlers.onBatchOperations);
     };
   },
 
@@ -213,5 +236,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("delete/page", handlers.onRemotePageDelete);
       socket.off("update/page", handlers.onRemotePageUpdate);
     };
+  },
+
+  sendOperation: (operation: any) => {
+    const { batchProcessor } = get();
+    batchProcessor.addOperation(operation);
   },
 }));
