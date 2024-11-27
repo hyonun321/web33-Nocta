@@ -27,10 +27,26 @@ import { Logger } from "@nestjs/common";
 import { nanoid } from "nanoid";
 import { Page } from "@noctaCrdt/Page";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
+
 // 클라이언트 맵 타입 정의
 interface ClientInfo {
   clientId: number;
   connectionTime: Date;
+}
+
+interface BatchOperation {
+  event: string;
+  operation:
+    | RemotePageCreateOperation
+    | RemotePageDeleteOperation
+    | RemotePageUpdateOperation
+    | RemoteBlockInsertOperation
+    | RemoteBlockDeleteOperation
+    | RemoteBlockUpdateOperation
+    | RemoteBlockReorderOperation
+    | RemoteCharInsertOperation
+    | RemoteCharDeleteOperation
+    | RemoteCharUpdateOperation;
 }
 
 @WebSocketGateway({
@@ -48,7 +64,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private readonly logger = new Logger(CrdtGateway.name);
   private clientIdCounter: number = 1;
   private clientMap: Map<string, ClientInfo> = new Map();
-  private batchMap: Map<string, any[]> = new Map();
+  private batchMap: Map<string, BatchOperation[]> = new Map();
   constructor(private readonly workSpaceService: workSpaceService) {}
 
   afterInit(server: Server) {
@@ -61,7 +77,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (!this.batchMap.has(key)) {
         this.batchMap.set(key, []);
       }
-      this.batchMap.get(key).push({ event, operation });
+      this.batchMap.get(key)!.push({ event, operation });
     } else {
       const server = this.workSpaceService.getServer();
       server.to(roomId).except(clientId).emit(event, operation);
@@ -136,6 +152,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @MessageBody() data: { pageId: string },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
+    const start = process.hrtime();
     const clientInfo = this.clientMap.get(client.id);
     if (!clientInfo) {
       throw new WsException("Client information not found");
@@ -152,18 +169,10 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       // pageId에 가입 시키기
       client.join(pageId);
 
-      // 정보 모니터링
-      const server = this.workSpaceService.getServer();
-      const start = process.hrtime();
-      const [seconds, nanoseconds] = process.hrtime(start);
-      this.logger.log(`Page join operation took ${seconds}s ${nanoseconds / 1000000}ms\n`);
-      this.logger.log(`Active connections: ${server.engine.clientsCount}\n`);
-      this.logger.log(`Connected clients: ${this.clientMap.size}`);
-      this.logger.log(`Memory usage: ${process.memoryUsage().heapUsed}`),
-        client.emit("join/page", {
-          pageId,
-          serializedPage: currentPage.serialize(),
-        });
+      client.emit("join/page", {
+        pageId,
+        serializedPage: currentPage.serialize(),
+      });
       this.logger.log(`Client ${clientInfo.clientId} joined page ${pageId}`);
     } catch (error) {
       this.logger.error(
@@ -171,6 +180,14 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         error.stack,
       );
       throw new WsException(`페이지 참여 실패: ${error.message}`);
+    } finally {
+      // 정보 모니터링
+      const server = this.workSpaceService.getServer();
+      const [seconds, nanoseconds] = process.hrtime(start);
+      this.logger.log(`Page join operation took ${seconds}s ${nanoseconds / 1000000}ms`);
+      this.logger.log(`Active connections: ${server.engine.clientsCount}`);
+      this.logger.log(`Connected clients: ${this.clientMap.size}`);
+      this.logger.log(`Memory usage: ${process.memoryUsage().heapUsed}`);
     }
   }
 
@@ -665,72 +682,95 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @SubscribeMessage("batch/operations")
   async handleBatchOperations(@MessageBody() batch: any[], @ConnectedSocket() client: Socket) {
-    const clientInfo = this.clientMap.get(client.id);
-    if (!clientInfo) {
-      return;
-    }
+    const start = process.hrtime();
 
-    this.logger.debug(`Batch 연산 수행중... - Client ID: ${clientInfo?.clientId}`);
-    for (const operation of batch) {
-      // 각 연산 처리 로직
-      await this.processOperation(operation, client);
-    }
-    this.logger.debug(`Batch 연산 완료 - Client ID: ${clientInfo?.clientId}`);
+    try {
+      const clientInfo = this.clientMap.get(client.id);
+      if (!clientInfo) {
+        return;
+      }
 
-    // 다른 클라이언트들에게 배치 전송
-    if (batch.length > 0) {
-      this.executeBatch();
+      this.logger.debug(`Batch 연산 수행중... - Client ID: ${clientInfo?.clientId}`);
+      for (const operation of batch) {
+        // 각 연산 처리 로직
+        await this.processOperation(operation, client);
+      }
+      this.logger.debug(`Batch 연산 완료 - Client ID: ${clientInfo?.clientId}`);
+
+      // 다른 클라이언트들에게 배치 전송
+      if (batch.length > 0) {
+        this.executeBatch();
+      }
+    } catch (error) {
+      throw new WsException(`Batch 연산 실패: ${error.message}`);
+    } finally {
+      // 정보 모니터링
+      const [seconds, nanoseconds] = process.hrtime(start);
+      this.logger.log(`Batch operation took ${seconds}s ${nanoseconds / 1000000}ms`);
+      this.logger.log(`Processed ${batch.length} operations`);
     }
   }
 
   executeBatch() {
-    const server = this.workSpaceService.getServer();
-    for (const [room, batch] of this.batchMap) {
-      if (batch.length > 0) {
-        const [clientId, roomId] = room.split(":");
-        server.to(roomId).except(clientId).emit("batch/operations", batch);
-        this.batchMap.delete(room);
+    try {
+      const server = this.workSpaceService.getServer();
+      const batches = Array.from(this.batchMap.entries());
+      for (const [room, batch] of batches) {
+        if (batch.length > 0) {
+          const [clientId, roomId] = room.split(":");
+          server.to(roomId).except(clientId).emit("batch/operations", batch);
+          this.batchMap.delete(room);
+        }
       }
+      this.batchMap.clear();
+    } catch (error) {
+      this.logger.error(`Batch 실행 중 오류 발생: ${error.message}`, error.stack);
+      throw new WsException(`Batch 실행 실패: ${error.message}`);
     }
   }
 
   private async processOperation(operation: any, client: Socket) {
-    switch (operation.type) {
-      case "blockInsert":
-        await this.handleBlockInsert(operation, client, true);
-        break;
-      case "blockUpdate":
-        await this.handleBlockUpdate(operation, client, true);
-        break;
-      case "blockDelete":
-        await this.handleBlockDelete(operation, client, true);
-        break;
-      case "blockReorder":
-        await this.handleBlockReorder(operation, client, true);
-        break;
-      case "charInsert":
-        await this.handleCharInsert(operation, client, true);
-        break;
-      case "charDelete":
-        await this.handleCharDelete(operation, client, true);
-        break;
-      case "charUpdate":
-        await this.handleCharUpdate(operation, client, true);
-        break;
-      case "pageCreate":
-        await this.handlePageCreate(operation, client, true);
-        break;
-      case "pageDelete":
-        await this.handlePageDelete(operation, client, true);
-        break;
-      case "pageUpdate":
-        await this.handlePageUpdate(operation, client, true);
-        break;
-      case "cursor":
-        await this.handleCursor(operation, client, true);
-        break;
-      default:
-        this.logger.warn("배치 연산 중 알 수 없는 연산 발견:", operation);
+    try {
+      switch (operation.type) {
+        case "blockInsert":
+          await this.handleBlockInsert(operation, client, true);
+          break;
+        case "blockUpdate":
+          await this.handleBlockUpdate(operation, client, true);
+          break;
+        case "blockDelete":
+          await this.handleBlockDelete(operation, client, true);
+          break;
+        case "blockReorder":
+          await this.handleBlockReorder(operation, client, true);
+          break;
+        case "charInsert":
+          await this.handleCharInsert(operation, client, true);
+          break;
+        case "charDelete":
+          await this.handleCharDelete(operation, client, true);
+          break;
+        case "charUpdate":
+          await this.handleCharUpdate(operation, client, true);
+          break;
+        case "pageCreate":
+          await this.handlePageCreate(operation, client, true);
+          break;
+        case "pageDelete":
+          await this.handlePageDelete(operation, client, true);
+          break;
+        case "pageUpdate":
+          await this.handlePageUpdate(operation, client, true);
+          break;
+        case "cursor":
+          await this.handleCursor(operation, client, true);
+          break;
+        default:
+          this.logger.warn("배치 연산 중 알 수 없는 연산 발견:", operation);
+      }
+    } catch (error) {
+      this.logger.error(`연산 처리 중 오류 발생: ${error.message}`, error.stack);
+      throw new WsException(`배치 연산 처리 실패: ${error.message}`);
     }
   }
 }
