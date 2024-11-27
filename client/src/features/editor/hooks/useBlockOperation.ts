@@ -53,15 +53,6 @@ export const useBlockOperation = ({
         return;
       }
 
-      // 드래그 선택 상태 확인
-      const selection = window.getSelection();
-      if (selection && !selection.isCollapsed) {
-        // 드래그 선택된 상태면 input 이벤트 무시
-        console.log("dragging");
-        e.preventDefault();
-        return;
-      }
-
       let operationNode;
       const element = e.currentTarget;
       const newContent = element.textContent || "";
@@ -136,45 +127,121 @@ export const useBlockOperation = ({
     [sendCharInsertOperation, sendCharDeleteOperation, editorCRDT, pageId],
   );
 
+  const deleteSelectedText = useCallback(
+    (block: Block, startOffset: number, endOffset: number) => {
+      for (let i = endOffset - 1; i >= startOffset; i--) {
+        const operationNode = block.crdt.localDelete(i, block.id, pageId);
+        sendCharDeleteOperation(operationNode);
+      }
+      block.crdt.currentCaret = startOffset;
+    },
+    [pageId, sendCharDeleteOperation],
+  );
+
+  const handleKeyWithSelection = useCallback(
+    (
+      e: React.KeyboardEvent<HTMLDivElement>,
+      block: Block,
+      startOffset: number,
+      endOffset: number,
+    ) => {
+      switch (e.key) {
+        case "Backspace":
+        case "Delete": {
+          e.preventDefault();
+          deleteSelectedText(block, startOffset, endOffset);
+          setEditorState({
+            clock: editorCRDT.clock,
+            linkedList: editorCRDT.LinkedList,
+          });
+          break;
+        }
+        // 복사, 잘라내기, 실행취소 등 조합 키는 기본 동작 허용
+        case "c":
+        case "v":
+        case "x":
+        case "z":
+        case "y": {
+          if (e.metaKey || e.ctrlKey) {
+            // 기본 브라우저 동작 허용
+            return;
+          }
+          deleteSelectedText(block, startOffset, endOffset);
+          onKeyDown(e);
+          break;
+        }
+        // 탐색 및 선택 관련 키
+        case "Tab":
+        case "ArrowLeft":
+        case "ArrowRight":
+        case "ArrowUp":
+        case "ArrowDown":
+        case "Home":
+        case "End":
+        case "PageUp":
+        case "PageDown": {
+          e.preventDefault();
+          onKeyDown(e);
+          break;
+        }
+        // 기능 키들은 기본 동작 허용
+        case "F1":
+        case "F2":
+        case "F3":
+        case "F4":
+        case "F5":
+        case "F6":
+        case "F7":
+        case "F8":
+        case "F9":
+        case "F10":
+        case "F11":
+        case "F12": {
+          return;
+        }
+        case "Enter": {
+          deleteSelectedText(block, startOffset, endOffset);
+          onKeyDown(e);
+          break;
+        }
+        case "Escape": {
+          // 선택 해제만 하고 다른 동작은 하지 않음
+          window.getSelection()?.removeAllRanges();
+          return;
+        }
+        default: {
+          // 일반 입력 키의 경우
+          if (e.metaKey || e.ctrlKey || e.altKey) {
+            // 다른 단축키들 허용
+            return;
+          }
+          deleteSelectedText(block, startOffset, endOffset);
+          onKeyDown(e);
+        }
+      }
+    },
+    [deleteSelectedText, editorCRDT, onKeyDown],
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>, blockRef: HTMLDivElement | null, block: Block) => {
       if (!blockRef || !block) return;
       const selection = window.getSelection();
-      if (!selection || selection.isCollapsed || !blockRef) {
-        // 선택된 텍스트가 없으면 기존 onKeyDown 로직 실행
+      if (!selection) return;
+
+      // 선택된 텍스트가 없으면 기본 키 핸들러 실행
+      if (selection.isCollapsed) {
         onKeyDown(e);
         return;
       }
 
-      const isCharacterKey = e.key.length === 1 && !e.ctrlKey && !e.metaKey;
+      const range = selection.getRangeAt(0);
+      if (!blockRef.contains(range.commonAncestorContainer)) return;
 
-      if (e.key === "Backspace" || isCharacterKey) {
-        e.preventDefault();
+      const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
+      const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
 
-        const range = selection.getRangeAt(0);
-        if (!blockRef.contains(range.commonAncestorContainer)) return;
-
-        const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
-        const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
-
-        // 선택된 범위의 문자들을 역순으로 삭제
-        for (let i = endOffset - 1; i >= startOffset; i--) {
-          const operationNode = block.crdt.localDelete(i, block.id, pageId);
-          sendCharDeleteOperation(operationNode);
-        }
-
-        if (isCharacterKey) {
-          sendCharInsertOperation(block.crdt.localInsert(startOffset, e.key, block.id, pageId));
-        }
-
-        block.crdt.currentCaret = startOffset + (isCharacterKey ? 1 : 0);
-        setEditorState({
-          clock: editorCRDT.clock,
-          linkedList: editorCRDT.LinkedList,
-        });
-      } else {
-        onKeyDown(e);
-      }
+      handleKeyWithSelection(e, block, startOffset, endOffset);
     },
     [editorCRDT.LinkedList, sendCharDeleteOperation, pageId, onKeyDown],
   );
