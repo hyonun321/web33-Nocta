@@ -413,7 +413,10 @@ export const useMarkdownGrammer = ({
           const currentCaretPosition = currentBlock.crdt.currentCaret;
           const headBlock = editorCRDT.LinkedList.getNode(editorCRDT.LinkedList.head);
           if (!headBlock) return;
-          headBlock.crdt.currentCaret = currentCaretPosition;
+          headBlock.crdt.currentCaret = Math.min(
+            currentCaretPosition,
+            headBlock.crdt.read().length,
+          );
           editorCRDT.currentBlock = headBlock;
           setCaretPosition({
             blockId: headBlock.id,
@@ -432,7 +435,10 @@ export const useMarkdownGrammer = ({
           while (lastBlock.next && editorCRDT.LinkedList.getNode(lastBlock.next)) {
             lastBlock = editorCRDT.LinkedList.getNode(lastBlock.next)!;
           }
-          lastBlock.crdt.currentCaret = currentCaretPosition;
+          lastBlock.crdt.currentCaret = Math.min(
+            currentCaretPosition,
+            lastBlock.crdt.read().length,
+          );
           editorCRDT.currentBlock = lastBlock;
           setCaretPosition({
             blockId: lastBlock.id,
