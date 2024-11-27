@@ -1,4 +1,5 @@
 import { WorkSpace as WorkSpaceClass } from "@noctaCrdt/WorkSpace";
+import { AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { BottomNavigator } from "@components/bottomNavigator/BottomNavigator";
 import { ErrorModal } from "@components/modal/ErrorModal";
@@ -38,20 +39,13 @@ export const WorkSpace = () => {
     }
   }, [workspaceMetadata]);
 
-  // 에러화면
   if (error) {
     return <ErrorModal errorMessage="서버와 연결할 수 없습니다." />;
   }
-  // 0. 몽고 다 제거
-  // 1. 클라이언트 연결하고 tempblock으로 클라이언트 블럭 생성한다.
-  // 2. 클라이언트를 새로고침한다
-  // 3. 추가된 블럭의 콘솔로그 정보를 본다.
-  // 4. 클라이언트 인스턴스의 clock정보를 본다.
 
-  // 정상화면
   return (
     <>
-      {isLoading && <IntroScreen />}
+      <AnimatePresence mode="wait">{isLoading && <IntroScreen />}</AnimatePresence>
       <div
         className={workSpaceContainer({
           visibility: isInitialized && !isLoading ? "visible" : "hidden",
