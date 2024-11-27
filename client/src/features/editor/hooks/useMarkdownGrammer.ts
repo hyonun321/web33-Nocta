@@ -256,16 +256,23 @@ export const useMarkdownGrammer = ({
                 break;
               }
               if (currentBlock.type !== "p") {
+                const wasOrderedList = currentBlock.type === "ol";
                 currentBlock.type = "p";
                 sendBlockUpdateOperation(editorCRDT.localUpdate(currentBlock, pageId));
                 editorCRDT.currentBlock = currentBlock;
+                if (wasOrderedList) {
+                  editorCRDT.LinkedList.updateAllOrderedListIndices();
+                }
                 updateEditorState();
                 break;
               }
               // FIX: 서윤님 피드백 반영
               const prevBlock =
                 currentIndex > 0 ? editorCRDT.LinkedList.findByIndex(currentIndex - 1) : null;
-
+              const nextBlock =
+                currentIndex < editorCRDT.LinkedList.spread().length - 1
+                  ? editorCRDT.LinkedList.findByIndex(currentIndex + 1)
+                  : null;
               if (prevBlock) {
                 let targetIndex = currentIndex - 1;
                 let targetBlock = findBlock(targetIndex);
@@ -304,8 +311,10 @@ export const useMarkdownGrammer = ({
                 editorCRDT.currentBlock = prevBlock;
                 editorCRDT.currentBlock.crdt.currentCaret = prevBlockEndCaret;
                 sendBlockDeleteOperation(editorCRDT.localDelete(currentIndex, undefined, pageId));
-
                 updateEditorState();
+                if (prevBlock.type === "ol" && nextBlock?.type === "ol") {
+                  editorCRDT.LinkedList.updateAllOrderedListIndices();
+                }
                 e.preventDefault();
               }
             }
