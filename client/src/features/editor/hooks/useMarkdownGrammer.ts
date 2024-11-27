@@ -344,7 +344,7 @@ export const useMarkdownGrammer = ({
             } else {
               if (!currentBlock.prev) return;
 
-              let parentIndent =
+              const parentIndent =
                 editorCRDT.LinkedList.nodeMap[JSON.stringify(currentBlock.prev)].indent;
 
               const maxIndent = Math.min(
