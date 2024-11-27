@@ -111,7 +111,7 @@ export const setInnerHTML = ({ element, block }: SetInnerHTMLProps): void => {
     }
 
     // 텍스트 추가
-    html += sanitizeText(char.value);
+    html += char.value;
 
     // 다음 문자로 넘어가기 전에 현재 상태 업데이트
     currentState = targetState;
@@ -137,17 +137,6 @@ const setsEqual = (a: Set<string>, b: Set<string>): boolean => {
   }
   return true;
 };
-
-const sanitizeText = (text: string): string => {
-  return text
-    .replace(/<br>/g, "&nbsp;")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-};
-
 // 배열 비교 헬퍼 함수
 export const arraysEqual = (a: string[], b: string[]): boolean => {
   if (a.length !== b.length) return false;
