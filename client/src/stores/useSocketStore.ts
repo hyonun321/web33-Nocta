@@ -12,6 +12,7 @@ import {
   CursorPosition,
   WorkSpaceSerializedProps,
 } from "@noctaCrdt/Interfaces";
+import { WorkSpace as WorkspaceClass } from "@noctaCrdt/WorkSpace";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
 
@@ -19,6 +20,8 @@ interface SocketStore {
   socket: Socket | null;
   clientId: number | null;
   workspace: WorkSpaceSerializedProps | null;
+  availableWorkspaces: WorkspaceClass[];
+
   init: (accessToken: string | null) => void;
   cleanup: () => void;
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
@@ -35,6 +38,9 @@ interface SocketStore {
   sendCursorPosition: (position: CursorPosition) => void;
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => (() => void) | undefined;
   subscribeToPageOperations: (handlers: PageOperationsHandlers) => (() => void) | undefined;
+  subscribeToWorkspaceOperations: (
+    handlers: WorkspaceOperationHandlers,
+  ) => (() => void) | undefined;
   setWorkspace: (workspace: WorkSpaceSerializedProps) => void;
 }
 
@@ -55,10 +61,15 @@ interface PageOperationsHandlers {
   onRemotePageUpdate: (operation: RemotePageUpdateOperation) => void;
 }
 
+interface WorkspaceOperationHandlers {
+  onWorkspaceListUpdate: (workspaces: WorkspaceClass[]) => void;
+}
+
 export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
   clientId: null,
   workspace: null,
+  availableWorkspaces: [], // 새로 추가
 
   init: (id: string | null) => {
     const { socket: existingSocket } = get();
@@ -212,6 +223,21 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("create/page", handlers.onRemotePageCreate);
       socket.off("delete/page", handlers.onRemotePageDelete);
       socket.off("update/page", handlers.onRemotePageUpdate);
+    };
+  },
+
+  subscribeToWorkspaceOperations: (handlers: WorkspaceOperationHandlers) => {
+    const { socket } = get();
+    if (!socket) return;
+
+    socket.on("workspace/list", (workspaces: WorkspaceClass[]) => {
+      console.log("수신함", workspaces);
+      set({ availableWorkspaces: workspaces });
+      handlers.onWorkspaceListUpdate(workspaces);
+    });
+
+    return () => {
+      socket.off("workspace/list", handlers.onWorkspaceListUpdate);
     };
   },
 }));
