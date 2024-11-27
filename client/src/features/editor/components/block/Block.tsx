@@ -29,7 +29,7 @@ import {
 interface BlockProps {
   id: string;
   block: CRDTBlock;
-  draggingBlock: String[];
+  dragBlockList: string[];
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
@@ -69,7 +69,7 @@ export const Block: React.FC<BlockProps> = memo(
   ({
     id,
     block,
-    draggingBlock,
+    dragBlockList,
     isActive,
     onInput,
     onCompositionEnd,
@@ -100,7 +100,7 @@ export const Block: React.FC<BlockProps> = memo(
       });
 
     // 현재 드래그 중인 부모 블록의 indent 확인
-    const isChildOfDragging = draggingBlock.some((item) => item === data.id);
+    const isChildOfDragging = dragBlockList.some((item) => item === data.id);
 
     // NOTE 드롭 인디케이터 위치 계산
     // 현재 over 중인 블럭 위치 + 위/아래로 모두 인디케이터 표시 + 부모요소는 자식요소 내부로는 이동하지 못함
