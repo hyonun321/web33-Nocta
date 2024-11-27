@@ -115,6 +115,9 @@ export const useMarkdownGrammer = ({
           // 새 블록 생성
           const operation = createNewBlock(currentIndex + 1);
           operation.node.crdt = new BlockCRDT(editorCRDT.client);
+          if (currentBlock.type === "ol") {
+            operation.node.listIndex = currentBlock.listIndex! + 1;
+          }
           operation.node.indent = currentBlock.indent;
           sendBlockInsertOperation({ node: operation.node, pageId });
 

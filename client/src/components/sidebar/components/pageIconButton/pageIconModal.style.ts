@@ -4,7 +4,7 @@ export const IconModal = css({
   zIndex: 9000,
   position: "absolute",
   top: 14,
-  left: 14,
+  left: 5,
 });
 
 export const IconModalContainer = css({
@@ -13,7 +13,7 @@ export const IconModalContainer = css({
   borderRadius: "4px",
   width: "100%",
   maxHeight: "80vh",
-  padding: "16px",
+  padding: "16px 16px 0px 16px",
   backgroundColor: "white",
   boxShadow: "lg",
   overflowY: "auto",
@@ -21,19 +21,21 @@ export const IconModalContainer = css({
 
 export const IconModalClose = css({
   display: "flex",
+  zIndex: 1002,
   position: "absolute",
-  top: "8px",
-  right: "8px",
+  top: "-4px",
+  right: "-4px",
   justifyContent: "center",
   alignItems: "center",
   border: "none",
   borderRadius: "md",
-  width: "24px",
-  height: "24px",
+  width: "32px",
+  height: "32px",
+  opacity: 0.5,
   backgroundColor: "transparent",
   cursor: "pointer",
   _hover: {
-    backgroundColor: "gray.100",
+    opacity: 1,
   },
 });
 
@@ -52,11 +54,12 @@ export const IconButton = (isSelected: boolean) =>
     justifyContent: "space-between",
     alignItems: "center",
     border: "none",
-    borderRadius: "md",
+    borderRadius: "4px",
     padding: "8px",
-    backgroundColor: isSelected ? "gray.100" : "transparent",
+    backgroundColor: isSelected ? "rgba(220, 215, 255, 0.35)" : "transparent",
+    transition: "all 0.1s ease-in-out",
     cursor: "pointer",
     _hover: {
-      backgroundColor: isSelected ? "gray.100" : "gray.50",
+      transform: "translateY(-2px) scale(1.1)",
     },
   });

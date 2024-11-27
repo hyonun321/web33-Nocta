@@ -2,13 +2,7 @@ import { PageIconType } from "@noctaCrdt/Interfaces";
 import { RiCloseLine } from "react-icons/ri";
 import { iconGroups, iconComponents } from "@constants/PageIconButton.config";
 import { css } from "@styled-system/css";
-import {
-  IconModal,
-  IconModalContainer,
-  IconModalClose,
-  IconName,
-  IconButton,
-} from "./pageIconModal.style";
+import { IconModal, IconModalContainer, IconModalClose, IconButton } from "./pageIconModal.style";
 
 export interface PageIconModalProps {
   isOpen: boolean;
@@ -32,11 +26,10 @@ export const PageIconModal = ({ onClose, onSelect, currentType }: PageIconModalP
                 marginBottom: "12px",
               })}
             >
-              <h3 className={IconName}>{group.title}</h3>
               <div
                 className={css({
                   display: "grid",
-                  gap: "8px",
+                  gap: "12px",
                   gridTemplateColumns: "repeat(3, 1fr)",
                 })}
               >
@@ -51,14 +44,6 @@ export const PageIconModal = ({ onClose, onSelect, currentType }: PageIconModalP
                       className={IconButton(isSelected)}
                     >
                       <IconComponent color={color} size="24px" />
-                      <span
-                        className={css({
-                          color: "gray.600",
-                          fontSize: "xs",
-                        })}
-                      >
-                        {iconType}
-                      </span>
                     </button>
                   );
                 })}

@@ -3,16 +3,10 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
-import { BlockId } from "@noctaCrdt/NodeId";
-import {
-  RemoteCharInsertOperation,
-  serializedEditorDataProps,
-  TextColorType,
-  BackgroundColorType,
-} from "node_modules/@noctaCrdt/Interfaces.ts";
+import { serializedEditorDataProps } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
-import { setCaretPosition, getAbsoluteCaretPosition } from "@src/utils/caretUtils.ts";
+import { setCaretPosition } from "@src/utils/caretUtils.ts";
 import {
   editorContainer,
   editorTitleContainer,
@@ -21,10 +15,11 @@ import {
 } from "./Editor.style";
 import { Block } from "./components/block/Block";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
+import { useBlockOperation } from "./hooks/useBlockOperation.ts";
 import { useBlockOptionSelect } from "./hooks/useBlockOption";
+import { useCopyAndPaste } from "./hooks/useCopyAndPaste.ts";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 import { useTextOptionSelect } from "./hooks/useTextOptions.ts";
-import { getTextOffset } from "./utils/domSyncUtils.ts";
 
 export interface EditorStateProps {
   clock: number;
@@ -37,12 +32,7 @@ interface EditorProps {
   serializedEditorData: serializedEditorDataProps;
   pageTitle: string;
 }
-interface ClipboardMetadata {
-  value: string;
-  style: string[];
-  color: TextColorType | undefined;
-  backgroundColor: BackgroundColorType | undefined;
-}
+
 export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData }: EditorProps) => {
   const {
     sendCharInsertOperation,
@@ -108,6 +98,14 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     sendCharInsertOperation,
   });
 
+  const { handleBlockClick, handleBlockInput, handleKeyDown } = useBlockOperation({
+    editorCRDT: editorCRDT.current,
+    setEditorState,
+    pageId,
+    onKeyDown,
+    handleHrInput,
+  });
+
   const { onTextStyleUpdate, onTextColorUpdate, onTextBackgroundColorUpdate } = useTextOptionSelect(
     {
       editorCRDT: editorCRDT.current,
@@ -115,6 +113,12 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       pageId,
     },
   );
+
+  const { handleCopy, handlePaste } = useCopyAndPaste({
+    editorCRDT: editorCRDT.current,
+    setEditorState,
+    pageId,
+  });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
@@ -130,242 +134,6 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     } else {
       onTitleChange(newTitle, true);
     }
-  };
-  const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
-    if (editorCRDT) {
-      const selection = window.getSelection();
-      if (!selection) return;
-
-      const clickedElement = (e.target as HTMLElement).closest(
-        '[contenteditable="true"]',
-      ) as HTMLDivElement;
-      if (!clickedElement) return;
-
-      editorCRDT.current.currentBlock =
-        editorCRDT.current.LinkedList.nodeMap[JSON.stringify(blockId)];
-      const caretPosition = getAbsoluteCaretPosition(clickedElement);
-
-      // 계산된 캐럿 위치 저장
-      editorCRDT.current.currentBlock.crdt.currentCaret = caretPosition;
-    }
-  };
-
-  const handleBlockInput = useCallback(
-    (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => {
-      if (!block || !editorCRDT) return;
-      if ((e.nativeEvent as InputEvent).isComposing) {
-        return;
-      }
-
-      let operationNode;
-      const element = e.currentTarget;
-      const newContent = element.textContent || "";
-      const currentContent = block.crdt.read();
-      const caretPosition = getAbsoluteCaretPosition(element);
-
-      if (handleHrInput(block, newContent)) {
-        return;
-      }
-
-      if (newContent.length > currentContent.length) {
-        let charNode: RemoteCharInsertOperation;
-        // 캐럿 위치 유효성 검사
-        const validCaretPosition = Math.min(Math.max(0, caretPosition), currentContent.length);
-        // 맨 앞에 삽입
-        if (caretPosition === 0) {
-          const [addedChar] = newContent;
-          charNode = block.crdt.localInsert(0, addedChar, block.id, pageId);
-        } else if (caretPosition > currentContent.length) {
-          // 맨 뒤에 삽입
-          let prevChar;
-          if (currentContent.length > 0) {
-            prevChar = editorCRDT.current.currentBlock?.crdt.LinkedList.findByIndex(
-              currentContent.length - 1,
-            );
-          }
-          const addedChar = newContent[newContent.length - 1];
-          charNode = block.crdt.localInsert(
-            currentContent.length,
-            addedChar,
-            block.id,
-            pageId,
-            prevChar ? prevChar.style : [],
-            prevChar ? prevChar.color : undefined,
-            prevChar ? prevChar.backgroundColor : undefined,
-          );
-        } else {
-          // 중간에 삽입
-          const prevChar = editorCRDT.current.currentBlock?.crdt.LinkedList.findByIndex(
-            validCaretPosition - 1,
-          );
-          const addedChar = newContent[validCaretPosition - 1];
-          charNode = block.crdt.localInsert(
-            validCaretPosition - 1,
-            addedChar,
-            block.id,
-            pageId,
-            prevChar?.style,
-            prevChar?.color,
-            prevChar?.backgroundColor,
-          );
-        }
-        editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition;
-        sendCharInsertOperation({ node: charNode.node, blockId: block.id, pageId });
-      } else if (newContent.length < currentContent.length) {
-        // 문자가 삭제된 경우
-        // 삭제 위치 계산
-        const deletePosition = Math.max(0, caretPosition);
-        if (deletePosition >= 0 && deletePosition < currentContent.length) {
-          operationNode = block.crdt.localDelete(deletePosition, block.id, pageId);
-          sendCharDeleteOperation(operationNode);
-
-          // 캐럿 위치 업데이트
-          editorCRDT.current.currentBlock!.crdt.currentCaret = deletePosition;
-        }
-      }
-      setEditorState({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
-      });
-    },
-    [sendCharInsertOperation, sendCharDeleteOperation, editorCRDT, pageId],
-  );
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLDivElement>,
-    blockRef: HTMLDivElement | null,
-    block: CRDTBlock,
-  ) => {
-    if (!blockRef || !block) return;
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || !blockRef) {
-      // 선택된 텍스트가 없으면 기존 onKeyDown 로직 실행
-      onKeyDown(e);
-      return;
-    }
-
-    if (e.key === "Backspace") {
-      e.preventDefault();
-
-      const range = selection.getRangeAt(0);
-      if (!blockRef.contains(range.commonAncestorContainer)) return;
-
-      const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
-      const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
-
-      // 선택된 범위의 문자들을 역순으로 삭제
-      for (let i = endOffset - 1; i >= startOffset; i--) {
-        const operationNode = block.crdt.localDelete(i, block.id, pageId);
-        sendCharDeleteOperation(operationNode);
-      }
-
-      block.crdt.currentCaret = startOffset;
-      setEditorState({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
-      });
-    } else {
-      onKeyDown(e);
-    }
-  };
-
-  const handleCopy = (
-    e: React.ClipboardEvent<HTMLDivElement>,
-    blockRef: HTMLDivElement | null,
-    block: CRDTBlock,
-  ) => {
-    e.preventDefault();
-    if (!blockRef) return;
-
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || !blockRef) return;
-
-    const range = selection.getRangeAt(0);
-    if (!blockRef.contains(range.commonAncestorContainer)) return;
-
-    // 선택된 텍스트의 시작과 끝 위치 계산
-    const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
-    const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
-
-    // 선택된 텍스트와 스타일 정보 추출
-    const selectedChars = block.crdt.LinkedList.spread().slice(startOffset, endOffset);
-
-    // 커스텀 데이터 포맷으로 저장
-    const customData = {
-      text: selectedChars.map((char) => char.value).join(""),
-      metadata: selectedChars.map(
-        (char) =>
-          ({
-            value: char.value,
-            style: char.style,
-            color: char.color,
-            backgroundColor: char.backgroundColor,
-          }) as ClipboardMetadata,
-      ),
-    };
-
-    // 일반 텍스트와 커스텀 데이터 모두 클립보드에 저장
-    e.clipboardData.setData("text/plain", customData.text);
-    e.clipboardData.setData("application/x-nocta-formatted", JSON.stringify(customData));
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>, block: CRDTBlock) => {
-    e.preventDefault();
-
-    const customData = e.clipboardData.getData("application/x-nocta-formatted");
-
-    if (customData) {
-      const { metadata } = JSON.parse(customData);
-      const caretPosition = block.crdt.currentCaret;
-
-      metadata.forEach((char: ClipboardMetadata, index: number) => {
-        const insertPosition = caretPosition + index;
-        const charNode = block.crdt.localInsert(
-          insertPosition,
-          char.value,
-          block.id,
-          pageId,
-          char.style,
-          char.color,
-          char.backgroundColor,
-        );
-        sendCharInsertOperation({
-          node: charNode.node,
-          blockId: block.id,
-          pageId,
-          style: char.style,
-          color: char.color,
-          backgroundColor: char.backgroundColor,
-        });
-      });
-
-      editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition + metadata.length;
-    } else {
-      const text = e.clipboardData.getData("text/plain");
-
-      if (!block || text.length === 0) return;
-
-      const caretPosition = block.crdt.currentCaret;
-
-      // 텍스트를 한 글자씩 순차적으로 삽입
-      text.split("").forEach((char, index) => {
-        const insertPosition = caretPosition + index;
-        const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
-        sendCharInsertOperation({
-          node: charNode.node,
-          blockId: block.id,
-          pageId,
-        });
-      });
-
-      // 캐럿 위치 업데이트
-      editorCRDT.current.currentBlock!.crdt.currentCaret = caretPosition + text.length;
-    }
-
-    setEditorState({
-      clock: editorCRDT.current.clock,
-      linkedList: editorCRDT.current.LinkedList,
-    });
   };
 
   const handleCompositionEnd = useCallback(
@@ -392,6 +160,18 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     },
     [editorCRDT, pageId, sendCharInsertOperation],
   );
+
+  const addNewBlock = () => {
+    if (!editorCRDT) return;
+    const index = editorCRDT.current.LinkedList.spread().length;
+    const operation = editorCRDT.current.localInsert(index, "");
+    editorCRDT.current.currentBlock = operation.node;
+    sendBlockInsertOperation({ node: operation.node, pageId });
+    setEditorState(() => ({
+      clock: editorCRDT.current.clock,
+      linkedList: editorCRDT.current.LinkedList,
+    }));
+  };
 
   const subscriptionRef = useRef(false);
 
@@ -420,7 +200,13 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteBlockInsert: (operation) => {
         console.log(operation, "block : 입력 확인합니다이");
         if (operation.pageId !== pageId) return;
+        const prevBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.node.prev)];
         editorCRDT.current.remoteInsert(operation);
+        if (prevBlock.type === "ol") {
+          editorCRDT.current.LinkedList.updateAllOrderedListIndices();
+          console.log("ol update");
+        }
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -430,7 +216,14 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteBlockDelete: (operation) => {
         console.log(operation, "block : 삭제 확인합니다이");
         if (operation.pageId !== pageId) return;
+        const targetBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.targetId)];
+        const prevBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(targetBlock.prev)];
+        const nextBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(targetBlock.next)];
         editorCRDT.current.remoteDelete(operation);
+        if (prevBlock.type === "ol" && nextBlock.type === "ol") {
+          editorCRDT.current.LinkedList.updateAllOrderedListIndices();
+        }
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -468,7 +261,12 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteBlockUpdate: (operation) => {
         console.log(operation, "block : 업데이트 확인합니다이");
         if (operation.pageId !== pageId) return;
+        const prevBlock =
+          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.node.prev)];
         editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
+        if (prevBlock.type === "ol") {
+          editorCRDT.current.LinkedList.updateAllOrderedListIndices();
+        }
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -479,6 +277,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
         console.log(operation, "block : 재정렬 확인합니다이");
         if (operation.pageId !== pageId) return;
         editorCRDT.current.remoteReorder(operation);
+        editorCRDT.current.LinkedList.updateAllOrderedListIndices();
         setEditorState({
           clock: editorCRDT.current.clock,
           linkedList: editorCRDT.current.LinkedList,
@@ -508,18 +307,6 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       unsubscribe?.();
     };
   }, [editorCRDT, subscribeToRemoteOperations, pageId]);
-
-  const addNewBlock = () => {
-    if (!editorCRDT) return;
-    const index = editorCRDT.current.LinkedList.spread().length;
-    const operation = editorCRDT.current.localInsert(index, "");
-    editorCRDT.current.currentBlock = operation.node;
-    sendBlockInsertOperation({ node: operation.node, pageId });
-    setEditorState(() => ({
-      clock: editorCRDT.current.clock,
-      linkedList: editorCRDT.current.LinkedList,
-    }));
-  };
 
   // 로딩 상태 체크
   if (!editorCRDT || !editorState) {
