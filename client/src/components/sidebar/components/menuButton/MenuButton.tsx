@@ -1,5 +1,6 @@
 import { useUserInfo } from "@stores/useUserStore";
 import { menuItemWrapper, imageBox, textBox } from "./MenuButton.style";
+import { MenuIcon } from "./components/MenuIcon";
 
 export const MenuButton = () => {
   const { name } = useUserInfo();
@@ -7,7 +8,7 @@ export const MenuButton = () => {
   return (
     <>
       <button className={menuItemWrapper}>
-        <div className={imageBox}></div>
+        <MenuIcon />
         <p className={textBox}>{name ?? "Nocta"}</p>
       </button>
     </>
