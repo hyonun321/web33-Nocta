@@ -7,10 +7,10 @@ import {
   RemoteBlockUpdateOperation,
   RemoteCharInsertOperation,
 } from "@noctaCrdt/Interfaces";
+import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { BlockLinkedList } from "node_modules/@noctaCrdt/LinkedList";
 import { EditorStateProps } from "../Editor";
-import { Block } from "@noctaCrdt/Node";
 
 interface useBlockOptionSelectProps {
   editorCRDT: EditorCRDT;
