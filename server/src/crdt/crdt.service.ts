@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, OnModuleInit, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Workspace, WorkspaceDocument } from "./schemas/workspace.schema";
 import { WorkSpace as CRDTWorkSpace } from "@noctaCrdt/WorkSpace";
@@ -10,7 +10,6 @@ import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
 import { Page } from "@noctaCrdt/Page";
 import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
-import { Logger } from "@nestjs/common";
 
 @Injectable()
 export class workSpaceService implements OnModuleInit {
