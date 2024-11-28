@@ -4,19 +4,21 @@ import { Workspace, WorkspaceDocument } from "./schemas/workspace.schema";
 import { WorkSpace as CRDTWorkSpace } from "@noctaCrdt/WorkSpace";
 import { Model } from "mongoose";
 import { Server } from "socket.io";
-// import { EditorCRDT, BlockCRDT } from "@noctaCrdt/Crdt";
-// import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
 import { Page } from "@noctaCrdt/Page";
 import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
+import { User, UserDocument } from "../auth/schemas/user.schema";
 
 @Injectable()
-export class workSpaceService implements OnModuleInit {
-  private readonly logger = new Logger(workSpaceService.name);
+export class WorkSpaceService implements OnModuleInit {
+  private readonly logger = new Logger(WorkSpaceService.name);
   private workspaces: Map<string, CRDTWorkSpace>;
   private server: Server;
-  constructor(@InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>) {}
+  constructor(
+    @InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+  ) {}
 
   getServer() {
     return this.server;
@@ -30,7 +32,7 @@ export class workSpaceService implements OnModuleInit {
   async onModuleInit() {
     this.workspaces = new Map();
     // 게스트 워크스페이스 초기화
-    const guestWorkspace = new CRDTWorkSpace("guest", []);
+    const guestWorkspace = new CRDTWorkSpace("guest", "Guest");
     this.workspaces.set("guest", guestWorkspace);
 
     // 주기적으로 인메모리 DB 정리 작업 실행
@@ -95,7 +97,7 @@ export class workSpaceService implements OnModuleInit {
     // DB에서 찾기
     const workspaceJSON = await this.workspaceModel.findOne({ id: userId });
 
-    const workspace = new CRDTWorkSpace(userId, []);
+    const workspace = new CRDTWorkSpace();
 
     if (workspaceJSON) {
       // DB에 있으면 JSON을 객체로 복원
@@ -125,5 +127,77 @@ export class workSpaceService implements OnModuleInit {
       throw new Error(`Page with id ${pageId} not found`);
     }
     return page.crdt.LinkedList.nodeMap[JSON.stringify(blockId)];
+  }
+
+  // 워크스페이스 생성
+  async createWorkspace(userId: string, name: string): Promise<Workspace> {
+    const newWorkspace = await this.workspaceModel.create({
+      name: name,
+      authUser: { userId: "owner" },
+    });
+
+    // 유저 정보 업데이트
+    await this.userModel.updateOne({ id: userId }, { $push: { workspaces: newWorkspace.id } });
+
+    return newWorkspace;
+  }
+
+  // 워크스페이스 삭제
+  async deleteWorkspace(userId: string, workspaceId: string): Promise<void> {
+    const workspace = await this.workspaceModel.findOne({ id: workspaceId });
+
+    if (!workspace) {
+      throw new Error(`Workspace with id ${workspaceId} not found`);
+    }
+
+    // 권한 확인
+    if (!workspace.authUser.has(userId) || workspace.authUser.get(userId) !== "owner") {
+      throw new Error(`User ${userId} does not have permission to delete this workspace`);
+    }
+
+    // 관련 유저들의 workspaces 목록 업데이트
+    await this.userModel.updateMany(
+      { workspaces: workspaceId },
+      { $pull: { workspaces: workspaceId } },
+    );
+
+    await this.workspaceModel.deleteOne({ id: workspaceId });
+  }
+
+  // 워크스페이스 조회
+  async getUserWorkspaces(userId: string): Promise<string[]> {
+    const user = await this.userModel.findOne({ id: userId });
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+
+    return this.workspaceModel.find({ id: { $in: user.workspaces } });
+  }
+
+  // 워크스페이스에 유저 초대
+  async inviteUserToWorkspace(
+    ownerId: string,
+    workspaceId: string,
+    invitedUserId: string,
+  ): Promise<void> {
+    const workspace = await this.workspaceModel.findOne({ id: workspaceId });
+
+    if (!workspace) {
+      throw new Error(`Workspace with id ${workspaceId} not found`);
+    }
+
+    // 권한 확인
+    if (!workspace.authUser.has(ownerId) || workspace.authUser.get(ownerId) !== "owner") {
+      throw new Error(`User ${ownerId} does not have permission to invite users to this workspace`);
+    }
+
+    // 워크스페이스에 유저 추가
+    if (!workspace.authUser.has(invitedUserId)) {
+      workspace.authUser.set(invitedUserId, "editor");
+      await workspace.save();
+
+      // 유저 정보 업데이트
+      await this.userModel.updateOne({ id: invitedUserId }, { $push: { workspaces: workspaceId } });
+    }
   }
 }

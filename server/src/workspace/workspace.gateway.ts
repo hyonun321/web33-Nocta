@@ -9,7 +9,7 @@ import {
   WsException,
 } from "@nestjs/websockets";
 import { Socket, Server } from "socket.io";
-import { workSpaceService } from "./crdt.service";
+import { WorkSpaceService } from "./workspace.service";
 import {
   RemoteBlockDeleteOperation,
   RemoteCharDeleteOperation,
@@ -60,12 +60,12 @@ interface BatchOperation {
   path: "/api/socket.io",
   transports: ["websocket", "polling"],
 })
-export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  private readonly logger = new Logger(CrdtGateway.name);
+export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  private readonly logger = new Logger(WorkspaceGateway.name);
   private clientIdCounter: number = 1;
   private clientMap: Map<string, ClientInfo> = new Map();
   private batchMap: Map<string, BatchOperation[]> = new Map();
-  constructor(private readonly workSpaceService: workSpaceService) {}
+  constructor(private readonly workSpaceService: WorkSpaceService) {}
 
   afterInit(server: Server) {
     this.workSpaceService.setServer(server);

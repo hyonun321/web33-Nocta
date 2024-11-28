@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
-import { workSpaceService } from "./crdt.service";
+import { WorkSpaceService } from "./workspace.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Workspace, WorkspaceSchema } from "./schemas/workspace.schema";
-import { CrdtGateway } from "./crdt.gateway";
+import { WorkspaceGateway } from "./workspace.gateway";
 import { AuthModule } from "../auth/auth.module";
 
 @Module({
@@ -10,7 +10,7 @@ import { AuthModule } from "../auth/auth.module";
     AuthModule,
     MongooseModule.forFeature([{ name: Workspace.name, schema: WorkspaceSchema }]),
   ],
-  providers: [workSpaceService, CrdtGateway],
-  exports: [workSpaceService],
+  providers: [WorkSpaceService, WorkspaceGateway],
+  exports: [WorkSpaceService],
 })
-export class CrdtModule {}
+export class WorkspaceModule {}

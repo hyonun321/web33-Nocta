@@ -177,6 +177,7 @@ export interface RemotePageUpdateOperation {
 }
 export interface WorkSpaceSerializedProps {
   id: string;
+  name: string;
   pageList: Page[];
   authUser: Map<string, string>;
 }
