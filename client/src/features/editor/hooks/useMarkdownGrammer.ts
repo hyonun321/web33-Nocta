@@ -326,6 +326,7 @@ export const useMarkdownGrammer = ({
         }
 
         case "Tab": {
+          if (e.nativeEvent.isComposing) return;
           e.preventDefault();
 
           if (currentBlock) {
@@ -451,6 +452,7 @@ export const useMarkdownGrammer = ({
 
         case "ArrowUp":
         case "ArrowDown": {
+          if (e.nativeEvent.isComposing) return;
           const hasPrevBlock = currentIndex > 0;
           const hasNextBlock = currentIndex < editorCRDT.LinkedList.spread().length - 1;
           if (e.key === "ArrowUp" && !hasPrevBlock) {
@@ -487,6 +489,7 @@ export const useMarkdownGrammer = ({
         }
         case "ArrowLeft":
         case "ArrowRight": {
+          if (e.nativeEvent.isComposing) return;
           // const selection = window.getSelection();
           // const caretPosition = selection?.focusOffset || 0;
           const caretPosition = getAbsoluteCaretPosition(e.currentTarget);
