@@ -5,6 +5,7 @@ import { BottomNavigator } from "@components/bottomNavigator/BottomNavigator";
 import { ErrorModal } from "@components/modal/ErrorModal";
 import { Sidebar } from "@components/sidebar/Sidebar";
 import { Page } from "@features/page/Page";
+import { ToastContainer } from "@src/components/Toast/ToastContainer";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { workSpaceContainer, content } from "./WorkSpace.style";
 import { IntroScreen } from "./components/IntroScreen";
@@ -45,6 +46,7 @@ export const WorkSpace = () => {
 
   return (
     <>
+      <ToastContainer />
       <AnimatePresence mode="wait">{isLoading && <IntroScreen />}</AnimatePresence>
       <div
         className={workSpaceContainer({

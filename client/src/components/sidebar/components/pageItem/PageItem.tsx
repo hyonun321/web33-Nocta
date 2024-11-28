@@ -29,7 +29,7 @@ export const PageItem = ({
 }: PageItemProps) => {
   const { isOpen, openModal, closeModal } = useModal();
   const [pageIcon, setPageIcon] = useState<PageIconType>(icon);
-  // 삭제 버튼 클릭 핸들러
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation(); // 상위 요소로의 이벤트 전파 중단
     onDelete?.(id);
