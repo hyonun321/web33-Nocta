@@ -81,6 +81,12 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       this.clientMap.set(client.id, clientInfo);
       client.emit("assign/clientId", assignedId);
 
+      // 클라이언트가 구독을 설정할 시간을 주기 위해 약간의 지연
+      setTimeout(() => {
+        console.log("쏘긴쏜다");
+        client.emit("workspace/list", "test");
+      }, 100);
+
       client.broadcast.emit("userJoined", { clientId: assignedId });
       this.logger.log(`클라이언트 연결 성공 - Socket ID: ${client.id}, Client ID: ${assignedId}`);
       this.logger.debug(`현재 연결된 클라이언트 수: ${this.clientMap.size}`);
