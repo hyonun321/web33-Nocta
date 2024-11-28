@@ -309,6 +309,10 @@ export class BlockLinkedList extends LinkedList<Block> {
       if (nextNode) nextNode.prev = targetNode.prev;
     }
 
+    if (this.head === targetId) {
+      this.head = targetNode.next;
+    }
+
     // 2. 새로운 위치에 노드 삽입
     if (!beforeId) {
       // 맨 앞으로 이동
