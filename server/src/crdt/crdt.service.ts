@@ -78,7 +78,9 @@ export class workSpaceService implements OnModuleInit {
         await this.workspaceModel.bulkWrite(bulkOps, { ordered: false });
       }
 
-      this.logger.log("Workspace cleanup completed, current workspaces: ", this.workspaces.keys());
+      this.logger.log(
+        `Workspace cleanup completed, current workspaces: ${[...this.workspaces.keys()]}`,
+      );
     } catch (error) {
       console.error("Error during workspace cleanup: ", error);
     }
