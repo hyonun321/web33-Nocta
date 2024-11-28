@@ -283,10 +283,7 @@ export const useMarkdownGrammer = ({
             const currentCaretPosition = currentBlock.crdt.currentCaret;
             if (currentCaretPosition === 0) {
               if (currentBlock.indent > 0) {
-                currentBlock.indent -= 1;
-                sendBlockUpdateOperation(editorCRDT.localUpdate(currentBlock, pageId));
-                editorCRDT.currentBlock = currentBlock;
-                updateEditorState();
+                decreaseIndent(currentBlock);
                 break;
               }
               if (currentBlock.type !== "p") {
