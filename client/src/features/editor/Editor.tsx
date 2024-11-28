@@ -47,14 +47,13 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
   const [displayTitle, setDisplayTitle] = useState(pageTitle);
   const [dragBlockList, setDragBlockList] = useState<string[]>([]);
 
+  useEffect(() => {
     if (pageTitle === "새로운 페이지" || pageTitle === "") {
       setDisplayTitle("");
     } else {
       setDisplayTitle(pageTitle);
     }
   }, [pageTitle]);
-
-
 
   const editorCRDTInstance = useMemo(() => {
     let newEditorCRDT;
