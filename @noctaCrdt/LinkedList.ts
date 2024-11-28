@@ -300,6 +300,8 @@ export class BlockLinkedList extends LinkedList<Block> {
     if (targetNode.prev) {
       const prevNode = this.getNode(targetNode.prev);
       if (prevNode) prevNode.next = targetNode.next;
+    } else {
+      this.head = targetNode.next;
     }
 
     if (targetNode.next) {

@@ -8,6 +8,7 @@ import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { WorkSpace } from "@noctaCrdt/WorkSpace";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore";
+import { useToastStore } from "@src/stores/useToastStore";
 import { Page } from "@src/types/page";
 
 const PAGE_OFFSET = 60;
@@ -17,6 +18,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
   const { subscribeToPageOperations, sendPageCreateOperation, sendPageUpdateOperation } =
     useSocketStore();
   const subscriptionRef = useRef(false);
+  const { addToast } = useToastStore();
   useEffect(() => {
     if (!workspace) return;
     if (subscriptionRef.current) return;
@@ -52,6 +54,7 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         addPage(newPage);
       },
       onRemotePageDelete: (operation) => {
+        addToast(`${operation.clientId}번 유저가 페이지(${operation.pageTitle})를 삭제하였습니다.`);
         workspace.remotePageDelete?.({
           pageId: operation.pageId,
           workspaceId: operation.workspaceId,
