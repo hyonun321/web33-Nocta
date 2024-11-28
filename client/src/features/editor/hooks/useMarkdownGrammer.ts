@@ -139,7 +139,7 @@ export const useMarkdownGrammer = ({
             operation.node.indent = currentBlock.indent;
             operation.node.crdt = new BlockCRDT(editorCRDT.client);
 
-            sendBlockInsertOperation({ node: operation.node, pageId });
+            sendBlockInsertOperation({ type: "blockInsert", node: operation.node, pageId });
             editorCRDT.currentBlock = operation.node;
             editorCRDT.currentBlock.crdt.currentCaret = 0;
             updateEditorState();
@@ -157,7 +157,7 @@ export const useMarkdownGrammer = ({
             operation.node.listIndex = currentBlock.listIndex! + 1;
           }
           operation.node.indent = currentBlock.indent;
-          sendBlockInsertOperation({ node: operation.node, pageId });
+          sendBlockInsertOperation({ type: "blockInsert", node: operation.node, pageId });
 
           // 캐럿 이후의 텍스트 있으면 새 블록에 추가
           if (afterContent) {
@@ -607,7 +607,7 @@ export const useMarkdownGrammer = ({
         const currentIndex = editorCRDT.LinkedList.spread().findIndex((b) => b.id.equals(block.id));
         const operation = editorCRDT.localInsert(currentIndex + 1, "");
         operation.node.type = "p";
-        sendBlockInsertOperation({ node: operation.node, pageId });
+        sendBlockInsertOperation({ type: "blockInsert", node: operation.node, pageId });
 
         editorCRDT.currentBlock = operation.node;
         editorCRDT.currentBlock.crdt.currentCaret = 0;

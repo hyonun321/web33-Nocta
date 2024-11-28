@@ -11,14 +11,6 @@ export const menuItemWrapper = css({
   cursor: "pointer",
 });
 
-export const imageBox = css({
-  borderRadius: "sm",
-  width: "50px",
-  height: "50px",
-  background: "white",
-  overflow: "hidden",
-});
-
 export const textBox = css({
   textStyle: "display-medium20",
   color: "gray.900",

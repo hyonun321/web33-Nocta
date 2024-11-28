@@ -1,8 +1,8 @@
-import { useIsSidebarOpen } from "@stores/useSidebarStore";
 import { useEffect, useState } from "react";
 import { PAGE, SIDE_BAR } from "@constants/size";
 import { SPACING } from "@constants/spacing";
 import { Position, Size } from "@src/types/page";
+import { useIsSidebarOpen } from "@stores/useSidebarStore";
 
 const PADDING = SPACING.MEDIUM * 2;
 export const DIRECTIONS = [
