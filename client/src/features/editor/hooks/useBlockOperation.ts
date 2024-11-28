@@ -106,7 +106,12 @@ export const useBlockOperation = ({
           );
         }
         editorCRDT.currentBlock!.crdt.currentCaret = caretPosition;
-        sendCharInsertOperation({ node: charNode.node, blockId: block.id, pageId });
+        sendCharInsertOperation({
+          type: "charInsert",
+          node: charNode.node,
+          blockId: block.id,
+          pageId,
+        });
       } else if (newContent.length < currentContent.length) {
         // 문자가 삭제된 경우
         // 삭제 위치 계산

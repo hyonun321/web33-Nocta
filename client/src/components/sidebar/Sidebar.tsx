@@ -68,6 +68,7 @@ export const Sidebar = ({
     }
 
     sendPageDeleteOperation({
+      type: "pageDelete",
       workspaceId: "default",
       pageId,
       clientId,

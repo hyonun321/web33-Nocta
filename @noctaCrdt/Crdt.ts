@@ -96,6 +96,7 @@ export class EditorCRDT extends CRDT<Block> {
     }
 
     const operation: RemoteBlockDeleteOperation = {
+      type: "blockDelete",
       targetId: nodeToDelete.id,
       clock: this.clock,
       pageId,
@@ -115,7 +116,7 @@ export class EditorCRDT extends CRDT<Block> {
     updatedBlock.style = block.style;
     updatedBlock.type = block.type;
     updatedBlock.listIndex = block.listIndex || undefined;
-    return { node: updatedBlock, pageId };
+    return { type: "blockUpdate", node: updatedBlock, pageId };
   }
 
   remoteUpdate(block: Block, pageId: string): RemoteBlockUpdateOperation {
@@ -126,7 +127,7 @@ export class EditorCRDT extends CRDT<Block> {
     updatedBlock.style = block.style;
     updatedBlock.type = block.type;
     updatedBlock.listIndex = block.listIndex || undefined;
-    return { node: updatedBlock, pageId };
+    return { type: "blockUpdate", node: updatedBlock, pageId };
   }
 
   remoteInsert(operation: RemoteBlockInsertOperation): void {
@@ -159,6 +160,7 @@ export class EditorCRDT extends CRDT<Block> {
   }): RemoteBlockReorderOperation {
     const operation: RemoteBlockReorderOperation = {
       ...params,
+      type: "blockReorder",
       clock: this.clock,
       client: this.client,
     };
@@ -229,6 +231,7 @@ export class BlockCRDT extends CRDT<Char> {
     }
     this.clock += 1;
     const operation: RemoteCharInsertOperation = {
+      type: "charInsert",
       node,
       blockId,
       pageId,
@@ -251,6 +254,7 @@ export class BlockCRDT extends CRDT<Char> {
     }
 
     const operation: RemoteCharDeleteOperation = {
+      type: "charDelete",
       targetId: nodeToDelete.id,
       clock: this.clock,
       blockId,
@@ -274,7 +278,7 @@ export class BlockCRDT extends CRDT<Char> {
     if (node.backgroundColor !== updatedChar.backgroundColor) {
       updatedChar.backgroundColor = node.backgroundColor;
     }
-    return { node: updatedChar, blockId, pageId };
+    return { type: "charUpdate", node: updatedChar, blockId, pageId };
   }
 
   remoteInsert(operation: RemoteCharInsertOperation): void {
@@ -318,7 +322,6 @@ export class BlockCRDT extends CRDT<Char> {
 
   remoteUpdate(operation: RemoteCharUpdateOperation): void {
     const updatedChar = this.LinkedList.nodeMap[JSON.stringify(operation.node.id)];
-    console.log("remoteUpdate", updatedChar);
     if (operation.node.style && operation.node.style.length > 0) {
       updatedChar.style = [...operation.node.style];
     }

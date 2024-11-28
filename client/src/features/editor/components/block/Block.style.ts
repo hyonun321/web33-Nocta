@@ -64,6 +64,7 @@ export const textContainerStyle = cva({
   base: {
     ...baseTextStyle,
     position: "relative",
+    paddingLeft: "10px",
     wordBreak: "break-word",
     overflowWrap: "break-word",
     whiteSpace: "pre-wrap",

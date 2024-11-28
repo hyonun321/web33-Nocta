@@ -25,6 +25,7 @@ export const editorTitle = css({
   outline: "none",
   border: "none",
   width: "full",
+  paddingLeft: "7.5px",
   color: "gray.700",
   "&::placeholder": {
     color: "gray.100",
