@@ -1,4 +1,4 @@
-import { DndContext } from "@dnd-kit/core";
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
@@ -45,14 +45,16 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
   } = useSocketStore();
   const { clientId } = useSocketStore();
   const [displayTitle, setDisplayTitle] = useState(pageTitle);
+  const [dragBlockList, setDragBlockList] = useState<string[]>([]);
 
-  useEffect(() => {
     if (pageTitle === "새로운 페이지" || pageTitle === "") {
       setDisplayTitle("");
     } else {
       setDisplayTitle(pageTitle);
     }
   }, [pageTitle]);
+
+
 
   const editorCRDTInstance = useMemo(() => {
     let newEditorCRDT;
@@ -85,7 +87,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     addNewBlock,
   } = useEditorOperation({ editorCRDT, pageId, setEditorState });
 
-  const { sensors, handleDragEnd } = useBlockDragAndDrop({
+  const { sensors, handleDragEnd, handleDragStart } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
@@ -277,7 +279,15 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
           className={editorTitle}
         />
         <div style={{ height: "36px" }}></div>
-        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        <DndContext
+          onDragEnd={(event: DragEndEvent) => {
+            handleDragEnd(event, dragBlockList, () => setDragBlockList([]));
+          }}
+          onDragStart={(event) => {
+            handleDragStart(event, setDragBlockList);
+          }}
+          sensors={sensors}
+        >
           <SortableContext
             items={editorState.linkedList
               .spread()
@@ -303,6 +313,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
                 onTextStyleUpdate={onTextStyleUpdate}
                 onTextColorUpdate={onTextColorUpdate}
                 onTextBackgroundColorUpdate={onTextBackgroundColorUpdate}
+                dragBlockList={dragBlockList}
               />
             ))}
           </SortableContext>
