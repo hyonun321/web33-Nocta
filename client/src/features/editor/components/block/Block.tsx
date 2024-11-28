@@ -112,7 +112,6 @@ export const Block: React.FC<BlockProps> = memo(
           // 텍스트 컨텐츠가 없거나 공백만 있는 경우
           if (!span.textContent || span.textContent.trim() === "") {
             if (span.parentNode) {
-              console.log("빈 span 태그 제거");
               span.parentNode.removeChild(span);
             }
           }
@@ -174,7 +173,6 @@ export const Block: React.FC<BlockProps> = memo(
       const endOffset = getTextOffset(blockRef.current, range.endContainer, range.endOffset);
 
       const nodes = block.crdt.LinkedList.spread().slice(startOffset, endOffset);
-      console.log("nodes", nodes);
       if (nodes.length > 0) {
         setSelectedNodes(nodes);
         openModal();
@@ -218,7 +216,6 @@ export const Block: React.FC<BlockProps> = memo(
 
     useEffect(() => {
       if (blockRef.current) {
-        console.log("setInnerHTML");
         setInnerHTML({ element: blockRef.current, block });
       }
     }, [block.crdt.serialize()]);

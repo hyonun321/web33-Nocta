@@ -322,7 +322,6 @@ export class BlockCRDT extends CRDT<Char> {
 
   remoteUpdate(operation: RemoteCharUpdateOperation): void {
     const updatedChar = this.LinkedList.nodeMap[JSON.stringify(operation.node.id)];
-    console.log("remoteUpdate", updatedChar);
     if (operation.node.style && operation.node.style.length > 0) {
       updatedChar.style = [...operation.node.style];
     }

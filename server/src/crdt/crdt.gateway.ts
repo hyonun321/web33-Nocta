@@ -171,7 +171,7 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       client.emit("join/page", {
         pageId,
-        serializedPage: currentPage.serialize(),
+        serializedPage: currentPage,
       });
       this.logger.log(`Client ${clientInfo.clientId} joined page ${pageId}`);
     } catch (error) {
@@ -494,11 +494,6 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         throw new Error(`Page with id ${data.pageId} not found`);
       }
       currentPage.crdt.remoteReorder(data);
-
-      console.log(currentPage.crdt.LinkedList.spread());
-      console.log(
-        JSON.stringify((await this.workSpaceService.getWorkspace(userId)).serialize(), null, 2),
-      );
 
       // 5. 다른 클라이언트들에게 업데이트된 블록 정보 브로드캐스트
       const operation = {

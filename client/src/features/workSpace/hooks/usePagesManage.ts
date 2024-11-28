@@ -24,7 +24,6 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
 
     const unsubscribe = subscribeToPageOperations({
       onRemotePageUpdate: (operation) => {
-        console.log(operation, "page : 업데이트 확인합니다이");
         workspace.remotePageUpdate({
           pageId: operation.pageId,
           icon: operation.icon,
@@ -45,7 +44,6 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         );
       },
       onRemotePageCreate: (operation) => {
-        console.log(operation, "page : 생성 확인합니다이");
         const newPage = workspace.remotePageCreate({
           page: operation.page!,
           workspaceId: operation.workspaceId,
@@ -54,7 +52,6 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         addPage(newPage);
       },
       onRemotePageDelete: (operation) => {
-        console.log(operation, "page : 삭제 확인합니다");
         workspace.remotePageDelete?.({
           pageId: operation.pageId,
           workspaceId: operation.workspaceId,
@@ -145,8 +142,6 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
     // 페이지 데이터 수신 핸들러
     const handlePageData = (data: { pageId: string; serializedPage: any }) => {
       if (data.pageId === pageId) {
-        console.log("Received new editor data:", data);
-
         // 페이지 데이터 업데이트
         updatePageData(pageId, data.serializedPage.crdt);
 
@@ -181,7 +176,6 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
 
       setTimeout(() => {
         const titleInput = document.querySelector(`#${CSS.escape(pageId)} input`);
-        console.log(titleInput);
         if (titleInput instanceof HTMLInputElement) {
           titleInput.focus();
         }

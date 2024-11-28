@@ -10,9 +10,11 @@ import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
 import { Page } from "@noctaCrdt/Page";
 import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
+import { Logger } from "@nestjs/common";
 
 @Injectable()
 export class workSpaceService implements OnModuleInit {
+  private readonly logger = new Logger(workSpaceService.name);
   private workspaces: Map<string, CRDTWorkSpace>;
   private server: Server;
   constructor(@InjectModel(Workspace.name) private workspaceModel: Model<WorkspaceDocument>) {}
@@ -67,7 +69,7 @@ export class workSpaceService implements OnModuleInit {
           });
 
           this.workspaces.delete(roomId);
-          console.log(`Workspace ${roomId} will be saved to DB and removed from memory`);
+          this.logger.log(`Workspace ${roomId} will be saved to DB and removed from memory`);
         }
       }
 
@@ -76,7 +78,7 @@ export class workSpaceService implements OnModuleInit {
         await this.workspaceModel.bulkWrite(bulkOps, { ordered: false });
       }
 
-      console.log("Workspace cleanup completed, current workspaces: ", this.workspaces.keys());
+      this.logger.log("Workspace cleanup completed, current workspaces: ", this.workspaces.keys());
     } catch (error) {
       console.error("Error during workspace cleanup: ", error);
     }
