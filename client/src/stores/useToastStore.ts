@@ -9,10 +9,19 @@ interface ToastStore {
 
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
-  addToast: (message, duration = 3000) =>
+  addToast: (message, duration = 3000) => {
+    const id = Date.now();
     set((state) => ({
-      toasts: [...state.toasts, { id: Date.now(), message, duration }],
-    })),
+      toasts: [...state.toasts, { id, message, duration }],
+    }));
+    // duration 후에 자동으로 해당 toast 제거
+    setTimeout(() => {
+      set((state) => ({
+        toasts: state.toasts.filter((toast) => toast.id !== id),
+      }));
+    }, duration);
+  },
+
   removeToast: (id) =>
     set((state) => ({
       toasts: state.toasts.filter((toast) => toast.id !== id),

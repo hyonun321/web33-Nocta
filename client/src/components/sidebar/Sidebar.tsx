@@ -7,7 +7,6 @@ import { useModal } from "@components/modal/useModal";
 import { MAX_VISIBLE_PAGE } from "@src/constants/page";
 import { AuthButton } from "@src/features/auth/AuthButton";
 import { useSocketStore } from "@src/stores/useSocketStore";
-import { useToastStore } from "@src/stores/useToastStore";
 import { Page } from "@src/types/page";
 import { useIsSidebarOpen, useSidebarActions } from "@stores/useSidebarStore";
 import { animation, contentVariants, sidebarVariants } from "./Sidebar.animation";
@@ -43,7 +42,6 @@ export const Sidebar = ({
   const { isOpen, openModal, closeModal } = useModal();
   const { sendPageDeleteOperation, clientId } = useSocketStore();
 
-  const { addToast } = useToastStore();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState<Page | null>(null);
 
@@ -69,11 +67,10 @@ export const Sidebar = ({
       return;
     }
 
-    addToast(`페이지(${pageToDelete!.title})가 삭제되었습니다.`);
-
     sendPageDeleteOperation({
       type: "pageDelete",
       workspaceId: "default",
+      pageTitle: pageToDelete!.title,
       pageId,
       clientId,
     });

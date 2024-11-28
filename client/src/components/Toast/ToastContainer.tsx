@@ -1,3 +1,4 @@
+import { AnimatePresence } from "framer-motion";
 import { useToastStore } from "@stores/useToastStore";
 import { Toast } from "./Toast";
 import { ToastContainerStyle } from "./ToastContainer.style";
@@ -7,14 +8,16 @@ export const ToastContainer = () => {
 
   return (
     <div className={ToastContainerStyle}>
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          duration={toast.duration}
-          onClose={() => removeToast(toast.id)}
-        />
-      ))}
+      <AnimatePresence>
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            duration={toast.duration}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
