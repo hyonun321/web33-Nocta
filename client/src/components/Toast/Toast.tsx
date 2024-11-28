@@ -34,13 +34,14 @@ export const Toast = ({ message, duration = 3000, onClose }: ToastProps) => {
   };
   if (!isVisible) return null;
   return (
-    <div
+    <motion.div
       className={ToastWrapper}
       style={{
         opacity: isClosing ? 0 : 1,
         transform: isClosing ? "translateY(100%)" : "translateY(0)",
         transition: "all 0.3s ease-in-out",
       }}
+      exit={{ opacity: 0 }}
     >
       <motion.div
         initial={{ width: "0%" }}
@@ -53,6 +54,6 @@ export const Toast = ({ message, duration = 3000, onClose }: ToastProps) => {
       <div className={CloseItemBox} onClick={handleClose}>
         <CloseIcon />
       </div>
-    </div>
+    </motion.div>
   );
 };
