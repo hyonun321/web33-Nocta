@@ -1,5 +1,5 @@
 import { PageIconType } from "@noctaCrdt/Interfaces";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CloseIcon from "@assets/icons/close.svg?react";
 import { useModal } from "@src/components/modal/useModal";
 import { PageIconButton } from "../pageIconButton/PageIconButton";
@@ -29,6 +29,10 @@ export const PageItem = ({
 }: PageItemProps) => {
   const { isOpen, openModal, closeModal } = useModal();
   const [pageIcon, setPageIcon] = useState<PageIconType>(icon);
+
+  useEffect(() => {
+    setPageIcon(icon);
+  }, [icon]);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation(); // 상위 요소로의 이벤트 전파 중단
