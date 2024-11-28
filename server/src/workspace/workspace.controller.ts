@@ -1,8 +1,8 @@
-import { Controller, Post, Delete, Get, Param, Body, Req, UseGuards } from "@nestjs/common";
+import { Controller, Post, Delete, Get, Body, Req, UseGuards } from "@nestjs/common";
 import { WorkSpaceService } from "./workspace.service";
 import { ApiTags } from "@nestjs/swagger";
-import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
-import { Request as ExpressRequest, Response as ExpressResponse } from "express";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { Request as ExpressRequest } from "express";
 import { Workspace } from "./schemas/workspace.schema";
 
 @ApiTags("workspace")

@@ -10,6 +10,7 @@ export const workspaceListContainer = css({
 
 export const workspaceModalContainer = cx(
   glassContainer({
+    border: "md",
     borderRadius: "bottom",
     background: "non",
     boxShadow: "bottom",
