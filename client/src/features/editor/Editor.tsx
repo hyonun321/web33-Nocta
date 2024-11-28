@@ -44,10 +44,15 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     sendBlockUpdateOperation,
   } = useSocketStore();
   const { clientId } = useSocketStore();
+  const [displayTitle, setDisplayTitle] = useState(pageTitle);
 
-  const [displayTitle, setDisplayTitle] = useState(
-    pageTitle === "새로운 페이지" || pageTitle === "" ? "" : pageTitle,
-  );
+  useEffect(() => {
+    if (pageTitle === "새로운 페이지" || pageTitle === "") {
+      setDisplayTitle("");
+    } else {
+      setDisplayTitle(pageTitle);
+    }
+  }, [pageTitle]);
 
   const editorCRDTInstance = useMemo(() => {
     let newEditorCRDT;
