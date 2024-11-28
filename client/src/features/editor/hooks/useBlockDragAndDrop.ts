@@ -1,4 +1,3 @@
-// hooks/useBlockDragAndDrop.ts
 import { DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { Block } from "@noctaCrdt/Node";
@@ -32,16 +31,17 @@ export const useBlockDragAndDrop = ({
 
   const { sendBlockReorderOperation, sendBlockUpdateOperation } = useSocketStore();
 
-  const getChildBlocks = (nodes: Block[], parentIndex: number, parentIndent: number): Block[] => {
-    const children = [];
+  const getBlocksToMove = (nodes: Block[], parentIndex: number, parentIndent: number): Block[] => {
+    const blocksToMove = [];
     let i = parentIndex + 1;
 
+    // 자식 블록들 찾기
     while (i < nodes.length && nodes[i].indent > parentIndent) {
-      children.push(nodes[i]);
+      blocksToMove.push(nodes[i]);
       i += 1;
     }
 
-    return children;
+    return blocksToMove;
   };
 
   const reorderBlocksWithChildren = (
@@ -52,11 +52,10 @@ export const useBlockDragAndDrop = ({
   ) => {
     const operations = [];
     const targetIndex = nodes.indexOf(targetNode);
-    const childBlocks = getChildBlocks(nodes, targetIndex, targetNode.indent);
+    const childBlocks = getBlocksToMove(nodes, targetIndex, targetNode.indent);
 
     // 이동할 위치의 부모 블록 indent 찾기
     let newIndent = 0;
-    console.log("beforeNode", beforeNode, afterNode);
     if (beforeNode) {
       // 앞 블록이 있는 경우, 그 블록의 indent를 기준으로
       newIndent = beforeNode.indent;
@@ -67,41 +66,41 @@ export const useBlockDragAndDrop = ({
 
     // indent 변화량 계산 -> 추후 자식 블록들에 indentDiff만큼 적용
     const indentDiff = newIndent - targetNode.indent;
-
     // 타겟 블록 업데이트
     targetNode.indent = newIndent;
 
-    // Reorder 연산
-    const reorderOp = editorCRDT.localReorder({
+    // 타겟 블록의 reorder 연산 처리
+    const targetReorderOp = editorCRDT.localReorder({
       targetId: targetNode.id,
       beforeId: beforeNode?.id || null,
       afterId: afterNode?.id || null,
       pageId,
     });
-    operations.push({ type: "reorder", operation: reorderOp });
+    operations.push({ type: "reorder", operation: targetReorderOp });
 
     // Update 연산 (indent 갱신)
-    const updateOp = editorCRDT.localUpdate(targetNode, pageId);
-    operations.push({ type: "update", operation: updateOp });
+    const targetUpdateOp = editorCRDT.localUpdate(targetNode, pageId);
+    operations.push({ type: "update", operation: targetUpdateOp });
 
     // 자식 블록들 처리
     let prevBlock = targetNode;
-    childBlocks.forEach((child) => {
-      const childNewIndent = Math.max(0, child.indent + indentDiff);
-      child.indent = childNewIndent;
+    childBlocks.forEach((childBlock, index) => {
+      const childNewIndent = Math.max(0, childBlock.indent + indentDiff);
+      childBlock.indent = childNewIndent;
 
+      // 마지막일 경우 after Id를 afterNode 로 설정
       const childReorderOp = editorCRDT.localReorder({
-        targetId: child.id,
+        targetId: childBlock.id,
         beforeId: prevBlock.id,
-        afterId: afterNode?.id || null,
+        afterId: afterNode && index === childBlocks.length - 1 ? afterNode?.id : null,
         pageId,
       });
       operations.push({ type: "reorder", operation: childReorderOp });
 
-      const childUpdateOp = editorCRDT.localUpdate(child, pageId);
+      const childUpdateOp = editorCRDT.localUpdate(childBlock, pageId);
       operations.push({ type: "update", operation: childUpdateOp });
 
-      prevBlock = child;
+      prevBlock = childBlock;
     });
 
     return operations;
@@ -121,7 +120,6 @@ export const useBlockDragAndDrop = ({
 
     // 지금 놓으려는 블록(over)이 드래깅 중인 블록이거나, 드래깅 중인 블록의 자식 블록이면 무시
     const disableDrag = dragBlockList.some((item) => item === over.data.current?.id);
-
     if (disableDrag) return;
 
     try {
@@ -189,7 +187,6 @@ export const useBlockDragAndDrop = ({
 
   const handleDragStart = (
     event: DragStartEvent,
-
     setDragBlockList: React.Dispatch<React.SetStateAction<string[]>>,
   ) => {
     document.body.style.cursor = "grabbing";
@@ -207,22 +204,21 @@ export const useBlockDragAndDrop = ({
 
       if (parentIndex === -1) return [];
 
-      const childBlockId = [];
+      const childBlockIds = [];
 
       for (let i = parentIndex + 1; i < blocks.length; i++) {
         if (blocks[i].indent > parentIndent) {
-          childBlockId.push(`${blocks[i].id.client}-${blocks[i].id.clock}`);
+          childBlockIds.push(`${blocks[i].id.client}-${blocks[i].id.clock}`);
         } else {
           break;
         }
       }
 
-      return childBlockId;
+      return childBlockIds;
     };
 
-    const childBlockId = findChildBlocks(parentId);
-
-    setDragBlockList([parentId, ...childBlockId]);
+    const childBlockIds = findChildBlocks(parentId);
+    setDragBlockList([parentId, ...childBlockIds]);
   };
 
   return {
