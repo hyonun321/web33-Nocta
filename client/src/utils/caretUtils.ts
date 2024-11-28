@@ -133,6 +133,14 @@ export const setCaretPosition = ({
       targetOffset = lastTextNode.textContent?.length || 0;
     }
 
+    // targetOffset이 targetNode의 텍스트 길이를 초과하지 않도록 보장
+    if (targetNode.nodeType === Node.TEXT_NODE) {
+      const textLength = targetNode.textContent?.length || 0;
+      if (targetOffset > textLength) {
+        targetOffset = textLength;
+      }
+    }
+
     const range = document.createRange();
     range.setStart(targetNode, targetOffset);
     range.collapse(true);

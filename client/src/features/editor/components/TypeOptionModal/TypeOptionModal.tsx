@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
+import { ElementType } from "node_modules/@noctaCrdt/Interfaces";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { OPTION_CATEGORIES } from "@src/constants/option";
-import { modalContainer, optionModal, optionTypeButton } from "../OptionModal/OptionModal.style";
 import { modal } from "../OptionModal/OptionModal.animaiton";
-import { ElementType } from "node_modules/@noctaCrdt/Interfaces";
+import { modalContainer, optionModal, optionTypeButton } from "../OptionModal/OptionModal.style";
 
 interface TypeOptionModalProps {
   isOpen: boolean;

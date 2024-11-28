@@ -59,37 +59,44 @@ export type PageIconType =
 export type TextColorType = Exclude<BackgroundColorType, "transparent">;
 
 export interface InsertOperation {
+  type: "insert";
   node: Block | Char;
 }
 
 export interface DeleteOperation {
+  type: "delete";
   targetId: BlockId | CharId;
   clock: number;
 }
 
 export interface RemotePageCreateOperation {
+  type: "pageCreate";
   clientId: number;
   workspaceId: string;
   page?: Page;
 }
 
 export interface RemotePageDeleteOperation {
+  type: "pageDelete";
   clientId: number;
   workspaceId: string;
   pageId: string;
 }
 
 export interface RemoteBlockUpdateOperation {
+  type: "blockUpdate";
   node: Block;
   pageId: string;
 }
 
 export interface RemoteBlockInsertOperation {
+  type: "blockInsert";
   node: Block;
   pageId: string;
 }
 
 export interface RemoteCharInsertOperation {
+  type: "charInsert";
   node: Char;
   blockId: BlockId;
   pageId: string;
@@ -99,12 +106,14 @@ export interface RemoteCharInsertOperation {
 }
 
 export interface RemoteBlockDeleteOperation {
+  type: "blockDelete";
   targetId: BlockId;
   clock: number;
   pageId: string;
 }
 
 export interface RemoteCharDeleteOperation {
+  type: "charDelete";
   targetId: CharId;
   clock: number;
   blockId?: BlockId;
@@ -112,12 +121,14 @@ export interface RemoteCharDeleteOperation {
 }
 
 export interface RemoteCharUpdateOperation {
+  type: "charUpdate";
   node: Char;
   blockId: BlockId;
   pageId: string;
 }
 
 export interface CursorPosition {
+  type: "cursor";
   clientId: number;
   position: number;
 }
@@ -157,6 +168,7 @@ export interface ReorderNodesProps {
 }
 
 export interface RemotePageUpdateOperation {
+  type: "pageUpdate";
   workspaceId: string;
   pageId: string;
   clientId: number;
@@ -169,6 +181,7 @@ export interface WorkSpaceSerializedProps {
   authUser: Map<string, string>;
 }
 export interface RemoteBlockReorderOperation {
+  type: "blockReorder";
   targetId: BlockId;
   beforeId: BlockId | null;
   afterId: BlockId | null;

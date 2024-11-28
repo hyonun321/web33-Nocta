@@ -100,6 +100,7 @@ export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyA
             char.backgroundColor,
           );
           sendCharInsertOperation({
+            type: "charInsert",
             node: charNode.node,
             blockId: block.id,
             pageId,
@@ -122,6 +123,7 @@ export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyA
           const insertPosition = caretPosition + index;
           const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
           sendCharInsertOperation({
+            type: "charInsert",
             node: charNode.node,
             blockId: block.id,
             pageId,
