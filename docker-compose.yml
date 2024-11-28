@@ -1,6 +1,5 @@
 services:
   frontend:
-    user: "1001"
     build:
       context: .
       dockerfile: ./client/Dockerfile
@@ -12,7 +11,6 @@ services:
     command: pnpm --filter client run build
 
   backend:
-    user: "1001"
     build:
       context: .
       dockerfile: ./server/Dockerfile
