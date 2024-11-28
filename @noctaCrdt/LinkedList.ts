@@ -27,8 +27,6 @@ export abstract class LinkedList<T extends Node<NodeId>> {
 
   deleteNode(id: T["id"]): void {
     const nodeToDelete = this.getNode(id);
-    console.log(this.nodeMap);
-    console.log("nodeToDelete", nodeToDelete, id);
     if (!nodeToDelete) return;
 
     if (this.head && id.equals(this.head)) {
@@ -57,65 +55,9 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     delete this.nodeMap[JSON.stringify(id)];
   }
 
-  reorderNodes({ targetId, beforeId, afterId }: ReorderNodesProps): void {
-    const targetNode = this.getNode(targetId);
-    if (!targetNode) return;
+  updateAllOrderedListIndices() {}
 
-    // 1. 기존 연결 해제
-    if (targetNode.prev) {
-      const prevNode = this.getNode(targetNode.prev);
-      if (prevNode) {
-        prevNode.next = targetNode.next;
-      }
-    } else {
-      this.head = targetNode.next;
-    }
-
-    if (targetNode.next) {
-      const nextNode = this.getNode(targetNode.next);
-      if (nextNode) {
-        nextNode.prev = targetNode.prev;
-      }
-    }
-
-    // 2. 새로운 위치에 연결
-    if (!beforeId) {
-      // 맨 앞으로 이동
-      const oldHead = this.head;
-      this.head = targetId;
-      targetNode.prev = null;
-      targetNode.next = oldHead;
-
-      if (oldHead) {
-        const headNode = this.getNode(oldHead);
-        if (headNode) {
-          headNode.prev = targetId;
-        }
-      }
-    } else if (!afterId) {
-      // 맨 끝으로 이동
-      const beforeNode = this.getNode(beforeId);
-      if (beforeNode) {
-        beforeNode.next = targetId;
-        targetNode.prev = beforeId;
-        targetNode.next = null;
-      }
-    } else {
-      // 중간으로 이동
-      const beforeNode = this.getNode(beforeId);
-      const afterNode = this.getNode(afterId);
-
-      if (beforeNode && afterNode) {
-        targetNode.prev = beforeId;
-        targetNode.next = afterId;
-        beforeNode.next = targetId;
-        afterNode.prev = targetId;
-      }
-    }
-
-    // 노드맵 갱신
-    this.setNode(targetId, targetNode);
-  }
+  reorderNodes({ targetId, beforeId, afterId }: ReorderNodesProps): void {}
 
   findByIndex(index: number): T {
     if (index < 0) {
@@ -146,7 +88,7 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     return node;
   }
 
-  insertAtIndex(index: number, value: string, id: T["id"]): InsertOperation {
+  insertAtIndex(index: number, value: string, id: T["id"]) {
     try {
       const node = this.createNode(value, id);
       this.setNode(id, node);
@@ -221,6 +163,35 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     this.setNode(node.id, node);
   }
 
+  getNodesBetween(startIndex: number, endIndex: number): T[] {
+    if (startIndex < 0 || endIndex < startIndex) {
+      throw new Error("Invalid indices");
+    }
+
+    const result: T[] = [];
+    let currentNodeId = this.head;
+    let currentIndex = 0;
+
+    // 시작 인덱스까지 이동
+    while (currentNodeId !== null && currentIndex < startIndex) {
+      const currentNode = this.getNode(currentNodeId);
+      if (!currentNode) break;
+      currentNodeId = currentNode.next;
+      currentIndex += 1;
+    }
+
+    // 시작 인덱스부터 끝 인덱스까지의 노드들 수집
+    while (currentNodeId !== null && currentIndex < endIndex) {
+      const currentNode = this.getNode(currentNodeId);
+      if (!currentNode) break;
+      result.push(currentNode);
+      currentNodeId = currentNode.next;
+      currentIndex += 1;
+    }
+
+    return result;
+  }
+
   stringify(): string {
     let currentNodeId = this.head;
     let result = "";
@@ -247,27 +218,6 @@ export abstract class LinkedList<T extends Node<NodeId>> {
     return result;
   }
 
-  /*
-  spread(): T[] {
-    const visited = new Set<string>();
-    let currentNodeId = this.head;
-    const result: T[] = [];
-    
-    while (currentNodeId !== null) {
-      const nodeKey = JSON.stringify(currentNodeId);
-      if (visited.has(nodeKey)) break; // 순환 감지
-      
-      visited.add(nodeKey);
-      const currentNode = this.getNode(currentNodeId);
-      if (!currentNode) break;
-      
-      result.push(currentNode);
-      currentNodeId = currentNode.next;
-    }
-    return result;
-}
-  */
-
   serialize(): any {
     return {
       head: this.head ? this.head.serialize() : null,
@@ -293,6 +243,116 @@ export abstract class LinkedList<T extends Node<NodeId>> {
 }
 
 export class BlockLinkedList extends LinkedList<Block> {
+  updateAllOrderedListIndices() {
+    let currentNode = this.getNode(this.head);
+    let currentIndex = 1;
+
+    while (currentNode) {
+      if (currentNode.type === "ol") {
+        const prevNode = currentNode.prev ? this.getNode(currentNode.prev) : null;
+
+        if (!prevNode || prevNode.type !== "ol") {
+          // 이전 노드가 없거나 ol이 아닌 경우 1부터 시작
+          currentIndex = 1;
+        } else if (prevNode.indent !== currentNode.indent) {
+          // indent가 다른 경우
+          if (currentNode.indent > prevNode.indent) {
+            // indent가 증가한 경우 1부터 시작
+            currentIndex = 1;
+          } else {
+            // indent가 감소한 경우 같은 indent를 가진 이전 ol의 번호 다음부터 시작
+            let prevSameIndentNode = prevNode;
+            while (
+              prevSameIndentNode &&
+              (prevSameIndentNode.indent !== currentNode.indent || prevSameIndentNode.type !== "ol")
+            ) {
+              if (prevSameIndentNode.prev) {
+                prevSameIndentNode = this.getNode(prevSameIndentNode.prev)!;
+              } else {
+                break;
+              }
+            }
+
+            if (prevSameIndentNode && prevSameIndentNode.type === "ol") {
+              currentIndex = prevSameIndentNode.listIndex! + 1;
+            } else {
+              currentIndex = 1;
+            }
+          }
+        } else {
+          // 같은 indent의 연속된 ol인 경우 번호 증가
+          currentIndex = prevNode.listIndex!;
+          currentIndex += 1;
+        }
+
+        currentNode.listIndex = currentIndex;
+      }
+
+      currentNode = currentNode.next ? this.getNode(currentNode.next) : null;
+    }
+  }
+
+  reorderNodes({ targetId, beforeId, afterId }: ReorderNodesProps) {
+    const targetNode = this.getNode(targetId);
+    if (!targetNode) return;
+
+    // 1. 현재 위치에서 노드 제거
+    if (targetNode.prev) {
+      const prevNode = this.getNode(targetNode.prev);
+      if (prevNode) prevNode.next = targetNode.next;
+    }
+
+    if (targetNode.next) {
+      const nextNode = this.getNode(targetNode.next);
+      if (nextNode) nextNode.prev = targetNode.prev;
+    }
+
+    if (this.head === targetId) {
+      this.head = targetNode.next;
+    }
+
+    // 2. 새로운 위치에 노드 삽입
+    if (!beforeId) {
+      // 맨 앞으로 이동
+      const oldHead = this.head;
+      this.head = targetId;
+      targetNode.prev = null;
+      targetNode.next = oldHead;
+
+      if (oldHead) {
+        const headNode = this.getNode(oldHead);
+        if (headNode) headNode.prev = targetId;
+      }
+    } else if (!afterId) {
+      // 맨 끝으로 이동
+      const beforeNode = this.getNode(beforeId);
+      if (beforeNode) {
+        beforeNode.next = targetId;
+        targetNode.prev = beforeId;
+        targetNode.next = null;
+      }
+    } else {
+      // 중간으로 이동
+      const beforeNode = this.getNode(beforeId);
+      const afterNode = this.getNode(afterId);
+
+      if (beforeNode && afterNode) {
+        targetNode.prev = beforeId;
+        targetNode.next = afterId;
+        beforeNode.next = targetId;
+        afterNode.prev = targetId;
+      }
+    }
+
+    // 노드맵 갱신
+    this.setNode(targetId, targetNode);
+
+    // ordered list가 포함된 경우 전체 인덱스 재계산
+    if (targetNode.type === "ol") {
+      this.updateAllOrderedListIndices();
+    }
+  }
+
   deserializeNodeId(data: any): BlockId {
     return BlockId.deserialize(data);
   }

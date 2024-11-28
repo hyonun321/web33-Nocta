@@ -13,7 +13,6 @@ export const sidebarContainer = cx(
 );
 export const navWrapper = css({
   display: "flex",
-  gap: "md",
   flexDirection: "column",
   width: "100%",
   height: "calc(100% - 176px)",
@@ -33,7 +32,12 @@ export const plusIconBox = css({
   paddingInline: "md",
   justifyItems: "center",
 });
-
+export const placeholderMessage = css({
+  padding: "xs",
+  color: "gray.500",
+  textAlign: "center",
+  fontSize: "md",
+});
 export const sidebarToggleButton = css({
   zIndex: 10,
   position: "absolute",

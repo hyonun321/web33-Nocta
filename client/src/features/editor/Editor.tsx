@@ -3,41 +3,38 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
-import { BlockId } from "@noctaCrdt/NodeId";
-import {
-  RemoteCharInsertOperation,
-  serializedEditorDataProps,
-} from "node_modules/@noctaCrdt/Interfaces.ts";
+import { serializedEditorDataProps } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
-import { editorContainer, editorTitleContainer, editorTitle } from "./Editor.style";
-import { Block } from "./components/block/Block.tsx";
+import { setCaretPosition } from "@src/utils/caretUtils.ts";
+import {
+  editorContainer,
+  editorTitleContainer,
+  editorTitle,
+  addNewBlockButton,
+} from "./Editor.style";
+import { Block } from "./components/block/Block";
 import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
+import { useBlockOperation } from "./hooks/useBlockOperation.ts";
+import { useBlockOptionSelect } from "./hooks/useBlockOption";
+import { useCopyAndPaste } from "./hooks/useCopyAndPaste.ts";
+import { useEditorOperation } from "./hooks/useEditorOperation.ts";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
-
-interface EditorProps {
-  onTitleChange: (title: string) => void;
-  pageId: string;
-  serializedEditorData: serializedEditorDataProps;
-}
+import { useTextOptionSelect } from "./hooks/useTextOptions.ts";
 
 export interface EditorStateProps {
   clock: number;
   linkedList: BlockLinkedList;
-  currentBlock: BlockId | null;
 }
-// TODO: pageId, editorCRDT를 props로 받아와야함
-export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorProps) => {
-  /*
-  const {
-    sendCharInsertOperation,
-    sendCharDeleteOperation,
-    subscribeToRemoteOperations,
-    sendBlockInsertOperation,
-    sendBlockDeleteOperation,
-    sendBlockUpdateOperation,
-  } = useSocket();
-  */
+
+interface EditorProps {
+  onTitleChange: (title: string, syncWithServer: boolean) => void;
+  pageId: string;
+  serializedEditorData: serializedEditorDataProps;
+  pageTitle: string;
+}
+
+export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData }: EditorProps) => {
   const {
     sendCharInsertOperation,
     sendCharDeleteOperation,
@@ -46,25 +43,63 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
   } = useSocketStore();
+  const { clientId } = useSocketStore();
+
+  const [displayTitle, setDisplayTitle] = useState(
+    pageTitle === "새로운 페이지" || pageTitle === "" ? "" : pageTitle,
+  );
+
   const editorCRDTInstance = useMemo(() => {
-    const editor = new EditorCRDT(serializedEditorData.client);
-    editor.deserialize(serializedEditorData);
-    return editor;
-  }, [serializedEditorData]);
+    let newEditorCRDT;
+    if (serializedEditorData) {
+      newEditorCRDT = new EditorCRDT(serializedEditorData.client);
+      newEditorCRDT.deserialize(serializedEditorData);
+    } else {
+      newEditorCRDT = new EditorCRDT(clientId ? clientId : 0);
+    }
+    return newEditorCRDT;
+  }, [serializedEditorData, clientId]);
 
   const editorCRDT = useRef<EditorCRDT>(editorCRDTInstance);
+
+  // editorState도 editorCRDT가 변경될 때마다 업데이트
   const [editorState, setEditorState] = useState<EditorStateProps>({
     clock: editorCRDT.current.clock,
     linkedList: editorCRDT.current.LinkedList,
-    currentBlock: null as BlockId | null,
   });
+
+  const {
+    handleRemoteBlockInsert,
+    handleRemoteBlockDelete,
+    handleRemoteCharInsert,
+    handleRemoteCharDelete,
+    handleRemoteBlockUpdate,
+    handleRemoteBlockReorder,
+    handleRemoteCharUpdate,
+    handleRemoteCursor,
+    addNewBlock,
+  } = useEditorOperation({ editorCRDT, pageId, setEditorState });
+
   const { sensors, handleDragEnd } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
+    pageId,
   });
 
-  const { handleKeyDown } = useMarkdownGrammer({
+  const { handleTypeSelect, handleAnimationSelect, handleCopySelect, handleDeleteSelect } =
+    useBlockOptionSelect({
+      editorCRDT: editorCRDT.current,
+      editorState,
+      setEditorState,
+      pageId,
+      sendBlockUpdateOperation,
+      sendBlockDeleteOperation,
+      sendBlockInsertOperation,
+      sendCharInsertOperation,
+    });
+
+  const { handleKeyDown: onKeyDown, handleInput: handleHrInput } = useMarkdownGrammer({
     editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
@@ -76,154 +111,130 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
     sendCharInsertOperation,
   });
 
+  const { handleBlockClick, handleBlockInput, handleKeyDown } = useBlockOperation({
+    editorCRDT: editorCRDT.current,
+    setEditorState,
+    pageId,
+    onKeyDown,
+    handleHrInput,
+  });
+
+  const { onTextStyleUpdate, onTextColorUpdate, onTextBackgroundColorUpdate } = useTextOptionSelect(
+    {
+      editorCRDT: editorCRDT.current,
+      setEditorState,
+      pageId,
+    },
+  );
+
+  const { handleCopy, handlePaste } = useCopyAndPaste({
+    editorCRDT: editorCRDT.current,
+    setEditorState,
+    pageId,
+  });
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onTitleChange(e.target.value);
+    const newTitle = e.target.value;
+    setDisplayTitle(newTitle); // 로컬 상태 업데이트
+    onTitleChange(newTitle, false); // 낙관적 업데이트
   };
 
-  const handleBlockClick = (blockId: BlockId, e: React.MouseEvent<HTMLDivElement>) => {
-    try {
-      const block = editorState.linkedList.getNode(blockId);
-      if (!block) {
-        console.warn("Block not found:", blockId);
-        return;
-      }
-
-      const selection = window.getSelection();
-      const range = document.caretRangeFromPoint(e.clientX, e.clientY);
-
-      if (!selection || !range) {
-        console.warn("Selection or range not available");
-        return;
-      }
-
-      // 새로운 Range로 Selection 설정
-      selection.removeAllRanges();
-      selection.addRange(range);
-
-      // 현재 캐럿 위치를 저장
-      const caretPosition = selection.focusOffset;
-      block.crdt.currentCaret = caretPosition;
-
-      setEditorState((prev) => ({
-        ...prev,
-        currentBlock: blockId,
-      }));
-    } catch (error) {
-      console.error("Error handling block click:", error);
+  const handleBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    if (newTitle === "") {
+      setDisplayTitle(""); // 입력이 비어있으면 로컬상태는 빈 문자열로
+      onTitleChange("새로운 페이지", true); // 서버에는 "새로운 페이지"로 저장
+    } else {
+      onTitleChange(newTitle, true);
     }
   };
 
-  const handleBlockInput = useCallback(
-    (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => {
-      if (!block) return;
-      let operationNode;
-      const element = e.currentTarget;
-      const newContent = element.textContent || "";
-      const currentContent = block.crdt.read();
+  const handleCompositionEnd = useCallback(
+    (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => {
+      if (!editorCRDT) return;
+      const event = e.nativeEvent as CompositionEvent;
+      const characters = [...event.data];
       const selection = window.getSelection();
       const caretPosition = selection?.focusOffset || 0;
+      const startPosition = caretPosition - characters.length;
 
-      if (newContent.length > currentContent.length) {
-        let charNode: RemoteCharInsertOperation;
-        if (caretPosition === 0) {
-          const [addedChar] = newContent;
-          charNode = block.crdt.localInsert(0, addedChar, block.id, pageId);
-          block.crdt.currentCaret = 1;
-        } else if (caretPosition > currentContent.length) {
-          const addedChar = newContent[newContent.length - 1];
-          charNode = block.crdt.localInsert(currentContent.length, addedChar, block.id, pageId);
-          block.crdt.currentCaret = caretPosition;
-        } else {
-          const addedChar = newContent[caretPosition - 1];
-          charNode = block.crdt.localInsert(caretPosition - 1, addedChar, block.id, pageId);
-          block.crdt.currentCaret = caretPosition;
-        }
-        sendCharInsertOperation({ node: charNode.node, blockId: block.id, pageId });
-      } else if (newContent.length < currentContent.length) {
-        // 문자가 삭제된 경우
-        operationNode = block.crdt.localDelete(caretPosition, block.id, pageId);
-        block.crdt.currentCaret = caretPosition;
-        sendCharDeleteOperation(operationNode);
-      }
+      characters.forEach((char, index) => {
+        const insertPosition = startPosition + index;
+        const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
 
-      setEditorState((prev) => ({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
-        currentBlock: prev.currentBlock,
-      }));
+        sendCharInsertOperation({
+          type: "charInsert",
+          node: charNode.node,
+          blockId: block.id,
+          pageId,
+        });
+      });
+
+      block.crdt.currentCaret = caretPosition;
     },
-    [sendCharInsertOperation, sendCharDeleteOperation],
+    [editorCRDT, pageId, sendCharInsertOperation],
   );
 
   const subscriptionRef = useRef(false);
 
   useEffect(() => {
+    if (!editorCRDT || !editorCRDT.current.currentBlock) return;
+
+    const { activeElement } = document;
+    if (activeElement?.tagName.toLowerCase() === "input") {
+      return; // input에 포커스가 있으면 캐럿 위치 변경하지 않음
+    }
+    setCaretPosition({
+      blockId: editorCRDT.current.currentBlock.id,
+      linkedList: editorCRDT.current.LinkedList,
+      position: editorCRDT.current.currentBlock?.crdt.currentCaret,
+      pageId,
+    });
+    // 서윤님 피드백 반영
+  }, [editorCRDT.current.currentBlock?.id.serialize()]);
+
+  useEffect(() => {
+    if (!editorCRDT) return;
     if (subscriptionRef.current) return;
     subscriptionRef.current = true;
 
     const unsubscribe = subscribeToRemoteOperations({
-      onRemoteBlockInsert: (operation) => {
-        console.log(operation, "block : 입력 확인합니다이");
-        if (!editorCRDT.current) return;
-        editorCRDT.current.remoteInsert(operation);
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
-      },
-
-      onRemoteBlockDelete: (operation) => {
-        console.log(operation, "block : 삭제 확인합니다이");
-        if (!editorCRDT.current) return;
-        editorCRDT.current.remoteDelete(operation);
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
-      },
-
-      onRemoteCharInsert: (operation) => {
-        console.log(operation, "char : 입력 확인합니다이");
-        if (!editorCRDT.current) return;
-        const targetBlock =
-          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
-        targetBlock.crdt.remoteInsert(operation);
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
-      },
-
-      onRemoteCharDelete: (operation) => {
-        console.log(operation, "char : 삭제 확인합니다이");
-        if (!editorCRDT.current) return;
-        const targetBlock =
-          editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
-        targetBlock.crdt.remoteDelete(operation);
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
-      },
-
-      onRemoteBlockUpdate: (operation) => {
-        console.log(operation, "block : 업데이트 확인합니다이");
-        if (!editorCRDT.current) return;
-        // ??
-        console.log("타입", operation.node);
-        editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
-        setEditorState((prev) => ({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-          currentBlock: prev.currentBlock,
-        }));
-      },
-      onRemoteCursor: (position) => {
-        console.log(position, "커서위치 수신");
+      onRemoteBlockInsert: handleRemoteBlockInsert,
+      onRemoteBlockDelete: handleRemoteBlockDelete,
+      onRemoteCharInsert: handleRemoteCharInsert,
+      onRemoteCharDelete: handleRemoteCharDelete,
+      onRemoteBlockUpdate: handleRemoteBlockUpdate,
+      onRemoteBlockReorder: handleRemoteBlockReorder,
+      onRemoteCharUpdate: handleRemoteCharUpdate,
+      onRemoteCursor: handleRemoteCursor,
+      onBatchOperations: (batch) => {
+        for (const item of batch) {
+          switch (item.event) {
+            case "insert/block":
+              handleRemoteBlockInsert(item.operation);
+              break;
+            case "delete/block":
+              handleRemoteBlockDelete(item.operation);
+              break;
+            case "insert/char":
+              handleRemoteCharInsert(item.operation);
+              break;
+            case "delete/char":
+              handleRemoteCharDelete(item.operation);
+              break;
+            case "update/block":
+              handleRemoteBlockUpdate(item.operation);
+              break;
+            case "reorder/block":
+              handleRemoteBlockReorder(item.operation);
+              break;
+            case "update/char":
+              handleRemoteCharUpdate(item.operation);
+              break;
+            default:
+              console.warn("알 수 없는 연산 타입:", item.event);
+          }
+        }
       },
     });
 
@@ -231,22 +242,24 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
       subscriptionRef.current = false;
       unsubscribe?.();
     };
-  }, []);
+  }, [
+    editorCRDT,
+    subscribeToRemoteOperations,
+    pageId,
+    handleRemoteBlockInsert,
+    handleRemoteBlockDelete,
+    handleRemoteCharInsert,
+    handleRemoteCharDelete,
+    handleRemoteBlockUpdate,
+    handleRemoteBlockReorder,
+    handleRemoteCharUpdate,
+    handleRemoteCursor,
+  ]);
 
-  const tempBlock = () => {
-    const index = editorCRDT.current.LinkedList.spread().length;
-
-    // 로컬 삽입을 수행하고 연산 객체를 반환받음
-    const operation = editorCRDT.current.localInsert(index, "");
-    sendBlockInsertOperation({ node: operation.node, pageId });
-    console.log("operation clock", operation.node);
-    setEditorState(() => ({
-      clock: operation.node.id.clock,
-      linkedList: editorCRDT.current.LinkedList,
-      currentBlock: operation.node.id,
-    }));
-  };
-
+  // 로딩 상태 체크
+  if (!editorCRDT || !editorState) {
+    return <div>Loading editor data...</div>;
+  }
   return (
     <div className={editorContainer}>
       <div className={editorTitleContainer}>
@@ -254,8 +267,11 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
           type="text"
           placeholder="제목을 입력하세요..."
           onChange={handleTitleChange}
+          onBlur={handleBlur}
+          value={displayTitle}
           className={editorTitle}
         />
+        <div style={{ height: "36px" }}></div>
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <SortableContext
             items={editorState.linkedList
@@ -268,15 +284,29 @@ export const Editor = ({ onTitleChange, pageId, serializedEditorData }: EditorPr
                 key={`${block.id.client}-${block.id.clock}`}
                 id={`${block.id.client}-${block.id.clock}`}
                 block={block}
-                isActive={block.id === editorState.currentBlock}
+                isActive={block.id === editorCRDT.current.currentBlock?.id}
                 onInput={handleBlockInput}
+                onCompositionEnd={handleCompositionEnd}
                 onKeyDown={handleKeyDown}
+                onCopy={handleCopy}
+                onPaste={handlePaste}
                 onClick={handleBlockClick}
+                onAnimationSelect={handleAnimationSelect}
+                onTypeSelect={handleTypeSelect}
+                onCopySelect={handleCopySelect}
+                onDeleteSelect={handleDeleteSelect}
+                onTextStyleUpdate={onTextStyleUpdate}
+                onTextColorUpdate={onTextColorUpdate}
+                onTextBackgroundColorUpdate={onTextBackgroundColorUpdate}
               />
             ))}
           </SortableContext>
         </DndContext>
-        <div onClick={tempBlock}>임시</div>
+        {editorState.linkedList.spread().length === 0 && (
+          <div className={addNewBlockButton} onClick={addNewBlock}>
+            클릭해서 새로운 블록을 추가하세요
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,18 +1,21 @@
 // hooks/useBlockDragAndDrop.ts
 import { DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
+import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { EditorStateProps } from "../Editor";
 
 interface UseBlockDragAndDropProps {
   editorCRDT: EditorCRDT;
   editorState: EditorStateProps;
   setEditorState: React.Dispatch<React.SetStateAction<EditorStateProps>>;
+  pageId: string;
 }
 
 export const useBlockDragAndDrop = ({
   editorCRDT,
   editorState,
   setEditorState,
+  pageId,
 }: UseBlockDragAndDropProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -21,6 +24,8 @@ export const useBlockDragAndDrop = ({
       },
     }),
   );
+
+  const { sendBlockReorderOperation } = useSocketStore();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -73,17 +78,19 @@ export const useBlockDragAndDrop = ({
       }
 
       // EditorCRDT의 현재 상태로 작업
-      editorCRDT.localReorder({
+      const operation = editorCRDT.localReorder({
         targetId: targetNode.id,
         beforeId: beforeNode?.id || null,
         afterId: afterNode?.id || null,
+        pageId,
       });
+
+      sendBlockReorderOperation(operation);
 
       // EditorState 업데이트
       setEditorState({
         clock: editorCRDT.clock,
         linkedList: editorCRDT.LinkedList,
-        currentBlock: editorState.currentBlock,
       });
     } catch (error) {
       console.error("Failed to reorder blocks:", error);

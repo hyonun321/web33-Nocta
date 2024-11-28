@@ -1,24 +1,24 @@
 import { EditorCRDT } from "./Crdt";
 import { Block } from "./Node";
-import { CRDTSerializedProps } from "./Interfaces";
+import { CRDTSerializedProps, PageIconType } from "./Interfaces";
 
 export interface PageSerializedProps {
   id: string;
   title: string;
-  icon: string;
+  icon: PageIconType;
   crdt: CRDTSerializedProps<Block>; // EditorCRDT의 직렬화된 데이터 타입
 }
 
 export class Page {
   id: string;
   title: string;
-  icon: string;
+  icon: PageIconType;
   crdt: EditorCRDT;
 
   constructor(
     id: string = crypto.randomUUID(), // 고유한 ID 생성
     title: string = "Untitled",
-    icon: string = "📄",
+    icon: PageIconType = "Docs",
     editorCRDT: EditorCRDT = new EditorCRDT(0),
   ) {
     this.id = id;
@@ -33,7 +33,7 @@ export class Page {
   }
 
   // 아이콘 업데이트
-  updateIcon(newIcon: string): void {
+  updateIcon(newIcon: PageIconType): void {
     this.icon = newIcon;
   }
 

@@ -14,6 +14,7 @@ export const editorContainer = css({
 
 export const editorTitleContainer = css({
   display: "flex",
+  gap: "4px",
   flexDirection: "column",
   width: "full",
   padding: "spacing.sm",
@@ -24,9 +25,10 @@ export const editorTitle = css({
   outline: "none",
   border: "none",
   width: "full",
+  paddingLeft: "7.5px",
   color: "gray.700",
   "&::placeholder": {
-    color: "gray.300",
+    color: "gray.100",
   },
 });
 
@@ -48,5 +50,18 @@ export const checkbox = css({
   "&:checked": {
     borderColor: "blue.500",
     backgroundColor: "blue.500",
+  },
+});
+
+export const addNewBlockButton = css({
+  display: "flex",
+  gap: "spacing.sm",
+  borderRadius: "4px",
+  padding: "spacing.sm",
+  color: "gray.900",
+  opacity: 0.8,
+  cursor: "pointer",
+  "&:hover": {
+    opacity: 1,
   },
 });

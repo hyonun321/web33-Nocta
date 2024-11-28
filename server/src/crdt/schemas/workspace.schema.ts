@@ -1,3 +1,27 @@
+/*
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+
+// Main Workspace Document Schema
+@Schema({ minimize: false })
+export class Workspace {
+  @Prop({ required: true })
+  id: string;
+
+  @Prop({ type: String, default: [] })
+  pageList: string[];
+
+  @Prop({ type: Map, of: Object })
+  authUser: Map<string, string>;
+
+  @Prop({ default: Date.now })
+  updatedAt: Date;
+}
+
+export type WorkspaceDocument = Document & Workspace;
+export const WorkspaceSchema = SchemaFactory.createForClass(Workspace);
+*/
+
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 
@@ -187,8 +211,8 @@ export class Workspace {
   @Prop({ type: [Page], default: [] })
   pageList: Page[];
 
-  @Prop({ type: Map, of: Object })
-  authUser: Map<string, any>;
+  @Prop({ type: Object, of: Object })
+  authUser: object;
 
   @Prop({ default: Date.now })
   updatedAt: Date;
