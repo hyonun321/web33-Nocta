@@ -3,16 +3,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { EditorCRDT } from "@noctaCrdt/Crdt";
 import { BlockLinkedList } from "@noctaCrdt/LinkedList";
 import { Block as CRDTBlock } from "@noctaCrdt/Node";
-import {
-  RemoteBlockDeleteOperation,
-  RemoteBlockInsertOperation,
-  RemoteBlockReorderOperation,
-  RemoteBlockUpdateOperation,
-  RemoteCharDeleteOperation,
-  RemoteCharInsertOperation,
-  RemoteCharUpdateOperation,
-  serializedEditorDataProps,
-} from "node_modules/@noctaCrdt/Interfaces.ts";
+import { serializedEditorDataProps } from "node_modules/@noctaCrdt/Interfaces.ts";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore.ts";
 import { setCaretPosition } from "@src/utils/caretUtils.ts";
@@ -27,6 +18,7 @@ import { useBlockDragAndDrop } from "./hooks/useBlockDragAndDrop";
 import { useBlockOperation } from "./hooks/useBlockOperation.ts";
 import { useBlockOptionSelect } from "./hooks/useBlockOption";
 import { useCopyAndPaste } from "./hooks/useCopyAndPaste.ts";
+import { useEditorOperation } from "./hooks/useEditorOperation.ts";
 import { useMarkdownGrammer } from "./hooks/useMarkdownGrammer";
 import { useTextOptionSelect } from "./hooks/useTextOptions.ts";
 
@@ -75,6 +67,18 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     clock: editorCRDT.current.clock,
     linkedList: editorCRDT.current.LinkedList,
   });
+
+  const {
+    handleRemoteBlockInsert,
+    handleRemoteBlockDelete,
+    handleRemoteCharInsert,
+    handleRemoteCharDelete,
+    handleRemoteBlockUpdate,
+    handleRemoteBlockReorder,
+    handleRemoteCharUpdate,
+    handleRemoteCursor,
+    addNewBlock,
+  } = useEditorOperation({ editorCRDT, pageId, setEditorState });
 
   const { sensors, handleDragEnd } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
@@ -171,18 +175,6 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     [editorCRDT, pageId, sendCharInsertOperation],
   );
 
-  const addNewBlock = () => {
-    if (!editorCRDT) return;
-    const index = editorCRDT.current.LinkedList.spread().length;
-    const operation = editorCRDT.current.localInsert(index, "");
-    editorCRDT.current.currentBlock = operation.node;
-    sendBlockInsertOperation({ type: "blockInsert", node: operation.node, pageId });
-    setEditorState(() => ({
-      clock: editorCRDT.current.clock,
-      linkedList: editorCRDT.current.LinkedList,
-    }));
-  };
-
   const subscriptionRef = useRef(false);
 
   useEffect(() => {
@@ -201,125 +193,6 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     // 서윤님 피드백 반영
   }, [editorCRDT.current.currentBlock?.id.serialize()]);
 
-  const handleRemoteBlockInsert = useCallback(
-    (operation: RemoteBlockInsertOperation) => {
-      console.log(operation, "block : 입력 확인합니다이");
-      if (operation.pageId !== pageId) return;
-      const prevBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.node.prev)];
-      editorCRDT.current.remoteInsert(operation);
-      if (prevBlock.type === "ol") {
-        editorCRDT.current.LinkedList.updateAllOrderedListIndices();
-        console.log("ol update");
-      }
-      setEditorState({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
-      });
-    },
-    [pageId, editorCRDT],
-  );
-
-  const handleRemoteBlockDelete = useCallback(
-    (operation: RemoteBlockDeleteOperation) => {
-      console.log(operation, "block : 삭제 확인합니다이");
-      if (operation.pageId !== pageId) return;
-      const targetBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.targetId)];
-      const prevBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(targetBlock.prev)];
-      const nextBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(targetBlock.next)];
-      editorCRDT.current.remoteDelete(operation);
-      if (prevBlock.type === "ol" && nextBlock.type === "ol") {
-        editorCRDT.current.LinkedList.updateAllOrderedListIndices();
-      }
-      setEditorState({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
-      });
-    },
-    [pageId, editorCRDT],
-  );
-
-  const handleRemoteCharInsert = useCallback(
-    (operation: RemoteCharInsertOperation) => {
-      console.log(operation, "char : 입력 확인합니다이");
-      if (operation.pageId !== pageId) return;
-      const targetBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
-      if (targetBlock) {
-        targetBlock.crdt.remoteInsert(operation);
-        setEditorState({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-        });
-      }
-    },
-    [pageId, editorCRDT],
-  );
-
-  const handleRemoteCharDelete = useCallback(
-    (operation: RemoteCharDeleteOperation) => {
-      console.log(operation, "char : 삭제 확인합니다이");
-      if (operation.pageId !== pageId) return;
-      const targetBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
-      if (targetBlock) {
-        targetBlock.crdt.remoteDelete(operation);
-        setEditorState({
-          clock: editorCRDT.current.clock,
-          linkedList: editorCRDT.current.LinkedList,
-        });
-      }
-    },
-    [pageId, editorCRDT],
-  );
-
-  const handleRemoteBlockUpdate = useCallback(
-    (operation: RemoteBlockUpdateOperation) => {
-      console.log(operation, "block : 업데이트 확인합니다이");
-      if (operation.pageId !== pageId) return;
-      const prevBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.node.prev)];
-      editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
-      if (prevBlock.type === "ol") {
-        editorCRDT.current.LinkedList.updateAllOrderedListIndices();
-      }
-      setEditorState({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
-      });
-    },
-    [pageId, editorCRDT],
-  );
-
-  const handleRemoteBlockReorder = useCallback(
-    (operation: RemoteBlockReorderOperation) => {
-      console.log(operation, "block : 재정렬 확인합니다이");
-      if (operation.pageId !== pageId) return;
-      editorCRDT.current.remoteReorder(operation);
-      editorCRDT.current.LinkedList.updateAllOrderedListIndices();
-      setEditorState({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
-      });
-    },
-    [pageId, editorCRDT],
-  );
-
-  const handleRemoteCharUpdate = useCallback(
-    (operation: RemoteCharUpdateOperation) => {
-      console.log(operation, "char : 업데이트 확인합니다이");
-      if (!editorCRDT) return;
-      if (operation.pageId !== pageId) return;
-      const targetBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
-      targetBlock.crdt.remoteUpdate(operation);
-      setEditorState({
-        clock: editorCRDT.current.clock,
-        linkedList: editorCRDT.current.LinkedList,
-      });
-    },
-    [pageId, editorCRDT],
-  );
-
-  const handleRemoteCursor = useCallback((position: any) => {
-    console.log(position, "커서위치 수신");
-  }, []);
-
   useEffect(() => {
     if (!editorCRDT) return;
     if (subscriptionRef.current) return;
@@ -335,7 +208,6 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteCharUpdate: handleRemoteCharUpdate,
       onRemoteCursor: handleRemoteCursor,
       onBatchOperations: (batch) => {
-        console.log(batch, "batch: 배치 수신");
         for (const item of batch) {
           switch (item.event) {
             case "insert/block":
