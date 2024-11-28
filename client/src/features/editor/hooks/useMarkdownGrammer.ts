@@ -395,8 +395,13 @@ export const useMarkdownGrammer = ({
           const selection = window.getSelection();
           if (!selection) return;
           const currentContent = currentBlock.crdt.read();
+          const currentCaret = getAbsoluteCaretPosition(e.currentTarget);
           const markdownElement = checkMarkdownPattern(currentContent);
-          if (markdownElement && currentBlock.type === "p") {
+          if (
+            markdownElement &&
+            currentCaret === markdownElement.length &&
+            currentBlock.type === "p"
+          ) {
             e.preventDefault();
             // 마크다운 패턴 매칭 시 타입 변경하고 내용 비우기
             currentBlock.type = markdownElement.type;
