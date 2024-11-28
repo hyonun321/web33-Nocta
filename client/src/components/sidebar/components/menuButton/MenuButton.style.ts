@@ -1,4 +1,3 @@
-import { SIDE_BAR } from "@constants/size";
 import { css } from "@styled-system/css";
 
 export const menuItemWrapper = css({
