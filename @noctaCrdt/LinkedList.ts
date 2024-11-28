@@ -300,15 +300,13 @@ export class BlockLinkedList extends LinkedList<Block> {
     if (targetNode.prev) {
       const prevNode = this.getNode(targetNode.prev);
       if (prevNode) prevNode.next = targetNode.next;
+    } else {
+      this.head = targetNode.next;
     }
 
     if (targetNode.next) {
       const nextNode = this.getNode(targetNode.next);
       if (nextNode) nextNode.prev = targetNode.prev;
-    }
-
-    if (this.head === targetId) {
-      this.head = targetNode.next;
     }
 
     // 2. 새로운 위치에 노드 삽입
