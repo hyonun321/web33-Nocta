@@ -11,8 +11,8 @@ import {
   RemotePageUpdateOperation,
   CursorPosition,
   WorkSpaceSerializedProps,
+  WorkspaceListItem,
 } from "@noctaCrdt/Interfaces";
-import { WorkSpace as WorkspaceClass } from "@noctaCrdt/WorkSpace";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
 
@@ -55,10 +55,11 @@ interface SocketStore {
   clientId: number | null;
   workspace: WorkSpaceSerializedProps | null;
 
-  availableWorkspaces: WorkspaceClass[];
+  availableWorkspaces: WorkspaceListItem[];
   batchProcessor: BatchProcessor;
-  init: (accessToken: string | null) => void;
+  init: (userId: string | null, workspaceId: string | null) => void;
   cleanup: () => void;
+  switchWorkspace: (userId: string | null, workspaceId: string | null) => void; // 새로운 함수 추가
   fetchWorkspaceData: () => WorkSpaceSerializedProps | null;
   sendPageCreateOperation: (operation: RemotePageCreateOperation) => void;
   sendPageDeleteOperation: (operation: RemotePageDeleteOperation) => void;
@@ -100,14 +101,14 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   clientId: null,
   workspace: null,
 
-  availableWorkspaces: [], // 새로 추가
+  availableWorkspaces: [],
 
   batchProcessor: new BatchProcessor((batch) => {
     const { socket } = get();
     socket?.emit("batch/operations", batch);
   }),
 
-  init: (id: string | null) => {
+  init: (userId: string | null, workspaceId: string | null) => {
     const { socket: existingSocket } = get();
 
     if (existingSocket) {
@@ -124,7 +125,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       auth: {
-        userId: id,
+        userId,
+        workspaceId,
       },
       autoConnect: false,
     });
@@ -145,7 +147,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       console.log("Disconnected from server");
     });
 
-    socket.on("workspace/list", (workspaces: WorkspaceClass[]) => {
+    socket.on("workspace/list", (workspaces: WorkspaceListItem[]) => {
       console.log("Received workspace list:", workspaces);
       set({ availableWorkspaces: workspaces });
     });
@@ -164,6 +166,18 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.disconnect();
       set({ socket: null, workspace: null, clientId: null });
     }
+  },
+
+  switchWorkspace: (userId: string | null, workspaceId: string | null) => {
+    const { socket, init } = get();
+
+    // 기존 연결 정리
+    if (socket) {
+      socket.disconnect();
+    }
+
+    // 새로운 연결 시작 (userId는 유지)
+    init(userId, workspaceId);
   },
 
   fetchWorkspaceData: () => get().workspace,
