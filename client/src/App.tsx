@@ -9,11 +9,11 @@ const App = () => {
   // TODO 라우터, react query 설정
   const { isErrorModalOpen, errorMessage } = useErrorStore();
 
-  const { id } = useUserInfo();
+  const { userId } = useUserInfo();
 
   useEffect(() => {
     const socketStore = useSocketStore.getState();
-    socketStore.init(id);
+    socketStore.init(userId, null);
 
     // // 소켓이 연결된 후에 이벤트 리스너 등록
     // const { socket } = socketStore;
@@ -34,7 +34,7 @@ const App = () => {
         socketStore.cleanup();
       }, 0);
     };
-  }, [id]);
+  }, [userId]);
 
   return (
     <>
