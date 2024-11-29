@@ -27,11 +27,13 @@ import { Logger } from "@nestjs/common";
 import { nanoid } from "nanoid";
 import { Page } from "@noctaCrdt/Page";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-
+import { AuthService } from "../auth/auth.service";
+import { WorkspaceInviteData } from "./workspace.interface";
 // 클라이언트 맵 타입 정의
 interface ClientInfo {
-  clientId: number;
+  clientId: number; // 서버가 부여한 아이디로, 0,1,2,3, 같은 숫자임.
   connectionTime: Date;
+  email: string;
 }
 
 interface BatchOperation {
@@ -68,7 +70,10 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
   private clientIdCounter: number = 1;
   private clientMap: Map<string, ClientInfo> = new Map();
   private batchMap: Map<string, BatchOperation[]> = new Map();
-  constructor(private readonly workSpaceService: WorkSpaceService) {}
+  constructor(
+    private readonly workSpaceService: WorkSpaceService,
+    private readonly authService: AuthService,
+  ) {}
 
   afterInit(server: Server) {
     this.workSpaceService.setServer(server);
@@ -130,6 +135,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         }
         client.join(workspaceId);
       }
+      const user = await this.authService.findById(userId);
 
       client.data.workspaceId = workspaceId;
       const currentWorkSpace = (await this.workSpaceService.getWorkspace(workspaceId)).serialize();
@@ -139,6 +145,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       const clientInfo: ClientInfo = {
         clientId: assignedId,
         connectionTime: new Date(),
+        email: user?.email || "guest", // email 정보 저장
       };
       this.clientMap.set(client.id, clientInfo);
       client.emit("assign/clientId", assignedId);
@@ -188,6 +195,82 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       this.logger.debug(`남은 연결된 클라이언트 수: ${this.clientMap.size}`);
     } catch (error) {
       this.logger.error(`클라이언트 연결 해제 중 오류 발생: ${error.message}`, error.stack);
+    }
+  }
+
+  @SubscribeMessage("invite/workspace")
+  async handleWorkspaceInvite(
+    @MessageBody() data: WorkspaceInviteData,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    if (!clientInfo) {
+      throw new WsException("Client information not found");
+    }
+
+    try {
+      // 1. 초대받을 사용자 확인
+      const targetUser = await this.authService.findByEmail(data.email);
+      const sentUser = await this.authService.findByEmail(clientInfo.email);
+      if (!targetUser) {
+        client.emit("invite/workspace/fail", {
+          email: data.email,
+          workspaceId: data.workspaceId,
+          message: "유저가 존재하지 않습니다.",
+        });
+        throw new WsException("User not found");
+      }
+
+      // 2. 이미 워크스페이스 멤버인지 확인
+      if (targetUser.workspaces.includes(data.workspaceId)) {
+        client.emit("invite/workspace/fail", {
+          email: data.email,
+          workspaceId: data.workspaceId,
+          message: "유저가 이미 워크스페이스에 존재합니다.",
+        });
+        throw new WsException("User is already a member of this workspace");
+      }
+
+      // 3. 워크스페이스에 사용자 추가
+      await this.authService.addWorkspace(targetUser.id, data.workspaceId);
+
+      const targetSocket = Array.from(this.clientMap.entries()).find(
+        ([_, info]) => info.email === targetUser.email,
+      );
+
+      if (targetSocket) {
+        const [socketId] = targetSocket;
+        const server = this.workSpaceService.getServer();
+        server.to(socketId).emit("workspace/invited", {
+          workspaceId: data.workspaceId,
+          invitedUserId: client.data.userId,
+          message: `${sentUser.name}님이 초대하셨습니다.`,
+        });
+
+        const workspaces = await this.workSpaceService.getUserWorkspaces(targetUser.id);
+        const workspaceList = workspaces.map((workspace) => ({
+          id: workspace.id,
+          name: workspace.name,
+          role: workspace.role,
+          memberCount: workspace.memberCount,
+        }));
+
+        this.logger.log(`Sending workspace list to client ${client.id}`);
+        server.to(socketId).emit("workspace/list", workspaceList);
+      }
+
+      // 5. 초대한 사용자에게 성공 메시지
+      client.emit("invite/workspace/success", {
+        email: data.email,
+        workspaceId: data.workspaceId,
+        message: `${targetUser.name}유저를 초대하였습니다.`,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Workspace Invite 처리 중 오류 발생 - Client ID: ${clientInfo.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Invite 실패: ${error.message}`);
     }
   }
 
