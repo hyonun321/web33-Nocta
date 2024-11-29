@@ -80,6 +80,7 @@ export interface RemotePageDeleteOperation {
   type: "pageDelete";
   clientId: number;
   workspaceId: string;
+  pageTitle: string;
   pageId: string;
 }
 

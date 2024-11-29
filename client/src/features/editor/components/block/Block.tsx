@@ -1,5 +1,4 @@
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
   AnimationType,
   ElementType,
@@ -20,11 +19,17 @@ import { MenuBlock } from "../MenuBlock/MenuBlock";
 import { TextOptionModal } from "../TextOptionModal/TextOptionModal";
 import { TypeOptionModal } from "../TypeOptionModal/TypeOptionModal";
 import { blockAnimation } from "./Block.animation";
-import { textContainerStyle, blockContainerStyle, contentWrapperStyle } from "./Block.style";
+import {
+  textContainerStyle,
+  blockContainerStyle,
+  contentWrapperStyle,
+  dropIndicatorStyle,
+} from "./Block.style";
 
 interface BlockProps {
   id: string;
   block: CRDTBlock;
+  dragBlockList: string[];
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
@@ -64,6 +69,7 @@ export const Block: React.FC<BlockProps> = memo(
   ({
     id,
     block,
+    dragBlockList,
     isActive,
     onInput,
     onCompositionEnd,
@@ -83,13 +89,23 @@ export const Block: React.FC<BlockProps> = memo(
     const { isOpen, openModal, closeModal } = useModal();
     const [selectedNodes, setSelectedNodes] = useState<Array<Char> | null>(null);
     const { isAnimationStart } = useBlockAnimation(blockRef);
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-      id,
-      data: {
-        type: "block",
-        block,
-      },
-    });
+    const { attributes, listeners, setNodeRef, isDragging, isOver, activeIndex, overIndex, data } =
+      useSortable({
+        id,
+        data: {
+          id,
+          type: "block",
+          block,
+        },
+      });
+
+    // 현재 드래그 중인 부모 블록의 indent 확인
+    const isChildOfDragging = dragBlockList.some((item) => item === data.id);
+
+    // NOTE 드롭 인디케이터 위치 계산
+    // 현재 over 중인 블럭 위치 + 위/아래로 모두 인디케이터 표시 + 부모요소는 자식요소 내부로는 이동하지 못함
+    const showTopIndicator = isOver && !isChildOfDragging && activeIndex >= overIndex;
+    const showBottomIndicator = isOver && !isChildOfDragging && activeIndex < overIndex;
 
     const [slashModalOpen, setSlashModalOpen] = useState(false);
     const [slashModalPosition, setSlashModalPosition] = useState({ top: 0, left: 0 });
@@ -214,6 +230,14 @@ export const Block: React.FC<BlockProps> = memo(
       }
     };
 
+    const Indicator = () => (
+      <div
+        className={dropIndicatorStyle({
+          indent: block.indent === 0 ? "first" : block.indent === 1 ? "second" : "third",
+        })}
+      />
+    );
+
     useEffect(() => {
       if (blockRef.current) {
         setInnerHTML({ element: blockRef.current, block });
@@ -223,66 +247,66 @@ export const Block: React.FC<BlockProps> = memo(
     return (
       // TODO: eslint 규칙을 수정해야 할까?
       // TODO: ol일때 index 순서 처리
-      <motion.div
-        ref={setNodeRef}
-        className={blockContainerStyle({ isActive })}
-        style={{
-          transform: CSS.Transform.toString(transform),
-          transition,
-          opacity: isDragging ? 0.5 : undefined,
-        }}
-        initial={blockAnimation[block.animation || "none"].initial}
-        animate={isAnimationStart && blockAnimation[block.animation || "none"].animate}
-        data-group
-      >
+      <div style={{ position: "relative" }}>
+        {showTopIndicator && <Indicator />}
         <motion.div
-          className={contentWrapperStyle()}
-          style={{ paddingLeft: `${block.indent * 12}px` }}
+          ref={setNodeRef}
+          className={blockContainerStyle({ isActive })}
+          style={{ opacity: isDragging || isChildOfDragging ? 0.3 : undefined }}
+          initial={blockAnimation[block.animation || "none"].initial}
+          animate={isAnimationStart && blockAnimation[block.animation || "none"].animate}
+          data-group
         >
-          <MenuBlock
-            attributes={attributes}
-            listeners={listeners}
-            onAnimationSelect={handleAnimationSelect}
-            onTypeSelect={handleTypeSelect}
-            onCopySelect={handleCopySelect}
-            onDeleteSelect={handleDeleteSelect}
+          <motion.div
+            className={contentWrapperStyle()}
+            style={{ paddingLeft: `${block.indent * 12}px` }}
+          >
+            <MenuBlock
+              attributes={attributes}
+              listeners={listeners}
+              onAnimationSelect={handleAnimationSelect}
+              onTypeSelect={handleTypeSelect}
+              onCopySelect={handleCopySelect}
+              onDeleteSelect={handleDeleteSelect}
+            />
+            <IconBlock type={block.type} index={block.listIndex} indent={block.indent} />
+            <div
+              ref={blockRef}
+              onKeyDown={(e) => onKeyDown(e, blockRef.current, block)}
+              onInput={handleInput}
+              onClick={(e) => onClick(block.id, e)}
+              onCopy={(e) => onCopy(e, blockRef.current, block)}
+              onPaste={(e) => onPaste(e, blockRef.current, block)}
+              onMouseUp={handleMouseUp}
+              onCompositionEnd={(e) => onCompositionEnd(e, block)}
+              contentEditable={block.type !== "hr"}
+              spellCheck={false}
+              suppressContentEditableWarning
+              className={textContainerStyle({
+                type: block.type,
+              })}
+            />
+          </motion.div>
+          <TextOptionModal
+            selectedNodes={selectedNodes}
+            isOpen={isOpen}
+            onClose={closeModal}
+            onBoldSelect={() => handleStyleSelect("bold")}
+            onItalicSelect={() => handleStyleSelect("italic")}
+            onUnderlineSelect={() => handleStyleSelect("underline")}
+            onStrikeSelect={() => handleStyleSelect("strikethrough")}
+            onTextColorSelect={handleTextColorSelect}
+            onTextBackgroundColorSelect={handleTextBackgroundColorSelect}
           />
-          <IconBlock type={block.type} index={block.listIndex} />
-          <div
-            ref={blockRef}
-            onKeyDown={(e) => onKeyDown(e, blockRef.current, block)}
-            onInput={handleInput}
-            onClick={(e) => onClick(block.id, e)}
-            onCopy={(e) => onCopy(e, blockRef.current, block)}
-            onPaste={(e) => onPaste(e, blockRef.current, block)}
-            onMouseUp={handleMouseUp}
-            onCompositionEnd={(e) => onCompositionEnd(e, block)}
-            contentEditable={block.type !== "hr"}
-            spellCheck={false}
-            suppressContentEditableWarning
-            className={textContainerStyle({
-              type: block.type,
-            })}
+          <TypeOptionModal
+            isOpen={slashModalOpen}
+            onClose={() => setSlashModalOpen(false)}
+            onTypeSelect={(type) => handleTypeSelect(type)}
+            position={slashModalPosition}
           />
         </motion.div>
-        <TextOptionModal
-          selectedNodes={selectedNodes}
-          isOpen={isOpen}
-          onClose={closeModal}
-          onBoldSelect={() => handleStyleSelect("bold")}
-          onItalicSelect={() => handleStyleSelect("italic")}
-          onUnderlineSelect={() => handleStyleSelect("underline")}
-          onStrikeSelect={() => handleStyleSelect("strikethrough")}
-          onTextColorSelect={handleTextColorSelect}
-          onTextBackgroundColorSelect={handleTextBackgroundColorSelect}
-        />
-        <TypeOptionModal
-          isOpen={slashModalOpen}
-          onClose={() => setSlashModalOpen(false)}
-          onTypeSelect={(type) => handleTypeSelect(type)}
-          position={slashModalPosition}
-        />
-      </motion.div>
+        {showBottomIndicator && <Indicator />}
+      </div>
     );
   },
 );

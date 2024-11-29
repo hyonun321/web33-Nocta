@@ -142,3 +142,30 @@ export const textContainerStyle = cva({
     type: "p",
   },
 });
+
+export const dropIndicatorStyle = cva({
+  base: {
+    zIndex: "10",
+    position: "absolute",
+    height: "2px",
+  },
+  variants: {
+    indent: {
+      first: {
+        left: "0",
+        width: "100%",
+        backgroundColor: "#ADADFF",
+      },
+      second: {
+        left: "10px",
+        width: "calc(100% - 10px)",
+        backgroundColor: "#9B9BFF ",
+      },
+      third: {
+        left: "20px",
+        width: "calc(100% - 20px)",
+        backgroundColor: "#8989FF",
+      },
+    },
+  },
+});

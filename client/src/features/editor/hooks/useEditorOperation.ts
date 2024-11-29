@@ -47,7 +47,7 @@ export const useEditorOperation = ({
       const prevBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(targetBlock.prev)];
       const nextBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(targetBlock.next)];
       editorCRDT.current.remoteDelete(operation);
-      if (prevBlock.type === "ol" && nextBlock.type === "ol") {
+      if (prevBlock && prevBlock.type === "ol" && nextBlock.type === "ol") {
         editorCRDT.current.LinkedList.updateAllOrderedListIndices();
       }
       setEditorState({
@@ -93,7 +93,7 @@ export const useEditorOperation = ({
       if (operation.pageId !== pageId) return;
       const prevBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.node.prev)];
       editorCRDT.current.remoteUpdate(operation.node, operation.pageId);
-      if (prevBlock.type === "ol") {
+      if (prevBlock && prevBlock.type === "ol") {
         editorCRDT.current.LinkedList.updateAllOrderedListIndices();
       }
       setEditorState({

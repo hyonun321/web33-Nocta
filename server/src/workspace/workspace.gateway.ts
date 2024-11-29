@@ -328,13 +328,14 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       if (pageIndex === -1) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
-      // pageList에서 페이지 제거
+      const pageTitle = (await this.workSpaceService.getPage(userId, data.pageId)).title;
       currentWorkspace.pageList.splice(pageIndex, 1);
 
       const operation = {
         type: "pageDelete",
         workspaceId,
         pageId: data.pageId,
+        pageTitle,
         clientId: data.clientId,
       } as RemotePageDeleteOperation;
       client.emit("delete/page", operation);
