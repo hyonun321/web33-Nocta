@@ -33,7 +33,7 @@ export const glassContainerRecipe = defineRecipe({
       },
     },
     background: {
-      non: {
+      none: {
         background: "token(colors.white/95)",
       },
     },
