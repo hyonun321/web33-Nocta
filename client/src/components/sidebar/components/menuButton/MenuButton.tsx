@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUserInfo } from "@stores/useUserStore";
 import { menuItemWrapper, textBox, menuButtonContainer } from "./MenuButton.style";
 import { MenuIcon } from "./components/MenuIcon";
@@ -6,39 +6,35 @@ import { WorkspaceSelectModal } from "./components/WorkspaceSelectModal";
 
 export const MenuButton = () => {
   const { name } = useUserInfo();
-  const [isHovered, setIsHovered] = useState(false);
-  const [isModalHovered, setIsModalHovered] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleClose = () => {
-    if (!isHovered && !isModalHovered) {
-      setIsHovered(false);
+  const handleMenuClick = () => {
+    setIsOpen((prev) => !prev); // 토글 형태로 변경
+  };
+
+  // 모달 외부 클릭시 닫기 처리를 위한 함수
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest(`.${menuButtonContainer}`)) {
+      setIsOpen(false);
     }
   };
 
+  // 외부 클릭 이벤트 리스너 등록
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <button
-      className={menuButtonContainer}
-      onMouseEnter={() => {
-        setIsHovered(true);
-      }}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        setTimeout(handleClose, 100);
-      }}
-    >
+    <button className={menuButtonContainer} onClick={handleMenuClick}>
       <button className={menuItemWrapper}>
         <MenuIcon />
         <p className={textBox}>{name ?? "Nocta"}</p>
       </button>
-      <WorkspaceSelectModal
-        isOpen={isHovered || isModalHovered}
-        userName={name}
-        onMouseEnter={() => setIsModalHovered(true)}
-        onMouseLeave={() => {
-          setIsModalHovered(false);
-          handleClose();
-        }}
-      />
+      <WorkspaceSelectModal isOpen={isOpen} userName={name} />
     </button>
   );
 };

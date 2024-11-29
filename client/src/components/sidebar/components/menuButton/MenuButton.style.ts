@@ -4,9 +4,12 @@ export const menuItemWrapper = css({
   display: "flex",
   gap: "md",
   alignItems: "center",
-  width: "100%",
+  width: "250px",
   padding: "md",
   cursor: "pointer",
+  "&:hover": {
+    backgroundColor: "gray.100",
+  },
 });
 
 export const textBox = css({
@@ -16,7 +19,6 @@ export const textBox = css({
 
 export const menuButtonContainer = css({
   position: "relative",
-  // 버튼과 모달 사이의 간격을 채우는 패딩 추가
   _before: {
     position: "absolute",
     top: "100%",
