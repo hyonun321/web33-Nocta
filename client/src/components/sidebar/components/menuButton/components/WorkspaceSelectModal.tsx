@@ -4,6 +4,7 @@ import { SIDE_BAR } from "@constants/size";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { css } from "@styled-system/css";
 import { workspaceListContainer, workspaceModalContainer } from "./WorkspaceSelectModal.style";
+import { WorkspaceSelectItem } from "./components/WorkspaceSelectItem";
 
 interface WorkspaceSelectModalProps {
   isOpen: boolean;
@@ -42,16 +43,7 @@ export const WorkspaceSelectModal = ({ isOpen, userName }: WorkspaceSelectModalP
       <div className={workspaceListContainer}>
         {userName && availableWorkspaces.length > 0 ? (
           availableWorkspaces.map((workspace) => (
-            <div
-              key={workspace.id}
-              className={css({
-                padding: "md",
-                cursor: "pointer",
-                _hover: { backgroundColor: "gray.100" },
-              })}
-            >
-              {workspace.id}
-            </div>
+            <WorkspaceSelectItem key={workspace.id} userName={userName} {...workspace} />
           ))
         ) : (
           <p
