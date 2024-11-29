@@ -87,15 +87,15 @@ export class WorkSpaceService implements OnModuleInit {
     }
   }
 
-  async getWorkspace(userId: string): Promise<CRDTWorkSpace> {
+  async getWorkspace(workspaceId: string): Promise<CRDTWorkSpace> {
     // 인메모리에서 먼저 찾기
-    const cachedWorkspace = this.workspaces.get(userId);
+    const cachedWorkspace = this.workspaces.get(workspaceId);
     if (cachedWorkspace) {
       return cachedWorkspace;
     }
 
     // DB에서 찾기
-    const workspaceJSON = await this.workspaceModel.findOne({ id: userId });
+    const workspaceJSON = await this.workspaceModel.findOne({ id: workspaceId });
 
     const workspace = new CRDTWorkSpace();
 
@@ -109,20 +109,20 @@ export class WorkSpaceService implements OnModuleInit {
     }
 
     // 메모리에 캐시하고 반환
-    this.workspaces.set(userId, workspace);
+    this.workspaces.set(workspaceId, workspace);
     return workspace;
   }
 
-  async getPage(userId: string, pageId: string): Promise<Page> {
-    return (await this.getWorkspace(userId)).pageList.find((page) => page.id === pageId);
+  async getPage(workspaceId: string, pageId: string): Promise<Page> {
+    return (await this.getWorkspace(workspaceId)).pageList.find((page) => page.id === pageId);
   }
 
-  async getPageIndex(userId: string, pageId: string): Promise<number> {
-    return (await this.getWorkspace(userId)).pageList.findIndex((page) => page.id === pageId);
+  async getPageIndex(workspaceId: string, pageId: string): Promise<number> {
+    return (await this.getWorkspace(workspaceId)).pageList.findIndex((page) => page.id === pageId);
   }
 
-  async getBlock(userId: string, pageId: string, blockId: BlockId): Promise<Block> {
-    const page = await this.getPage(userId, pageId);
+  async getBlock(workspaceId: string, pageId: string, blockId: BlockId): Promise<Block> {
+    const page = await this.getPage(workspaceId, pageId);
     if (!page) {
       throw new Error(`Page with id ${pageId} not found`);
     }
@@ -132,7 +132,7 @@ export class WorkSpaceService implements OnModuleInit {
   // 워크스페이스 생성
   async createWorkspace(userId: string, name: string): Promise<Workspace> {
     const newWorkspace = await this.workspaceModel.create({
-      name: name,
+      name,
       authUser: { userId: "owner" },
     });
 
@@ -168,7 +168,7 @@ export class WorkSpaceService implements OnModuleInit {
   async getUserWorkspaces(userId: string): Promise<string[]> {
     const user = await this.userModel.findOne({ id: userId });
     if (!user) {
-      throw new Error(`User with id ${userId} not found`);
+      return [];
     }
 
     return this.workspaceModel.find({ id: { $in: user.workspaces } });
