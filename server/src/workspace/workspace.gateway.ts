@@ -115,11 +115,23 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         client.join(workspace.id);
         workspaceId = workspace.id;
       } else {
-        client.join(workspaces[0]);
-        [workspaceId] = workspaces;
-      }
-      client.data.workspaceId = workspaceId;
+        const requestedWorkspaceId = client.handshake.query.workspaceId;
 
+        // workspaces가 WorkspaceListItem[]이므로 id 비교로 수정
+        if (
+          requestedWorkspaceId &&
+          workspaces.some((workspace) => workspace.id === requestedWorkspaceId)
+        ) {
+          // 요청한 워크스페이스가 있고 접근 권한이 있으면 해당 워크스페이스 사용
+          workspaceId = requestedWorkspaceId as string;
+        } else {
+          // 없으면 첫 번째 워크스페이스 사용
+          workspaceId = workspaces[0].id; // WorkspaceListItem의 id 속성 접근
+        }
+        client.join(workspaceId);
+      }
+
+      client.data.workspaceId = workspaceId;
       const currentWorkSpace = (await this.workSpaceService.getWorkspace(workspaceId)).serialize();
       client.emit("workspace", currentWorkSpace);
 
@@ -131,10 +143,17 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       this.clientMap.set(client.id, clientInfo);
       client.emit("assign/clientId", assignedId);
 
-      // 클라이언트가 구독을 설정할 시간을 주기 위해 약간의 지연
-      setTimeout(() => {
-        console.log("쏘긴쏜다");
-        client.emit("workspace/list", "test");
+      setTimeout(async () => {
+        const workspaces = await this.workSpaceService.getUserWorkspaces(userId);
+        const workspaceList = workspaces.map((workspace) => ({
+          id: workspace.id,
+          name: workspace.name,
+          role: workspace.role,
+          memberCount: workspace.memberCount,
+        }));
+
+        this.logger.log(`Sending workspace list to client ${client.id}`);
+        client.emit("workspace/list", workspaceList);
       }, 100);
 
       client.broadcast.emit("userJoined", { clientId: assignedId });

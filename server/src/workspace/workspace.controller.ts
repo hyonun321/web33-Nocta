@@ -4,6 +4,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { Request as ExpressRequest } from "express";
 import { Workspace } from "./schemas/workspace.schema";
+import { WorkspaceListItem } from "@noctaCrdt/Interfaces";
 
 @ApiTags("workspace")
 @UseGuards(JwtAuthGuard)
@@ -34,7 +35,7 @@ export class WorkspaceController {
 
   // 유저의 워크스페이스 목록 조회
   @Get("findAll")
-  async getUserWorkspaces(@Req() req: ExpressRequest): Promise<string[]> {
+  async getUserWorkspaces(@Req() req: ExpressRequest): Promise<WorkspaceListItem[]> {
     const userId = req.user.id;
     return this.workspaceService.getUserWorkspaces(userId);
   }
