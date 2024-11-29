@@ -190,3 +190,9 @@ export interface RemoteBlockReorderOperation {
   client: number;
   pageId: string;
 }
+export interface WorkspaceListItem {
+  id: string;
+  name: string;
+  role: string;
+  memberCount?: number;
+}
