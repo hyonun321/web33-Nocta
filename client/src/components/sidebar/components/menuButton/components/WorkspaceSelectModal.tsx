@@ -8,16 +8,9 @@ import { workspaceListContainer, workspaceModalContainer } from "./WorkspaceSele
 interface WorkspaceSelectModalProps {
   isOpen: boolean;
   userName: string | null;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
 }
 
-export const WorkspaceSelectModal = ({
-  isOpen,
-  userName,
-  onMouseEnter,
-  onMouseLeave,
-}: WorkspaceSelectModalProps) => {
+export const WorkspaceSelectModal = ({ isOpen, userName }: WorkspaceSelectModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const { availableWorkspaces } = useSocketStore(); // 소켓 스토어에서 직접 워크스페이스 목록 가져오기
 
@@ -45,8 +38,6 @@ export const WorkspaceSelectModal = ({
         pointerEvents: isOpen ? "auto" : "none",
         display: isOpen ? "block" : "none",
       }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     >
       <div className={workspaceListContainer}>
         {userName && availableWorkspaces.length > 0 ? (
