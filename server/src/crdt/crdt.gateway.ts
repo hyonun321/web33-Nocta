@@ -537,15 +537,16 @@ export class CrdtGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
       currentBlock.crdt.remoteInsert(data);
 
+      console.log("data", data);
       // server는 EditorCRDT 없습니다. - BlockCRDT 로 사용되고있음.
       const operation = {
         type: "charInsert",
         node: data.node,
         blockId: data.blockId,
         pageId: data.pageId,
-        style: data.style || [],
-        color: data.color ? data.color : "black",
-        backgroundColor: data.backgroundColor ? data.backgroundColor : "transparent",
+        style: data.node.style || [],
+        color: data.node.color ? data.node.color : "black",
+        backgroundColor: data.node.backgroundColor ? data.node.backgroundColor : "transparent",
       } as RemoteCharInsertOperation;
       this.emitOperation(client.id, data.pageId, "insert/char", operation, batch);
     } catch (error) {
