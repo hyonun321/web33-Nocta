@@ -32,7 +32,7 @@ export const WorkspaceSelectModal = ({ isOpen, userName }: WorkspaceSelectModalP
       style={{
         position: "absolute",
         top: "calc(100% + 4px)",
-        left: 0,
+        left: -1,
         width: SIDE_BAR.WIDTH,
         zIndex: 20,
         pointerEvents: isOpen ? "auto" : "none",
