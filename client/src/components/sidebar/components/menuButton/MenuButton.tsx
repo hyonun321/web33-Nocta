@@ -15,7 +15,7 @@ export const MenuButton = () => {
   // 모달 외부 클릭시 닫기 처리를 위한 함수
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (!target.closest(`.${menuButtonContainer}`)) {
+    if (!target.closest(`.menu_button_container`)) {
       setIsOpen(false);
     }
   };
@@ -29,7 +29,7 @@ export const MenuButton = () => {
   }, []);
 
   return (
-    <button className={menuButtonContainer} onClick={handleMenuClick}>
+    <button className={`${menuButtonContainer} menu_button_container`} onClick={handleMenuClick}>
       <button className={menuItemWrapper}>
         <MenuIcon />
         <p className={textBox}>{name ?? "Nocta"}</p>
