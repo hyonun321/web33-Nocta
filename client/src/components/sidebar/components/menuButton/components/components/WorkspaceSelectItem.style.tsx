@@ -5,14 +5,22 @@ export const itemContainer = css({
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  padding: "md",
+  padding: "8px",
   cursor: "pointer",
-  _hover: { backgroundColor: "gray.100" },
+  _hover: { backgroundColor: "gray.200" },
 });
 
+export const informBox = css({
+  display: "flex",
+  gap: "16px",
+  justifyContent: "center",
+  alignItems: "center",
+  marginLeft: "14px",
+});
 export const itemContent = css({
   display: "flex",
-  gap: "2",
+  flex: 1,
+  gap: "10",
   alignItems: "center",
 });
 
@@ -24,12 +32,13 @@ export const itemIcon = css({
   width: "8",
   height: "8",
   fontSize: "sm",
-  backgroundColor: "gray.200",
+  backgroundColor: "gray.100",
 });
 
 export const itemInfo = css({
   display: "flex",
   flexDirection: "column",
+  alignItems: "center",
 });
 
 export const itemName = css({

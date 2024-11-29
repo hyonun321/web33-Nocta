@@ -9,6 +9,7 @@ import {
   itemMemberCount,
   itemName,
   itemRole,
+  informBox,
 } from "./WorkspaceSelectItem.style";
 
 interface WorkspaceSelectItemProps extends WorkspaceListItem {
@@ -28,11 +29,14 @@ export const WorkspaceSelectItem = ({ id, name, role, memberCount }: WorkspaceSe
         <div className={itemIcon}>{name.charAt(0)}</div>
         <div className={itemInfo}>
           <span className={itemName}>{name}</span>
-          <span className={itemMemberCount}>{role}</span>
+          <div className={informBox}>
+            <span className={itemMemberCount}>{role}</span>
+            {memberCount !== undefined && (
+              <span className={itemRole}>접속자수 : {memberCount} 명 </span>
+            )}
+          </div>
         </div>
       </div>
-
-      {memberCount !== undefined && <span className={itemRole}>접속자수 : {memberCount} 명 </span>}
     </button>
   );
 };
