@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useRef } from "react";
 import { SIDE_BAR } from "@constants/size";
 import { useSocketStore } from "@src/stores/useSocketStore";
-import { css } from "@styled-system/css";
 import {
   workspaceListContainer,
   workspaceModalContainer,

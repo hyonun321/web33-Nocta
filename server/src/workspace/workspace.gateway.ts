@@ -328,7 +328,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       if (pageIndex === -1) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
-      const pageTitle = (await this.workSpaceService.getPage(userId, data.pageId)).title;
+      const pageTitle = (await this.workSpaceService.getPage(workspaceId, data.pageId)).title;
       currentWorkspace.pageList.splice(pageIndex, 1);
 
       const operation = {

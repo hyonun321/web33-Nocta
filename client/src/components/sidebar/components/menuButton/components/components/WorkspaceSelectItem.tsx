@@ -15,13 +15,7 @@ interface WorkspaceSelectItemProps extends WorkspaceListItem {
   userName: string;
 }
 
-export const WorkspaceSelectItem = ({
-  id,
-  name,
-  role,
-  memberCount,
-  userName,
-}: WorkspaceSelectItemProps) => {
+export const WorkspaceSelectItem = ({ id, name, role, memberCount }: WorkspaceSelectItemProps) => {
   const { userId } = useUserInfo();
   const switchWorkspace = useSocketStore((state) => state.switchWorkspace);
   const handleClick = () => {
