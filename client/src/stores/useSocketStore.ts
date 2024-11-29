@@ -170,7 +170,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
   switchWorkspace: (userId: string | null, workspaceId: string | null) => {
     const { socket, init } = get();
-
+    console.log(userId, workspaceId);
     // 기존 연결 정리
     if (socket) {
       socket.disconnect();

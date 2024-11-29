@@ -25,7 +25,6 @@ export const WorkspaceSelectItem = ({
   const { userId } = useUserInfo();
   const switchWorkspace = useSocketStore((state) => state.switchWorkspace);
   const handleClick = () => {
-    console.log("Selected workspace:", id, name, role, memberCount, userName);
     switchWorkspace(userId, id);
   };
 
