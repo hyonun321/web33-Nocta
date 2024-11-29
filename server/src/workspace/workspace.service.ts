@@ -4,7 +4,7 @@ import { Workspace, WorkspaceDocument } from "./schemas/workspace.schema";
 import { WorkSpace as CRDTWorkSpace } from "@noctaCrdt/WorkSpace";
 import { Model } from "mongoose";
 import { Server } from "socket.io";
-import { WorkSpaceSerializedProps } from "@noctaCrdt/Interfaces";
+import { WorkSpaceSerializedProps, WorkspaceListItem } from "@noctaCrdt/Interfaces";
 import { Page } from "@noctaCrdt/Page";
 import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
@@ -133,7 +133,7 @@ export class WorkSpaceService implements OnModuleInit {
   async createWorkspace(userId: string, name: string): Promise<Workspace> {
     const newWorkspace = await this.workspaceModel.create({
       name,
-      authUser: { userId: "owner" },
+      authUser: new Map([[userId, "owner"]]), // 올바른 형태
     });
 
     // 유저 정보 업데이트
@@ -164,14 +164,33 @@ export class WorkSpaceService implements OnModuleInit {
     await this.workspaceModel.deleteOne({ id: workspaceId });
   }
 
-  // 워크스페이스 조회
-  async getUserWorkspaces(userId: string): Promise<string[]> {
+  async getUserWorkspaces(userId: string): Promise<WorkspaceListItem[]> {
+    if (userId === "guest") {
+      return [
+        {
+          id: "guest",
+          name: "Guest Workspace",
+          role: "editor",
+          memberCount: 0,
+        },
+      ];
+    }
+
     const user = await this.userModel.findOne({ id: userId });
     if (!user) {
       return [];
     }
 
-    return this.workspaceModel.find({ id: { $in: user.workspaces } });
+    const workspaces = await this.workspaceModel.find({
+      id: { $in: user.workspaces },
+    });
+
+    return workspaces.map((workspace) => ({
+      id: workspace.id,
+      name: workspace.name,
+      role: workspace.authUser.get(userId) || "editor",
+      memberCount: workspace.authUser.size,
+    }));
   }
 
   // 워크스페이스에 유저 초대
