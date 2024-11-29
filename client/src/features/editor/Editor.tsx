@@ -67,6 +67,8 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
   }, [serializedEditorData, clientId]);
 
   const editorCRDT = useRef<EditorCRDT>(editorCRDTInstance);
+  const isLocalChange = useRef(false);
+  const isSameLocalChange = useRef(false);
 
   // editorState도 editorCRDT가 변경될 때마다 업데이트
   const [editorState, setEditorState] = useState<EditorStateProps>({
@@ -84,13 +86,14 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     handleRemoteCharUpdate,
     handleRemoteCursor,
     addNewBlock,
-  } = useEditorOperation({ editorCRDT, pageId, setEditorState });
+  } = useEditorOperation({ editorCRDT, pageId, setEditorState, isSameLocalChange });
 
   const { sensors, handleDragEnd, handleDragStart } = useBlockDragAndDrop({
     editorCRDT: editorCRDT.current,
     editorState,
     setEditorState,
     pageId,
+    isLocalChange,
   });
 
   const { handleTypeSelect, handleAnimationSelect, handleCopySelect, handleDeleteSelect } =
@@ -123,6 +126,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     pageId,
     onKeyDown,
     handleHrInput,
+    isLocalChange,
   });
 
   const { onTextStyleUpdate, onTextColorUpdate, onTextBackgroundColorUpdate } = useTextOptionSelect(
@@ -130,6 +134,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       editorCRDT: editorCRDT.current,
       setEditorState,
       pageId,
+      isLocalChange,
     },
   );
 
@@ -137,6 +142,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     editorCRDT: editorCRDT.current,
     setEditorState,
     pageId,
+    isLocalChange,
   });
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,7 +169,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       const selection = window.getSelection();
       const caretPosition = selection?.focusOffset || 0;
       const startPosition = caretPosition - characters.length;
-
+      isLocalChange.current = true;
       characters.forEach((char, index) => {
         const insertPosition = startPosition + index;
         const charNode = block.crdt.localInsert(insertPosition, char, block.id, pageId);
@@ -190,12 +196,17 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     if (activeElement?.tagName.toLowerCase() === "input") {
       return; // input에 포커스가 있으면 캐럿 위치 변경하지 않음
     }
-    setCaretPosition({
-      blockId: editorCRDT.current.currentBlock.id,
-      linkedList: editorCRDT.current.LinkedList,
-      position: editorCRDT.current.currentBlock?.crdt.currentCaret,
-      pageId,
-    });
+    if (isLocalChange.current || isSameLocalChange.current) {
+      setCaretPosition({
+        blockId: editorCRDT.current.currentBlock.id,
+        linkedList: editorCRDT.current.LinkedList,
+        position: editorCRDT.current.currentBlock?.crdt.currentCaret,
+        pageId,
+      });
+      isLocalChange.current = false;
+      isSameLocalChange.current = false;
+      return;
+    }
     // 서윤님 피드백 반영
   }, [editorCRDT.current.currentBlock?.id.serialize()]);
 
