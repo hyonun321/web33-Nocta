@@ -19,3 +19,11 @@ export const workspaceModalContainer = cx(
     display: "flex",
   }),
 );
+
+export const textBox = css({
+  padding: "lg",
+  color: "gray.500",
+  textAlign: "center",
+  fontSize: "md",
+  whiteSpace: "pre-line",
+});

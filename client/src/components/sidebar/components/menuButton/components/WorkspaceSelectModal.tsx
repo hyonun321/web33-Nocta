@@ -3,7 +3,11 @@ import { useRef } from "react";
 import { SIDE_BAR } from "@constants/size";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { css } from "@styled-system/css";
-import { workspaceListContainer, workspaceModalContainer } from "./WorkspaceSelectModal.style";
+import {
+  workspaceListContainer,
+  workspaceModalContainer,
+  textBox,
+} from "./WorkspaceSelectModal.style";
 import { WorkspaceSelectItem } from "./components/WorkspaceSelectItem";
 
 interface WorkspaceSelectModalProps {
@@ -17,9 +21,9 @@ export const WorkspaceSelectModal = ({ isOpen, userName }: WorkspaceSelectModalP
 
   const informText = userName
     ? availableWorkspaces.length > 0
-      ? "" // 워크스페이스 목록이 표시될 것이므로 비워둠
+      ? ""
       : "접속할 수 있는 워크스페이스가 없습니다."
-    : "로그인 해주세요";
+    : `다른 워크스페이스 기능은\n 회원전용 입니다`;
   return (
     <motion.div
       ref={modalRef}
@@ -46,16 +50,7 @@ export const WorkspaceSelectModal = ({ isOpen, userName }: WorkspaceSelectModalP
             <WorkspaceSelectItem key={workspace.id} userName={userName} {...workspace} />
           ))
         ) : (
-          <p
-            className={css({
-              padding: "lg",
-              color: "gray.500",
-              textAlign: "center",
-              fontSize: "md",
-            })}
-          >
-            {informText}
-          </p>
+          <p className={textBox}>{informText}</p>
         )}
       </div>
     </motion.div>
