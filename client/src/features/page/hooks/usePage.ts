@@ -18,41 +18,23 @@ export const DIRECTIONS = [
 
 type Direction = (typeof DIRECTIONS)[number];
 
+// 만약 maximize 상태면, 화면이 커질때도 꽉 촤게 해줘야함.
 export const usePage = ({ x, y }: Position) => {
   const [position, setPosition] = useState<Position>({ x, y });
   const [size, setSize] = useState<Size>({
     width: PAGE.WIDTH,
     height: PAGE.HEIGHT,
   });
+  const [prevPosition, setPrevPosition] = useState<Position>({ x, y });
+  const [prevSize, setPrevSize] = useState<Size>({
+    width: PAGE.WIDTH,
+    height: PAGE.HEIGHT,
+  });
 
+  const [isMaximized, setIsMaximized] = useState(false);
   const isSidebarOpen = useIsSidebarOpen();
 
   const getSidebarWidth = () => (isSidebarOpen ? SIDE_BAR.WIDTH : SIDE_BAR.MIN_WIDTH);
-
-  useEffect(() => {
-    // x 범위 넘어가면 x 위치 조정
-    const sidebarWidth = getSidebarWidth();
-    if (position.x > window.innerWidth - size.width - sidebarWidth - PADDING) {
-      // 만약 최대화 상태라면(사이드바 열었을때, 사이드바가 화면을 가린다면), 포지션 0으로 바꾸고 width도 재조정
-      // 만약 최대화가 아니라면, 포지션만 조정하고, 사이즈는 그대로
-      if (size.width > window.innerWidth - sidebarWidth - PADDING) {
-        setPosition({ x: 0, y: position.y });
-        setSize({
-          width: window.innerWidth - sidebarWidth - PADDING,
-          height: size.height,
-        });
-      } else {
-        setPosition({
-          x: position.x - sidebarWidth + PADDING,
-          y: position.y,
-        });
-        setSize({
-          width: size.width,
-          height: size.height,
-        });
-      }
-    }
-  }, [isSidebarOpen]);
 
   const pageDrag = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -210,12 +192,32 @@ export const usePage = ({ x, y }: Position) => {
   };
 
   const pageMaximize = () => {
-    setPosition({ x: 0, y: 0 });
-    setSize({
-      width: window.innerWidth - getSidebarWidth() - PADDING,
-      height: window.innerHeight - PADDING,
-    });
+    if (isMaximized) {
+      // 최대화가 된 상태에서 다시 최대화 버튼을 누르면, 원래 위치, 크기로 돌아가야함.
+      setPosition(prevPosition);
+      setSize(prevSize);
+      setIsMaximized(false);
+    } else {
+      // 최대화할시, 추후 이전 상태로 돌아가기 위해 prev 위치,크기 저장
+      setPrevPosition({ ...position });
+      setPrevSize({ ...size });
+      setPosition({ x: 0, y: 0 });
+      setSize({
+        width: window.innerWidth - getSidebarWidth() - PADDING,
+        height: window.innerHeight - PADDING,
+      });
+      setIsMaximized(true);
+    }
   };
+
+  useEffect(() => {
+    if (isMaximized) {
+      setSize({
+        width: window.innerWidth - getSidebarWidth() - PADDING,
+        height: window.innerHeight - PADDING,
+      });
+    }
+  }, [isSidebarOpen]);
 
   return {
     position,
@@ -224,5 +226,6 @@ export const usePage = ({ x, y }: Position) => {
     pageResize,
     pageMinimize,
     pageMaximize,
+    isMaximized,
   };
 };
