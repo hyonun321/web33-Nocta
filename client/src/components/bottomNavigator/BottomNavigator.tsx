@@ -10,6 +10,7 @@ interface BottomNavigatorProps {
 }
 
 export const BottomNavigator = ({ pages, handlePageSelect }: BottomNavigatorProps) => {
+  if (pages.length === 0) return;
   return (
     <div className={bottomNavigatorContainer}>
       {pages.map((page) => (
