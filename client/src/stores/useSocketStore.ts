@@ -152,7 +152,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     });
 
     socket.on("workspace/list", (workspaces: WorkspaceListItem[]) => {
-      console.log("Received workspace list:", workspaces);
       set({ availableWorkspaces: workspaces });
     });
 
@@ -175,7 +174,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
   switchWorkspace: (userId: string | null, workspaceId: string | null) => {
     const { socket, workspace, init } = get();
-    console.log("바꿉니다", userId, "가", workspaceId, "로");
     // 기존 연결 정리
     if (socket) {
       if (workspace?.id) {

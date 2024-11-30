@@ -33,12 +33,13 @@ export const WorkspaceSelectModal = ({
     [availableWorkspaces, workspaceConnections],
   );
   const [workspaces, setWorkspaces] = useState(workspacesWithActiveUsers);
-  console.log(workspacesWithActiveUsers);
+
   const informText = userName
     ? availableWorkspaces.length > 0
       ? ""
       : "접속할 수 있는 워크스페이스가 없습니다."
     : `다른 워크스페이스 기능은\n 회원전용 입니다`;
+
   useEffect(() => {
     setWorkspaces(workspacesWithActiveUsers);
   }, [availableWorkspaces, workspacesWithActiveUsers]); // availableWorkspaces가 변경될 때마다 실행

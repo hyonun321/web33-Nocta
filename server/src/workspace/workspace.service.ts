@@ -187,7 +187,6 @@ export class WorkSpaceService implements OnModuleInit {
     });
 
     const workspaceList = workspaces.map((workspace) => {
-      console.log(workspace.authUser.size, "진짜야?");
       const room = this.getServer().sockets.adapter.rooms.get(workspace.id);
       return {
         id: workspace.id,

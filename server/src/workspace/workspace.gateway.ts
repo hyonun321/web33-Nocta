@@ -135,9 +135,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         client.join(NewWorkspaceId);
       }
       const user = await this.authService.findById(userId);
-      console.log("전", client.data.workspaceId);
       client.data.workspaceId = NewWorkspaceId;
-      console.log("후", NewWorkspaceId);
       const currentWorkSpace = (
         await this.workSpaceService.getWorkspace(NewWorkspaceId)
       ).serialize();
@@ -252,10 +250,8 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         throw new WsException("User is already a member of this workspace");
       }
 
-      let { userId } = client.handshake.auth;
-      console.log(userId);
+      const { userId } = client.handshake.auth;
       await this.authService.addWorkspace(targetUser.id, data.workspaceId);
-      console.log(userId, data.workspaceId, targetUser.id);
       await this.workSpaceService.inviteUserToWorkspace(userId, data.workspaceId, targetUser.id);
       const targetSocket = Array.from(this.clientMap.entries()).find(
         ([_, info]) => info.email === targetUser.email,
