@@ -46,7 +46,7 @@ const colorVariants: ColorVariants = {
   yellow: { color: "#FEA642" },
   purple: { color: "#A142FE" },
   brown: { color: "#8B4513" },
-  white: { color: "#C1D7F4" },
+  white: { color: "#FFFFFF" },
 };
 
 export const textColorIndicator = cva({

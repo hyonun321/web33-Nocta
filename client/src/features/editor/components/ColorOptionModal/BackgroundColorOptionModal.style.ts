@@ -47,7 +47,7 @@ const colorVariants: ColorVariants = {
   yellow: { backgroundColor: "#FEA642" },
   purple: { backgroundColor: "#A142FE" },
   brown: { backgroundColor: "#8B4513" },
-  white: { backgroundColor: "#EEEEEE" },
+  white: { backgroundColor: "#FFFFFF" },
 };
 
 export const backgroundColorIndicator = cva({
