@@ -104,7 +104,8 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
    */
   async handleConnection(client: Socket) {
     try {
-      let { userId, workspaceId } = client.handshake.auth;
+      let { userId } = client.handshake.auth;
+      const { workspaceId } = client.handshake.auth;
       if (!userId) {
         userId = "guest";
       }
