@@ -136,7 +136,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     });
 
     socket.on("workspace", (workspace: WorkSpaceSerializedProps) => {
-      set({ workspace });
+      const { setWorkspace } = get();
+      setWorkspace(workspace); // 수정된 부분
     });
 
     socket.on("connect", () => {
@@ -164,25 +165,29 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     if (socket) {
       socket.removeAllListeners();
       socket.disconnect();
+      sessionStorage.removeItem("currentWorkspace"); // sessionStorage 삭제
       set({ socket: null, workspace: null, clientId: null });
     }
   },
 
   switchWorkspace: (userId: string | null, workspaceId: string | null) => {
     const { socket, init } = get();
-    console.log(userId, workspaceId);
+    console.log("바꿉니다", userId, "가", workspaceId, "로");
     // 기존 연결 정리
     if (socket) {
       socket.disconnect();
     }
-
-    // 새로운 연결 시작 (userId는 유지)
+    sessionStorage.removeItem("currentWorkspace");
+    set({ workspace: null }); // 상태도 초기화
     init(userId, workspaceId);
   },
 
   fetchWorkspaceData: () => get().workspace,
 
-  setWorkspace: (workspace: WorkSpaceSerializedProps) => set({ workspace }),
+  setWorkspace: (workspace: WorkSpaceSerializedProps) => {
+    sessionStorage.setItem("currentWorkspace", JSON.stringify(workspace));
+    set({ workspace });
+  },
 
   sendPageUpdateOperation: (operation: RemotePageUpdateOperation) => {
     const { socket } = get();
