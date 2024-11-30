@@ -19,7 +19,8 @@ interface WorkspaceSelectItemProps extends WorkspaceListItem {
 
 export const WorkspaceSelectItem = ({ id, name, role, memberCount }: WorkspaceSelectItemProps) => {
   const { userId } = useUserInfo();
-  const { workspace, switchWorkspace } = useSocketStore();
+  const { workspace, switchWorkspace, workspaceConnections } = useSocketStore();
+  const currentConnections = workspaceConnections[id] || 0;
   const isActive = workspace?.id === id; // 현재 워크스페이스 확인
   const handleClick = () => {
     if (!isActive) {
@@ -36,7 +37,9 @@ export const WorkspaceSelectItem = ({ id, name, role, memberCount }: WorkspaceSe
           <div className={informBox}>
             <span className={itemMemberCount}>{role}</span>
             {memberCount !== undefined && (
-              <span className={itemRole}>접속자수 : {memberCount} 명 </span>
+              <span className={itemRole}>
+                접속자수 {currentConnections} / {memberCount} 명{" "}
+              </span>
             )}
           </div>
         </div>
