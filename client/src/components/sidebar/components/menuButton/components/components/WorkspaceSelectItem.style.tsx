@@ -5,7 +5,10 @@ export const itemContainer = css({
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  padding: "8px",
+  borderLeft: "3px solid transparent", // 활성화되지 않았을 때 border 공간 확보
+  width: "100%",
+  padding: "8px 16px",
+  transition: "all 0.2s",
   cursor: "pointer",
   _hover: { backgroundColor: "gray.200" },
 });
@@ -22,6 +25,15 @@ export const itemContent = css({
   flex: 1,
   gap: "10",
   alignItems: "center",
+});
+
+export const activeItem = css({
+  borderLeft: "3px solid", // 왼쪽 하이라이트 바
+  borderLeftColor: "blue", // 포인트 컬러
+  backgroundColor: "rgba(0, 0, 0, 0.05)", // 약간 어두운 배경
+  _hover: {
+    backgroundColor: "rgba(0, 0, 0, 0.08)", // 호버 시 약간 더 어둡게
+  },
 });
 
 export const itemIcon = css({

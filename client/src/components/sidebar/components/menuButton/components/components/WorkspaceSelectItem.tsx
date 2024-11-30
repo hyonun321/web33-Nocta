@@ -10,6 +10,7 @@ import {
   itemName,
   itemRole,
   informBox,
+  activeItem, // 추가: 활성화된 아이템 스타일
 } from "./WorkspaceSelectItem.style";
 
 interface WorkspaceSelectItemProps extends WorkspaceListItem {
@@ -18,13 +19,16 @@ interface WorkspaceSelectItemProps extends WorkspaceListItem {
 
 export const WorkspaceSelectItem = ({ id, name, role, memberCount }: WorkspaceSelectItemProps) => {
   const { userId } = useUserInfo();
-  const switchWorkspace = useSocketStore((state) => state.switchWorkspace);
+  const { workspace, switchWorkspace } = useSocketStore();
+  const isActive = workspace?.id === id; // 현재 워크스페이스 확인
   const handleClick = () => {
-    switchWorkspace(userId, id);
+    if (!isActive) {
+      switchWorkspace(userId, id);
+    }
   };
 
   return (
-    <button className={itemContainer} onClick={handleClick}>
+    <button className={`${itemContainer} ${isActive ? activeItem : ""}`} onClick={handleClick}>
       <div className={itemContent}>
         <div className={itemIcon}>{name.charAt(0)}</div>
         <div className={itemInfo}>
