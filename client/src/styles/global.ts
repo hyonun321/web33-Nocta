@@ -12,6 +12,7 @@ export const globalStyles = defineGlobalStyles({
     backgroundImage: 'url("./assets/images/background.png")',
     backgroundSize: "cover",
     fontFamily: "Pretendard, sans-serif",
+    boxSizing: "border-box",
   },
   // 스크롤바 전체
   "::-webkit-scrollbar": {
