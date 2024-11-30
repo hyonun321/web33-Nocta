@@ -2,27 +2,29 @@ import { css } from "@styled-system/css";
 
 export const menuItemWrapper = css({
   display: "flex",
-  gap: "lg",
+  gap: "md",
   alignItems: "center",
-  borderRightRadius: "md",
-  width: "300px",
+  width: "250px",
   padding: "md",
-  boxShadow: "sm",
   cursor: "pointer",
+  "&:hover": {
+    backgroundColor: "gray.100",
+  },
 });
 
 export const textBox = css({
-  textStyle: "display-medium20",
-  color: "gray.900",
+  color: "gray.700",
+  fontSize: "md",
 });
 
-export const menuDropdown = css({
-  zIndex: "dropdown",
-  position: "absolute",
-  top: "100%",
-  right: "0",
-  borderRadius: "md",
-  width: "100px",
-  marginTop: "sm",
-  boxShadow: "md",
+export const menuButtonContainer = css({
+  position: "relative",
+  _before: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    width: "100%",
+    height: "4px", // top: calc(100% + 4px)와 동일한 값
+    content: '""',
+  },
 });
