@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { SIDE_BAR } from "@constants/size";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import {
@@ -23,17 +23,25 @@ export const WorkspaceSelectModal = ({
 }: WorkspaceSelectModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const availableWorkspaces = useSocketStore((state) => state.availableWorkspaces);
-  // useState와 useEffect를 사용하여 로컬 상태로 관리
-  const [workspaces, setWorkspaces] = useState(availableWorkspaces);
-
+  const workspaceConnections = useSocketStore((state) => state.workspaceConnections);
+  const workspacesWithActiveUsers = useMemo(
+    () =>
+      availableWorkspaces.map((workspace) => ({
+        ...workspace,
+        activeUsers: workspaceConnections[workspace.id] || 0,
+      })),
+    [availableWorkspaces, workspaceConnections],
+  );
+  const [workspaces, setWorkspaces] = useState(workspacesWithActiveUsers);
+  console.log(workspacesWithActiveUsers);
   const informText = userName
     ? availableWorkspaces.length > 0
       ? ""
       : "접속할 수 있는 워크스페이스가 없습니다."
     : `다른 워크스페이스 기능은\n 회원전용 입니다`;
   useEffect(() => {
-    setWorkspaces(availableWorkspaces);
-  }, [availableWorkspaces]); // availableWorkspaces가 변경될 때마다 실행
+    setWorkspaces(workspacesWithActiveUsers);
+  }, [availableWorkspaces, workspacesWithActiveUsers]); // availableWorkspaces가 변경될 때마다 실행
 
   return (
     <motion.div

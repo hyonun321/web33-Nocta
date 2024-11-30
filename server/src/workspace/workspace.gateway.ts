@@ -109,6 +109,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         userId = "guest";
       }
       client.data.userId = userId;
+      client.join(`user:${userId}`); // 유저 전용 룸에 조인 추후 초대 수신용
 
       const workspaces = await this.workSpaceService.getUserWorkspaces(userId);
       const userInfo = await this.authService.getProfile(userId);
@@ -153,15 +154,19 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
 
       setTimeout(async () => {
         const workspaces = await this.workSpaceService.getUserWorkspaces(userId);
-        const workspaceList = workspaces.map((workspace) => ({
-          id: workspace.id,
-          name: workspace.name,
-          role: workspace.role,
-          memberCount: workspace.memberCount,
-        }));
+        const workspaceList = workspaces.map((workspace) => {
+          return {
+            id: workspace.id,
+            name: workspace.name,
+            role: workspace.role,
+            memberCount: workspace.memberCount,
+            activeUsers: workspace.activeUsers,
+          };
+        });
 
         this.logger.log(`Sending workspace list to client ${client.id}`);
         client.emit("workspace/list", workspaceList);
+        this.SocketStoreBroadcastWorkspaceConnections();
       }, 100);
 
       client.broadcast.emit("userJoined", { clientId: assignedId });
@@ -193,9 +198,24 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       }
 
       this.clientMap.delete(client.id);
+      this.SocketStoreBroadcastWorkspaceConnections();
       this.logger.debug(`남은 연결된 클라이언트 수: ${this.clientMap.size}`);
     } catch (error) {
       this.logger.error(`클라이언트 연결 해제 중 오류 발생: ${error.message}`, error.stack);
+    }
+  }
+
+  Copy; // workspace.gateway.ts
+  @SubscribeMessage("leave/workspace")
+  async handleWorkspaceLeave(
+    @MessageBody() data: { workspaceId: string },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    try {
+      client.leave(data.workspaceId);
+      this.SocketStoreBroadcastWorkspaceConnections();
+    } catch (error) {
+      this.logger.error(`워크스페이스 퇴장 중 오류 발생`, error.stack);
     }
   }
 
@@ -232,9 +252,11 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         throw new WsException("User is already a member of this workspace");
       }
 
-      // 3. 워크스페이스에 사용자 추가
+      let { userId } = client.handshake.auth;
+      console.log(userId);
       await this.authService.addWorkspace(targetUser.id, data.workspaceId);
-      await this.workSpaceService.inviteUserToWorkspace(client.id, data.workspaceId, targetUser.id);
+      console.log(userId, data.workspaceId, targetUser.id);
+      await this.workSpaceService.inviteUserToWorkspace(userId, data.workspaceId, targetUser.id);
       const targetSocket = Array.from(this.clientMap.entries()).find(
         ([_, info]) => info.email === targetUser.email,
       );
@@ -242,7 +264,8 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       if (targetSocket) {
         const [socketId] = targetSocket;
         const server = this.workSpaceService.getServer();
-        server.to(socketId).emit("workspace/invited", {
+
+        server.to(`user:${targetUser.id}`).emit("workspace/invited", {
           workspaceId: data.workspaceId,
           invitedUserId: client.data.userId,
           message: `${sentUser.name}님이 초대하셨습니다.`,
@@ -848,6 +871,21 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       this.logger.log(`Batch operation took ${seconds}s ${nanoseconds / 1000000}ms`);
       this.logger.log(`Processed ${batch.length} operations`);
     }
+  }
+
+  private SocketStoreBroadcastWorkspaceConnections() {
+    const server = this.workSpaceService.getServer();
+    const connectionCounts = {} as Record<string, number>;
+
+    // 각 워크스페이스의 room size를 가져옴
+    for (const [roomId, room] of server.sockets.adapter.rooms.entries()) {
+      // user: 로 시작하는 룸은 제외 (초대용 룸)
+      if (!roomId.startsWith("user:")) {
+        connectionCounts[roomId] = room.size;
+      }
+    }
+    // 모든 클라이언트에게 전송
+    server.emit("workspace/connections", connectionCounts);
   }
 
   executeBatch() {

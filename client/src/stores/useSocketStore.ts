@@ -52,11 +52,11 @@ class BatchProcessor {
 
 interface SocketStore {
   socket: Socket | null;
-  clientId: number | null;
+  clientId: number | null; // 숫자로 된 클라이언트Id
   workspace: WorkSpaceSerializedProps | null;
-
   availableWorkspaces: WorkspaceListItem[];
   batchProcessor: BatchProcessor;
+  workspaceConnections: Record<string, number>; // 워크스페이스별 접속자 수
   init: (userId: string | null, workspaceId: string | null) => void;
   cleanup: () => void;
   switchWorkspace: (userId: string | null, workspaceId: string | null) => void; // 새로운 함수 추가
@@ -100,9 +100,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
   clientId: null,
   workspace: null,
-
   availableWorkspaces: [],
-
+  workspaceConnections: {},
   batchProcessor: new BatchProcessor((batch) => {
     const { socket } = get();
     socket?.emit("batch/operations", batch);
@@ -140,6 +139,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       setWorkspace(workspace); // 수정된 부분
     });
 
+    socket.on("workspace/connections", (connections: Record<string, number>) => {
+      set({ workspaceConnections: connections });
+    });
+
     socket.on("connect", () => {
       set({ socket });
     });
@@ -171,10 +174,13 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   switchWorkspace: (userId: string | null, workspaceId: string | null) => {
-    const { socket, init } = get();
+    const { socket, workspace, init } = get();
     console.log("바꿉니다", userId, "가", workspaceId, "로");
     // 기존 연결 정리
     if (socket) {
+      if (workspace?.id) {
+        socket.emit("leave/workspace", { workspaceId: workspace.id });
+      }
       socket.disconnect();
     }
     sessionStorage.removeItem("currentWorkspace");
