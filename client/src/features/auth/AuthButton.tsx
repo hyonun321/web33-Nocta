@@ -4,7 +4,6 @@ import { TextButton } from "@components/button/textButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
 import { AuthModal } from "./AuthModal";
-import { css } from "@styled-system/css";
 import { container } from "./AuthButton.style";
 
 export const AuthButton = () => {
