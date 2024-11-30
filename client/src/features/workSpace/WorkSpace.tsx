@@ -31,7 +31,11 @@ export const WorkSpace = () => {
 
   useEffect(() => {
     if (workspaceMetadata) {
-      const newWorkspace = new WorkSpaceClass(workspaceMetadata.id, workspaceMetadata.pageList);
+      const newWorkspace = new WorkSpaceClass(
+        workspaceMetadata.id,
+        workspaceMetadata.name,
+        workspaceMetadata.pageList,
+      );
       newWorkspace.deserialize(workspaceMetadata);
       setWorkspace(newWorkspace);
 
