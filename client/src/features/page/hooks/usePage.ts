@@ -219,6 +219,91 @@ export const usePage = ({ x, y }: Position) => {
     }
   }, [isSidebarOpen]);
 
+  const adjustPageToWindow = () => {
+    const maxWidth = window.innerWidth - getSidebarWidth() - PADDING;
+    const maxHeight = window.innerHeight - PADDING;
+
+    let newWidth = Math.min(size.width, maxWidth);
+    let newHeight = Math.min(size.height, maxHeight);
+
+    // 최소 크기 보장
+    newWidth = Math.max(PAGE.MIN_WIDTH, newWidth);
+    newHeight = Math.max(PAGE.MIN_HEIGHT, newHeight);
+
+    // 새로운 위치 계산
+    let newX = position.x;
+    let newY = position.y;
+
+    // 오른쪽 경계를 벗어나는 경우
+    if (newX + newWidth > maxWidth) {
+      newX = Math.max(0, maxWidth - newWidth);
+    }
+
+    // 아래쪽 경계를 벗어나는 경우
+    if (newY + newHeight > maxHeight) {
+      newY = Math.max(0, maxHeight - newHeight);
+    }
+
+    // 크기나 위치가 변경된 경우에만 상태 업데이트
+    if (
+      newWidth !== size.width ||
+      newHeight !== size.height ||
+      newX !== position.x ||
+      newY !== position.y
+    ) {
+      setSize({ width: newWidth, height: newHeight });
+      setPosition({ x: newX, y: newY });
+    }
+  };
+
+  // maximize 상태일 때의 resize 처리
+  useEffect(() => {
+    if (!isMaximized) return;
+
+    let timeoutId: NodeJS.Timeout;
+    const handleMaximizedResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const newWidth = window.innerWidth - getSidebarWidth() - PADDING;
+        const newHeight = window.innerHeight - PADDING;
+
+        // 실제로 크기가 변경될 때만 update
+        if (size.width !== newWidth || size.height !== newHeight) {
+          setSize({ width: newWidth, height: newHeight });
+        }
+      }, 100);
+    };
+
+    window.addEventListener("resize", handleMaximizedResize);
+    handleMaximizedResize();
+
+    return () => {
+      window.removeEventListener("resize", handleMaximizedResize);
+      clearTimeout(timeoutId);
+    };
+  }, [isMaximized, isSidebarOpen]); // maximize 상태와 sidebar 상태만 의존성
+
+  // 일반 상태일 때의 resize 처리
+  useEffect(() => {
+    if (isMaximized) return;
+
+    let timeoutId: NodeJS.Timeout;
+    const handleNormalResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        adjustPageToWindow();
+      }, 100);
+    };
+
+    window.addEventListener("resize", handleNormalResize);
+    handleNormalResize();
+
+    return () => {
+      window.removeEventListener("resize", handleNormalResize);
+      clearTimeout(timeoutId);
+    };
+  }, [position, size, isSidebarOpen]);
+
   return {
     position,
     size,
