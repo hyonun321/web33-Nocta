@@ -175,45 +175,45 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => {
-    // const { socket } = get();
-    // socket?.emit("insert/block", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("insert/block", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => {
-    // const { socket } = get();
-    // socket?.emit("insert/char", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("insert/char", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => {
-    // const { socket } = get();
-    // socket?.emit("update/block", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("update/block", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => {
-    // const { socket } = get();
-    // socket?.emit("delete/block", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("delete/block", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => {
-    // const { socket } = get();
-    // socket?.emit("delete/char", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("delete/char", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendCharUpdateOperation: (operation: RemoteCharUpdateOperation) => {
-    // const { socket } = get();
-    // socket?.emit("update/char", operation);
-    const { sendOperation } = get();
-    sendOperation(operation);
+    const { socket } = get();
+    socket?.emit("update/char", operation);
+    // const { sendOperation } = get();
+    // sendOperation(operation);
   },
 
   sendCursorPosition: (position: CursorPosition) => {
