@@ -58,13 +58,6 @@ export const OnboardingOverlay = ({ isShow }: OnboardingOverlayProps) => {
       description: "열려있는 페이지들을 쉽게 전환할 수 있어요.",
       position: "top",
     },
-
-    {
-      target: '[data-onboarding="login-button"]',
-      title: "로그인 버튼",
-      description: "로그인 하여 나만의 워크스페이스를 관리할 수 있어요.",
-      position: "top",
-    },
   ];
   useEffect(() => {
     const hasCompletedOnboarding = sessionStorage.getItem("hasCompletedOnboarding");
