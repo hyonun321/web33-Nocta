@@ -32,6 +32,8 @@ interface BlockProps {
   dragBlockList: string[];
   isActive: boolean;
   onInput: (e: React.FormEvent<HTMLDivElement>, block: CRDTBlock) => void;
+  onCompositionStart: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
+  onCompositionUpdate: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onCompositionEnd: (e: React.CompositionEvent<HTMLDivElement>, block: CRDTBlock) => void;
   onKeyDown: (
     e: React.KeyboardEvent<HTMLDivElement>,
@@ -72,6 +74,8 @@ export const Block: React.FC<BlockProps> = memo(
     dragBlockList,
     isActive,
     onInput,
+    onCompositionStart,
+    onCompositionUpdate,
     onCompositionEnd,
     onKeyDown,
     onCopy,
@@ -278,6 +282,8 @@ export const Block: React.FC<BlockProps> = memo(
               onCopy={(e) => onCopy(e, blockRef.current, block)}
               onPaste={(e) => onPaste(e, blockRef.current, block)}
               onMouseUp={handleMouseUp}
+              onCompositionStart={(e) => onCompositionStart(e, block)}
+              onCompositionUpdate={(e) => onCompositionUpdate(e, block)}
               onCompositionEnd={(e) => onCompositionEnd(e, block)}
               contentEditable={block.type !== "hr"}
               spellCheck={false}

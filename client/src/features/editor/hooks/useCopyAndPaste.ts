@@ -17,9 +17,15 @@ interface UseCopyAndPasteProps {
   editorCRDT: EditorCRDT;
   pageId: string;
   setEditorState: React.Dispatch<React.SetStateAction<EditorStateProps>>;
+  isLocalChange: React.MutableRefObject<boolean>;
 }
 
-export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyAndPasteProps) => {
+export const useCopyAndPaste = ({
+  editorCRDT,
+  pageId,
+  setEditorState,
+  isLocalChange,
+}: UseCopyAndPasteProps) => {
   const { sendCharInsertOperation, sendCharDeleteOperation } = useSocketStore();
 
   const handleCopy = useCallback(
@@ -67,10 +73,14 @@ export const useCopyAndPaste = ({ editorCRDT, pageId, setEditorState }: UseCopyA
       if (!blockRef) return;
 
       const selection = window.getSelection();
-
+      isLocalChange.current = true;
       if (selection && !selection.isCollapsed) {
         const range = selection.getRangeAt(0);
-        if (!blockRef.contains(range.commonAncestorContainer)) return;
+        if (!blockRef.contains(range.commonAncestorContainer)) {
+          // ?????
+          isLocalChange.current = false;
+          return;
+        }
 
         const startOffset = getTextOffset(blockRef, range.startContainer, range.startOffset);
         const endOffset = getTextOffset(blockRef, range.endContainer, range.endOffset);
