@@ -54,27 +54,30 @@ Nocta에서 단순한 기록을 넘어, 새로운 글쓰기 경험을 시작하�
 
 ## ✨ Nocta만의 차별점
 
-### 1. 페이지 생성, 드래그 앤 드랍
-
-사이드바의 페이지 추가 버튼을 통해 페이지를 생성하고 관리할 수 있습니다.
-
-![111111](https://github.com/user-attachments/assets/7bbbd091-a906-49b1-8043-13240bdf2f5b)
-
-### 2. 탭 브라우징: 최소화 최대화 리사이즈
+### 1. 탭 브라우징: 최소화 최대화 리사이즈
 
 각각의 문서를 탭브라우징 방식으로 관리할 수 있습니다. 크기를 조절하거나 드래그 앤 드랍을 통해 원하는 위치에 위치시킬 수 있습니다.
 
 ![22222](https://github.com/user-attachments/assets/7355a84a-7ff5-44c5-a3d0-24840a468818)
 
-### 3. 실시간 마크다운 편집
+### 2. 인터랙티브 텍스트
+
+텍스트 블럭에 인터랙티브한 속성을 부여할 수 있습니다. 하이라이트, 그라데이션 등의 속성이 존재합니다.
+![Animation2](https://github.com/user-attachments/assets/16cd6a7f-05f5-4807-aafe-456e0dab1310)
+
+## 🌙 Noca의 특징
+
+### 실시간 마크다운 편집
 
 마크다운 문법을 입력하면 실시간으로 마크다운 문법으로 변환합니다.
 
 ![33333](https://github.com/user-attachments/assets/ffcf7fa5-9436-4e6b-b38f-6fbf9e813cb5)
 
-### 4.실시간 동시편집(구현중)
+### 실시간 동시편집
 
 하나의 문서를 여러 사용자가 동시에 편집이 가능합니다. CRDT 알고리즘을 통해 실시간 변경사항을 모든 사용자에게 반영합니다.
+
+![ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/445f80f3-d291-4e83-8a58-da4dc669e42a)
 
 
 ## 🔧 기술 스택
