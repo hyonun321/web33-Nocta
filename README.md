@@ -64,15 +64,16 @@ Nocta에서 단순한 기록을 넘어, 새로운 글쓰기 경험을 시작하�
 ### 2. 인터랙티브 텍스트
 
 텍스트 블럭에 인터랙티브한 속성을 부여할 수 있습니다. 하이라이트, 그라데이션 등의 속성이 존재합니다.
+
 ![Animation2](https://github.com/user-attachments/assets/16cd6a7f-05f5-4807-aafe-456e0dab1310)
 
 ## 🌙 Noca의 특징
 
 ### 실시간 마크다운 편집
 
-마크다운 문법을 입력하면 실시간으로 마크다운 문법으로 변환합니다.
+외부 라이브러리 없이 직접 구현한 마크다운 알고리즘을 통해 마크다운 문법을 입력하면 실시간으로 마크다운 문법으로 변환합니다. 리치 텍스트 기반의 편집기로 다양한 마크다운 문법과 스타일, 텍스트 색상을 적용할 수 있습니다.
 
-![rich](https://github.com/user-attachments/assets/809c06fe-acd9-44a8-bed0-13f525c951b2)
+![rich](https://github.com/user-attachments/assets/e2833e94-3db5-4368-ab9a-863e7e3e192d)
 
 ### 실시간 동시편집
 
