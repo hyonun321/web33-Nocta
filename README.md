@@ -73,7 +73,7 @@ Nocta에서 단순한 기록을 넘어, 새로운 글쓰기 경험을 시작하�
 
 외부 라이브러리 없이 직접 구현한 마크다운 알고리즘을 통해 마크다운 문법을 입력하면 실시간으로 마크다운 문법으로 변환합니다. 리치 텍스트 기반의 편집기로 다양한 마크다운 문법과 스타일, 텍스트 색상을 적용할 수 있습니다.
 
-![rich](https://github.com/user-attachments/assets/e2833e94-3db5-4368-ab9a-863e7e3e192d)
+![rich](https://github.com/user-attachments/assets/62550129-3408-4dfb-848d-565f9e2918cf)
 
 ### 실시간 동시편집
 
