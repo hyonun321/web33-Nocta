@@ -72,10 +72,6 @@ export const OnboardingOverlay = ({ isShow }: OnboardingOverlayProps) => {
     }
   }, [isShow]);
 
-  useEffect(() => {
-    console.log("Onboarding state:", { isShow, isVisible, currentStep });
-  }, [isShow, isVisible, currentStep]);
-
   const handleClose = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1);
@@ -92,7 +88,6 @@ export const OnboardingOverlay = ({ isShow }: OnboardingOverlayProps) => {
   const getTargetPosition = (selector: string) => {
     const element = document.querySelector(selector);
     if (!element) {
-      console.log(`Element not found: ${selector}`);
       return null;
     }
 

@@ -83,7 +83,6 @@ export const useEditorOperation = ({
       if (targetBlock) {
         if (targetBlock === editorCRDT.current.currentBlock) {
           isSameLocalChange.current = true;
-          console.log("isSameLocalChange", isSameLocalChange.current);
         }
         const insertPosition = getPositionById(targetBlock.crdt.LinkedList, operation.node.prev);
         const { currentCaret } = targetBlock.crdt;
