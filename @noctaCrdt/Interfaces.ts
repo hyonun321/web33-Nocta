@@ -113,6 +113,13 @@ export interface RemoteBlockDeleteOperation {
   pageId: string;
 }
 
+export interface RemoteBlockCheckboxOperation {
+  type: "blockCheckbox";
+  blockId: BlockId;
+  isChecked: boolean;
+  pageId: string;
+}
+
 export interface RemoteCharDeleteOperation {
   type: "charDelete";
   targetId: CharId;
