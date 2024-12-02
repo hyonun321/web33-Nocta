@@ -83,7 +83,7 @@ export const useBlockOperation = ({
               currentContent.length - 1,
             );
           }
-          console.log("prevChar", prevChar);
+
           const addedChar = newContent[newContent.length - 1];
           charNode = block.crdt.localInsert(
             currentContent.length,
