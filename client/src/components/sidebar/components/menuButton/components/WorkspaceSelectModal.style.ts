@@ -3,7 +3,7 @@ import { glassContainer } from "@styled-system/recipes";
 
 export const workspaceListContainer = css({
   display: "flex",
-  gap: "sm",
+  gap: "8px",
   flexDirection: "column",
   padding: "md",
 });
