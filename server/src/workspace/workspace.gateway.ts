@@ -225,7 +225,6 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       client.leave(data.workspaceId);
       const user = await this.authService.findById(data.userId);
       const server = this.workSpaceService.getServer();
-      console.log(data);
       server.to(data.workspaceId).emit("workspace/user/left", {
         workspaceId: data.workspaceId,
         userName: user.name,
@@ -315,6 +314,38 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         error.stack,
       );
       throw new WsException(`Invite 실패: ${error.message}`);
+    }
+  }
+
+  @SubscribeMessage("workspace/rename")
+  async handleWorkspaceRename(
+    @MessageBody() data: { workspaceId: string; newName: string },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    try {
+      const workspace = await this.workSpaceService.getWorkspace(data.workspaceId);
+
+      const userRole = await this.workSpaceService.getUserRole(
+        client.data.userId,
+        data.workspaceId,
+      );
+      if (userRole !== "owner") {
+        throw new WsException("권한이 없습니다.");
+      }
+
+      // 워크스페이스 이름 업데이트
+      await this.workSpaceService.updateWorkspaceName(data.workspaceId, data.newName);
+
+      // 여기에 업데이트된 workspace/list정보 날리는 메소드 구현해줘 ..
+      const members = await this.workSpaceService.getWorkspaceMembers(data.workspaceId);
+      // 워크스페이스 멤버들에게 변경 알림
+      const server = this.workSpaceService.getServer();
+      for (const memberId of members) {
+        const memberWorkspaces = await this.workSpaceService.getUserWorkspaces(memberId);
+        server.to(`user:${memberId}`).emit("workspace/list", memberWorkspaces);
+      }
+    } catch (error) {
+      throw new WsException(`워크스페이스 이름 변경 실패: ${error.message}`);
     }
   }
 
