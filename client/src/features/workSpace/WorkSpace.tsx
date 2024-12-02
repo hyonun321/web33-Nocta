@@ -26,7 +26,7 @@ export const WorkSpace = () => {
     closePage,
     updatePage,
     initPages,
-    initPagePosition,
+    // initPagePosition,
     openPage,
   } = usePagesManage(workspace, clientId);
   const visiblePages = pages.filter((page) => page.isVisible && page.isLoaded);
@@ -42,7 +42,7 @@ export const WorkSpace = () => {
       setWorkspace(newWorkspace);
 
       initPages(newWorkspace.pageList);
-      initPagePosition();
+      // initPagePosition();
     }
   }, [workspaceMetadata]);
 
