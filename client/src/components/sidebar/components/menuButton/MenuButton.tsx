@@ -3,6 +3,7 @@ import { InviteModal } from "@src/components/modal/InviteModal";
 import { useModal } from "@src/components/modal/useModal";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { useToastStore } from "@src/stores/useToastStore";
+import { useWorkspaceStore } from "@src/stores/useWorkspaceStore";
 import { useUserInfo } from "@stores/useUserStore";
 import { menuItemWrapper, textBox, menuButtonContainer } from "./MenuButton.style";
 import { MenuIcon } from "./components/MenuIcon";
@@ -18,7 +19,7 @@ export const MenuButton = () => {
     openModal: openInviteModal,
     closeModal: closeInviteModal,
   } = useModal();
-
+  const currentRole = useWorkspaceStore((state) => state.currentRole);
   const handleMenuClick = () => {
     setIsOpen((prev) => !prev);
   };
@@ -81,6 +82,15 @@ export const MenuButton = () => {
       workspaceId: workspace.id,
     });
   };
+
+  const handleInviteModal = () => {
+    if (isInviteModalOpen) return;
+    if (currentRole === "editor") {
+      addToast("Editor 권한으로는 초대할 수 없습니다.");
+      return;
+    }
+    openInviteModal();
+  };
   return (
     <>
       <button
@@ -92,7 +102,7 @@ export const MenuButton = () => {
           <MenuIcon />
           <p className={textBox}>{name ?? "Nocta"}</p>
         </button>
-        <WorkspaceSelectModal isOpen={isOpen} userName={name} onInviteClick={openInviteModal} />
+        <WorkspaceSelectModal isOpen={isOpen} userName={name} onInviteClick={handleInviteModal} />
         <InviteModal
           isOpen={isInviteModalOpen}
           onClose={closeInviteModal}

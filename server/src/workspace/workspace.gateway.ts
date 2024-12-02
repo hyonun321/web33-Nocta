@@ -279,13 +279,17 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         this.logger.log(`Sending workspace list to client ${client.id}`);
         server.to(socketId).emit("workspace/list", workspaceList);
       }
-
       // 5. 초대한 사용자에게 성공 메시지
       client.emit("invite/workspace/success", {
         email: data.email,
         workspaceId: data.workspaceId,
         message: `${targetUser.name}유저를 초대하였습니다.`,
       });
+      const sentUserUpdatedWorkspaces = await this.workSpaceService.getUserWorkspaces(
+        client.data.userId,
+      );
+      // 6. 초대한 사용자의 UI에 최신 workspace/list 반영
+      client.emit("workspace/list", sentUserUpdatedWorkspaces);
     } catch (error) {
       this.logger.error(
         `Workspace Invite 처리 중 오류 발생 - Client ID: ${clientInfo.clientId}`,
