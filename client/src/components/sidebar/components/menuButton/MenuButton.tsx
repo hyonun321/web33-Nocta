@@ -83,16 +83,22 @@ export const MenuButton = () => {
   };
   return (
     <>
-    <button
-      className={`${menuButtonContainer} menu_button_container`}
-      onClick={handleMenuClick}
-      data-onboarding="menu-button"
-    >
-      <button className={menuItemWrapper}>
-        <MenuIcon />
-        <p className={textBox}>{name ?? "Nocta"}</p>
+      <button
+        className={`${menuButtonContainer} menu_button_container`}
+        onClick={handleMenuClick}
+        data-onboarding="menu-button"
+      >
+        <button className={menuItemWrapper}>
+          <MenuIcon />
+          <p className={textBox}>{name ?? "Nocta"}</p>
+        </button>
+        <WorkspaceSelectModal isOpen={isOpen} userName={name} onInviteClick={openInviteModal} />
+        <InviteModal
+          isOpen={isInviteModalOpen}
+          onClose={closeInviteModal}
+          onInvite={handleInvite}
+        />
       </button>
-      <InviteModal isOpen={isInviteModalOpen} onClose={closeInviteModal} onInvite={handleInvite} />
     </>
   );
 };
