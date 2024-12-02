@@ -1,69 +1,85 @@
-![Group 38 (1)](https://github.com/user-attachments/assets/a882c5c5-b205-43cc-9a16-2f5e87dbd6aa)
-
-![image](https://github.com/user-attachments/assets/ce48d2e5-ca40-43e6-8d64-0f874312f065)
-
-
 <div align="center">
+  
+  ![image](https://github.com/user-attachments/assets/e7f5453b-ecc8-4087-b0ae-0c72b422103f)
+
   <br>
+
+  ![image](https://github.com/user-attachments/assets/dba641b3-417d-4bb6-9c87-4cfc78d8324c)
   <br>
-  <a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fboostcampwm-2024%2Fweb33-Nocta&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
+ 
 
 </div>
 
-<p align="center">
+<div align="center">
+
+## 📑 문서 작성이 더 편하고 즐거워진다
+
   <a href="https://nocta.site" title="🌌 밤하늘의 별빛처럼, 자유로운 인터랙션 실시간 에디터"><strong>배포 사이트</strong></a>
-</p>
+
+**🤔 하나의 문서를 작성하면서 다른 문서도 함께 보고 싶었던 적 있으신가요?**
+
+문서 작성할 때 여러 창을 띄워두고 번거롭게 작업하셨던 불편함이 있었죠.
+
+기존 에디터들은 하나의 창에 갇혀있어서, 참고할 내용이 있을 때마다 창을 이동해야 했어요.
+
+Nocta는 에디터에 새로운 바람을 불어넣었어요.
+
+**탭 브라우징으로 여러 문서를 자유롭게 넘나들 수 있고, 인터랙티브한 요소들로 문서 작성이 더 흥미롭게 변화됩니다.**
+
+Nocta에서 단순한 기록을 넘어, 새로운 글쓰기 경험을 시작하세요.
+
+[노션](https://abrupt-feta-9a9.notion.site/web33-12a9ff1b21c38003b600f57baa654626?pvs=4) 
+
+[기획](https://abrupt-feta-9a9.notion.site/12a9ff1b21c380b4b3bafc3af92b2a25?pvs=4) | [디자인](https://abrupt-feta-9a9.notion.site/12f9ff1b21c380459f74f7a2e4fb7a93?pvs=4)
+
+[개발위키](https://abrupt-feta-9a9.notion.site/12a9ff1b21c380f2a490deae65256639?pvs=4) | [DB스키마](https://abrupt-feta-9a9.notion.site/DB-708e1cf3c1454b3c950bff67d0924dde?pvs=4) | [백로그](https://abrupt-feta-9a9.notion.site/12e9ff1b21c380ecb202f869f6ad040e?pvs=4)
+
+ [그라운드룰](https://abrupt-feta-9a9.notion.site/12a9ff1b21c3807ca2b8e308178e5c2f?pvs=4) | [스크럼회의록](https://abrupt-feta-9a9.notion.site/12a9ff1b21c38087848fcd2d37445005?pvs=4) | [스프린트회의록](https://abrupt-feta-9a9.notion.site/12a9ff1b21c380ac876cdd60332f5826?pvs=4) | [회고록](https://abrupt-feta-9a9.notion.site/12a9ff1b21c380959d92e485fcc94f8a?pvs=4)
+ 
+ <a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fboostcampwm-2024%2Fweb33-Nocta&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
+
+</div>
 
 
-## `Nocta`
-
-> 🌌 밤하늘의 별빛처럼, 자유로운 인터랙션 실시간 에디터
-
-- 실시간 기록 협업 소프트웨어입니다.
 
 
-## `Team Glassmo`
+## 🚩 목차
 
+- [Nocta만의 차별점](#-nocta만의-차별점)
+- [기술스택](#-기술-스택)
+- [시스템 아키텍처 다이어그램](#시스템-아키텍처-다이어그램)
+- [프로젝트 시작 가이드](#-프로젝트-시작-가이드)
+- [프로젝트 기간](#-프로젝트-기간)
+- [팀원 소개](#-팀원-소개)
 
-- 글래스모피즘의 약자
+## ✨ Nocta만의 차별점
 
-## 📅 프로젝트 기간
-
-> 2024.10.28 ~ 2024.12.06
-
-## 🌱 팀원 소개
-
-|                                김현훈                                 |                                민연규                                 |                                 민정우                                 |                                  장서윤                                   |
-| :-------------------------------------------------------------------: | :-------------------------------------------------------------------: | :--------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
-| <img src="https://github.com/hyonun321.png" width="100" height="100"> | <img src="https://github.com/Ludovico7.png" width="100" height="100"> | <img src="https://github.com/minjungw00.png" width="100" height="100"> | <img src="https://github.com/pipisebastian.png" width="100" height="100"> |
-|                                 FE+BE                                 |                                  FE                                   |                                   BE                                   |                                    FE                                     |
-|              [@hyonun321](https://github.com/hyonun321)               |              [@Ludovico7](https://github.com/Ludovico7)               |              [@minjungw00](https://github.com/minjungw00)              |            [@pipisebastian](https://github.com/pipisebastian)             |
-
-
-## 프로젝트 기능 소개
-
-
-### 1. 페이지 생성, 드래그 앤 드랍
-
-사이드바의 페이지 추가 버튼을 통해 페이지를 생성하고 관리할 수 있습니다.
-
-![111111](https://github.com/user-attachments/assets/7bbbd091-a906-49b1-8043-13240bdf2f5b)
-
-### 2. 탭 브라우징: 최소화 최대화 리사이즈
+### 1. 탭 브라우징: 최소화 최대화 리사이즈
 
 각각의 문서를 탭브라우징 방식으로 관리할 수 있습니다. 크기를 조절하거나 드래그 앤 드랍을 통해 원하는 위치에 위치시킬 수 있습니다.
 
-![22222](https://github.com/user-attachments/assets/7355a84a-7ff5-44c5-a3d0-24840a468818)
+![tab](https://github.com/user-attachments/assets/e504e103-6b3b-4ea7-8f3e-38c9152e04b5)
 
-### 3. 실시간 마크다운 편집
 
-마크다운 문법을 입력하면 실시간으로 마크다운 문법으로 변환합니다.
+### 2. 인터랙티브 텍스트
 
-![33333](https://github.com/user-attachments/assets/ffcf7fa5-9436-4e6b-b38f-6fbf9e813cb5)
+텍스트 블럭에 인터랙티브한 속성을 부여할 수 있습니다. 하이라이트, 그라데이션 등의 속성이 존재합니다.
 
-### 4.실시간 동시편집(구현중)
+![Animation2](https://github.com/user-attachments/assets/16cd6a7f-05f5-4807-aafe-456e0dab1310)
 
-하나의 문서를 여러 사용자가 동시에 편집이 가능합니다. CRDT 알고리즘을 통해 실시간 변경사항을 모든 사용자에게 반영합니다.
+## 🌙 Noca의 특징
+
+### 실시간 마크다운 편집
+
+**외부 라이브러리 없이 직접 구현한 마크다운 알고리즘** 을 통해 마크다운 문법을 입력하면 실시간으로 마크다운 문법으로 변환합니다. 리치 텍스트 기반의 편집기로 다양한 마크다운 문법과 스타일, 텍스트 색상을 적용할 수 있습니다.
+
+![rich](https://github.com/user-attachments/assets/62550129-3408-4dfb-848d-565f9e2918cf)
+
+### 실시간 동시편집
+
+**외부 라이브러리 없이 직접 구현한 CRDT 알고리즘을 통해** 하나의 문서를 여러 사용자가 동시에 편집이 가능합니다. 실시간 변경사항을 모든 사용자에게 반영합니다.
+
+![ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/445f80f3-d291-4e83-8a58-da4dc669e42a)
 
 
 ## 🔧 기술 스택
@@ -74,7 +90,7 @@
 
 **Frontend**
 
-<div align="left"> <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=black"/> <img src="https://img.shields.io/badge/React_Query-FF4154?style=flat-square&logo=ReactQuery&logoColor=white"/> <img src="https://img.shields.io/badge/React_Router-CA4245?style=flat-square&logo=ReactRouter&logoColor=white"/> <img src="https://img.shields.io/badge/Zustand-764ABC?style=flat-square&logo=Zustand&logoColor=white"/> <img src="https://img.shields.io/badge/Panda_CSS-06B6D4?style=flat-square&logo=PandaCSS&logoColor=white"/> <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=Vite&logoColor=white"/> <img src="https://img.shields.io/badge/Storybook-FF4785?style=flat-square&logo=Storybook&logoColor=white"/> </div>
+<div align="left"> <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=black"/> <img src="https://img.shields.io/badge/React_Query-FF4154?style=flat-square&logo=ReactQuery&logoColor=white"/> <img src="https://img.shields.io/badge/Zustand-764ABC?style=flat-square&logo=Zustand&logoColor=white"/> <img src="https://img.shields.io/badge/Panda_CSS-06B6D4?style=flat-square&logo=PandaCSS&logoColor=white"/> <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=Vite&logoColor=white"/> </div>
 
 **Backend**
 
@@ -88,7 +104,32 @@
 
 ![image](https://github.com/user-attachments/assets/ab96462b-5f38-4dd9-9c72-984829fa873d)
 
+
+## 📅 프로젝트 기간
+
+> 2024.10.28 ~ 2024.12.06 (6주)
+
+<br>
+
+## 🌱 팀원 소개
+
+<div align="center">
+
+|                                J078                                 |                                J098                                 |                                 J099                                 |                                  J213                                   |
+| :-------------------------------------------------------------------: | :-------------------------------------------------------------------: | :--------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
+| <img src="https://github.com/hyonun321.png" width="100" height="100"> | <img src="https://github.com/Ludovico7.png" width="100" height="100"> | <img src="https://github.com/minjungw00.png" width="100" height="100"> | <img src="https://github.com/pipisebastian.png" width="100" height="100"> |
+|                                 FE+BE                                 |                                  FE+BE                                   |                                   BE+Infra                                   |                                    FE                                     |
+|              [김현훈](https://github.com/hyonun321)               |              [민연규](https://github.com/Ludovico7)               |              [민정우](https://github.com/minjungw00)              |            [장서윤](https://github.com/pipisebastian)             |
+
+</div>
+
+<br>
+
+
+
 ## 🚀 프로젝트 시작 가이드
+
+> 환경변수는 /client, /server 폴더에 있는 .env.sample 파일을 참고해주시기 바랍니다. * 추가예정
 
 ```bash
 # 저장소 복제
@@ -109,8 +150,6 @@ pnpm run dev
 docker-compose up -d --build
 ```
 
-## 🔗 프로젝트 링크
 
-| 노션                                                                                       | 디자인    |
-| :----------------------------------------------------------------------------------------- | :-------- |
-| [Notion](https://abrupt-feta-9a9.notion.site/web33-12a9ff1b21c38003b600f57baa654626?pvs=4) | [Figma]() |
+
+

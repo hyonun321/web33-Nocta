@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { TextButton } from "../button/textButton";
 import { modalContainerAnimation, overlayAnimation } from "./modal.animation";
@@ -29,6 +30,26 @@ export const Modal = ({
 }: ModalProps) => {
   const portal = document.getElementById("modal") as HTMLElement;
 
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (isOpen && event.key === "Enter") {
+        event.preventDefault();
+        primaryButtonOnClick?.();
+      }
+    };
+
+    // 모달이 열려있을 때만 이벤트 리스너 추가
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyPress);
+    }
+
+    // 클린업 함수
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [isOpen, primaryButtonOnClick]);
+
+  if (!isOpen) return null;
   return createPortal(
     <AnimatePresence>
       {isOpen && (
