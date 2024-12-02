@@ -1,8 +1,8 @@
 import { useLogoutMutation } from "@apis/auth";
-import { useCheckLogin } from "@stores/useUserStore";
 import { TextButton } from "@components/button/textButton";
 import { Modal } from "@components/modal/modal";
 import { useModal } from "@components/modal/useModal";
+import { useCheckLogin } from "@stores/useUserStore";
 import { AuthModal } from "./AuthModal";
 
 export const AuthButton = () => {
