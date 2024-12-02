@@ -29,7 +29,11 @@ export const MenuButton = () => {
   }, []);
 
   return (
-    <button className={`${menuButtonContainer} menu_button_container`} onClick={handleMenuClick}>
+    <button
+      className={`${menuButtonContainer} menu_button_container`}
+      onClick={handleMenuClick}
+      data-onboarding="menu-button"
+    >
       <button className={menuItemWrapper}>
         <MenuIcon />
         <p className={textBox}>{name ?? "Nocta"}</p>
