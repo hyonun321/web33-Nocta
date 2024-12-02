@@ -70,17 +70,18 @@ export const WorkspaceSelectItem = ({
               )}
             </div>
           </div>
+          {isOwner && (
+            <button
+              onClick={() => setIsRenameModalOpen(true)}
+              className={pencilButton}
+              aria-label="워크스페이스 이름 변경"
+            >
+              <PencilIcon />
+            </button>
+          )}
         </div>
       </button>
-      {isOwner && (
-        <button
-          onClick={() => setIsRenameModalOpen(true)}
-          className={pencilButton}
-          aria-label="워크스페이스 이름 변경"
-        >
-          <PencilIcon />
-        </button>
-      )}
+
       <RenameModal
         isOpen={isRenameModalOpen}
         onClose={() => setIsRenameModalOpen(false)}
