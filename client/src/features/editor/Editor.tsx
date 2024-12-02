@@ -182,14 +182,14 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       const event = e.nativeEvent as CompositionEvent;
       const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
-      if (!composingCaret.current) return;
+      if (composingCaret.current === null) return;
       const currentCaret = composingCaret.current;
       const currentCharNode = block.crdt.LinkedList.findByIndex(currentCaret);
       if (!currentCharNode) return;
 
       if (isMac) {
         const [character, space] = event.data;
-        if (!character || !composingCaret.current) return;
+        if (!character || composingCaret.current === null) return;
         if (!currentCharNode) return;
         currentCharNode.value = character;
         sendCharInsertOperation({
@@ -226,6 +226,9 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       }
 
       composingCaret.current = null;
+      if (isSameLocalChange.current) {
+        isSameLocalChange.current = false;
+      }
     },
     [editorCRDT, pageId, sendCharInsertOperation],
   );
@@ -247,7 +250,12 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
         pageId,
       });
       isLocalChange.current = false;
-      isSameLocalChange.current = false;
+      if (composingCaret.current !== null) {
+        isSameLocalChange.current = true;
+      } else {
+        isSameLocalChange.current = false;
+      }
+
       return;
     }
     // 서윤님 피드백 반영
