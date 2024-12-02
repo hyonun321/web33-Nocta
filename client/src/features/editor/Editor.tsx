@@ -224,7 +224,6 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
           blockId: block.id,
           pageId,
         });
-        sendCharInsertOperation(block.crdt.localInsert(currentCaret + 1, "", block.id, pageId));
 
         block.crdt.currentCaret = currentCaret;
       }
@@ -246,22 +245,19 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     if (activeElement?.tagName.toLowerCase() === "input") {
       return; // input에 포커스가 있으면 캐럿 위치 변경하지 않음
     }
-    if (isLocalChange.current || isSameLocalChange.current) {
-      setCaretPosition({
-        blockId: editorCRDT.current.currentBlock.id,
-        linkedList: editorCRDT.current.LinkedList,
-        position: editorCRDT.current.currentBlock?.crdt.currentCaret,
-        pageId,
-      });
-      isLocalChange.current = false;
-      if (composingCaret.current !== null) {
-        isSameLocalChange.current = true;
-      } else {
+    requestAnimationFrame(() => {
+      if (isLocalChange.current || isSameLocalChange.current) {
+        setCaretPosition({
+          blockId: editorCRDT.current.currentBlock!.id,
+          linkedList: editorCRDT.current.LinkedList,
+          position: editorCRDT.current.currentBlock?.crdt.currentCaret,
+          pageId,
+        });
+        isLocalChange.current = false;
         isSameLocalChange.current = false;
+        return;
       }
-
-      return;
-    }
+    });
     // 서윤님 피드백 반영
   }, [editorCRDT.current.currentBlock?.id.serialize()]);
 
