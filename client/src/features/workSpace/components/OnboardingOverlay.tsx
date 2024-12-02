@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import CloseIcon from "@assets/icons/close.svg?react";
 import {
   overlayContainer,
   highlightBox,
@@ -8,6 +9,7 @@ import {
   tooltipDescription,
   stepIndicator,
   nextButton,
+  closeButton,
   IndicatorContainer,
 } from "./OnboardingOverlay.style";
 
@@ -85,6 +87,10 @@ export const OnboardingOverlay = ({ isShow }: OnboardingOverlayProps) => {
       setCurrentStep((prev) => prev - 1);
     }
   };
+  const handleOverlayClose = () => {
+    setIsVisible(false);
+    sessionStorage.setItem("hasCompletedOnboarding", "true");
+  };
   const getTargetPosition = (selector: string) => {
     const element = document.querySelector(selector);
     if (!element) {
@@ -161,6 +167,9 @@ export const OnboardingOverlay = ({ isShow }: OnboardingOverlayProps) => {
             top: tooltipPosition.top,
           }}
         >
+          <button onClick={handleOverlayClose} className={closeButton}>
+            <CloseIcon />
+          </button>
           <div className={IndicatorContainer}>
             {steps.map((_, index) => (
               <div key={index} className={stepIndicator({ active: index === currentStep })} />

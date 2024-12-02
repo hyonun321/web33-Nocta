@@ -142,6 +142,18 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       ).serialize();
       client.emit("workspace", currentWorkSpace);
 
+      if (user && NewWorkspaceId !== "guest") {
+        const server = this.workSpaceService.getServer();
+        server
+          .to(NewWorkspaceId)
+          .except(client.id)
+          .emit("workspace/user/join", {
+            workspaceId: NewWorkspaceId,
+            userName: user.name,
+            message: `${user.name}님이 워크스페이스에 참가하셨습니다.`,
+          });
+      }
+
       const assignedId = (this.clientIdCounter += 1);
       const clientInfo: ClientInfo = {
         clientId: assignedId,
@@ -168,7 +180,6 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         this.SocketStoreBroadcastWorkspaceConnections();
       }, 100);
 
-      client.broadcast.emit("userJoined", { clientId: assignedId });
       this.logger.log(`클라이언트 연결 성공 - User ID: ${userId}, Client ID: ${assignedId}`);
       this.logger.debug(`현재 연결된 클라이언트 수: ${this.clientMap.size}`);
     } catch (error) {
@@ -207,11 +218,18 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
   Copy; // workspace.gateway.ts
   @SubscribeMessage("leave/workspace")
   async handleWorkspaceLeave(
-    @MessageBody() data: { workspaceId: string },
+    @MessageBody() data: { workspaceId: string; userId: string },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     try {
       client.leave(data.workspaceId);
+      const user = await this.authService.findById(data.userId);
+      const server = this.workSpaceService.getServer();
+      server.to(data.workspaceId).emit("workspace/user/left", {
+        workspaceId: data.workspaceId,
+        userName: user.name,
+        message: `${user.name}님이 워크스페이스에서 퇴장하셨습니다.`,
+      });
       this.SocketStoreBroadcastWorkspaceConnections();
     } catch (error) {
       this.logger.error(`워크스페이스 퇴장 중 오류 발생`, error.stack);
@@ -296,6 +314,38 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         error.stack,
       );
       throw new WsException(`Invite 실패: ${error.message}`);
+    }
+  }
+
+  @SubscribeMessage("workspace/rename")
+  async handleWorkspaceRename(
+    @MessageBody() data: { workspaceId: string; newName: string },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    try {
+      const workspace = await this.workSpaceService.getWorkspace(data.workspaceId);
+
+      const userRole = await this.workSpaceService.getUserRole(
+        client.data.userId,
+        data.workspaceId,
+      );
+      if (userRole !== "owner") {
+        throw new WsException("권한이 없습니다.");
+      }
+
+      // 워크스페이스 이름 업데이트
+      await this.workSpaceService.updateWorkspaceName(data.workspaceId, data.newName);
+
+      // 여기에 업데이트된 workspace/list정보 날리는 메소드 구현해줘 ..
+      const members = await this.workSpaceService.getWorkspaceMembers(data.workspaceId);
+      // 워크스페이스 멤버들에게 변경 알림
+      const server = this.workSpaceService.getServer();
+      for (const memberId of members) {
+        const memberWorkspaces = await this.workSpaceService.getUserWorkspaces(memberId);
+        server.to(`user:${memberId}`).emit("workspace/list", memberWorkspaces);
+      }
+    } catch (error) {
+      throw new WsException(`워크스페이스 이름 변경 실패: ${error.message}`);
     }
   }
 

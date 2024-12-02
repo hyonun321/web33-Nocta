@@ -15,6 +15,7 @@ import {
 } from "@noctaCrdt/Interfaces";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
+import { useToastStore } from "./useToastStore";
 import { useWorkspaceStore } from "./useWorkspaceStore";
 
 class BatchProcessor {
@@ -140,6 +141,20 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       setWorkspace(workspace);
     });
 
+    socket.on(
+      "workspace/user/left",
+      (data: { workspaceId: string; userName: string; message: string }) => {
+        useToastStore.getState().addToast(data.message);
+      },
+    );
+
+    socket.on(
+      "workspace/user/join",
+      (data: { workspaceId: string; userName: string; message: string }) => {
+        useToastStore.getState().addToast(data.message);
+      },
+    );
+
     socket.on("workspace/connections", (connections: Record<string, number>) => {
       set({ workspaceConnections: connections });
     });
@@ -160,6 +175,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       const currentWorkspace = availableWorkspaces.find((ws) => ws.id === workspace!.id);
       if (currentWorkspace) {
         useWorkspaceStore.getState().setCurrentRole(currentWorkspace.role);
+        useWorkspaceStore.getState().setCurrentWorkspaceName(currentWorkspace.name);
+        useWorkspaceStore.getState().setCurrentActiveUsers(currentWorkspace.activeUsers);
+        useWorkspaceStore.getState().setCurrentMemberCount(currentWorkspace.memberCount);
       }
     });
 
@@ -189,7 +207,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     // 기존 연결 정리
     if (socket) {
       if (workspace?.id) {
-        socket.emit("leave/workspace", { workspaceId: workspace.id });
+        socket.emit("leave/workspace", { workspaceId: workspace.id, userId });
       }
       socket.disconnect();
     }
