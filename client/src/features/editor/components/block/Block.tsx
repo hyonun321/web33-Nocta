@@ -158,6 +158,39 @@ export const Block: React.FC<BlockProps> = memo(
       }
     };
 
+    const handleKeyDown = (
+      e: React.KeyboardEvent<HTMLDivElement>,
+      blockRef: HTMLDivElement | null,
+      block: CRDTBlock,
+    ) => {
+      switch (e.key) {
+        case e.metaKey && "b": {
+          e.preventDefault();
+          onTextStyleUpdate("bold", block.id, selectedNodes);
+          break;
+        }
+        case e.metaKey && "i": {
+          e.preventDefault();
+          onTextStyleUpdate("italic", block.id, selectedNodes);
+          break;
+        }
+        case e.metaKey && "u": {
+          e.preventDefault();
+          onTextStyleUpdate("underline", block.id, selectedNodes);
+          break;
+        }
+        case e.metaKey && "Shift" && "s": {
+          onTextStyleUpdate("strikethrough", block.id, selectedNodes);
+          e.preventDefault();
+          break;
+        }
+        default: {
+          onKeyDown(e, blockRef, block);
+          break;
+        }
+      }
+    };
+
     const handleAnimationSelect = (animation: AnimationType) => {
       onAnimationSelect(block.id, animation);
     };
@@ -276,7 +309,7 @@ export const Block: React.FC<BlockProps> = memo(
             <IconBlock type={block.type} index={block.listIndex} indent={block.indent} />
             <div
               ref={blockRef}
-              onKeyDown={(e) => onKeyDown(e, blockRef.current, block)}
+              onKeyDown={(e) => handleKeyDown(e, blockRef.current, block)}
               onInput={handleInput}
               onClick={(e) => onClick(block.id, e)}
               onCopy={(e) => onCopy(e, blockRef.current, block)}
