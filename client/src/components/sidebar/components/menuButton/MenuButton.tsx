@@ -5,7 +5,16 @@ import { useSocketStore } from "@src/stores/useSocketStore";
 import { useToastStore } from "@src/stores/useToastStore";
 import { useWorkspaceStore } from "@src/stores/useWorkspaceStore";
 import { useUserInfo } from "@stores/useUserStore";
-import { menuItemWrapper, textBox, menuButtonContainer } from "./MenuButton.style";
+import {
+  menuItemWrapper,
+  textBox,
+  menuButtonContainer,
+  // userCount,
+  // currentWorkspaceNameBox,
+  // workspaceInfo,
+  // workspaceRole,
+  // nameWrapper,
+} from "./MenuButton.style";
 import { MenuIcon } from "./components/MenuIcon";
 import { WorkspaceSelectModal } from "./components/WorkspaceSelectModal";
 
@@ -14,12 +23,15 @@ export const MenuButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { socket, workspace } = useSocketStore();
   const { addToast } = useToastStore();
+  const currentRole = useWorkspaceStore((state) => state.currentRole);
+  // const currentWorkspaceName = useWorkspaceStore((state) => state.currentWorkspaceName);
+  // const currentActiveUsers = useWorkspaceStore((state) => state.currentActiveUsers);
+  // const currentMemberCount = useWorkspaceStore((state) => state.currentMemberCount);
   const {
     isOpen: isInviteModalOpen,
     openModal: openInviteModal,
     closeModal: closeInviteModal,
   } = useModal();
-  const currentRole = useWorkspaceStore((state) => state.currentRole);
   const handleMenuClick = () => {
     setIsOpen((prev) => !prev);
   };
@@ -91,6 +103,7 @@ export const MenuButton = () => {
     }
     openInviteModal();
   };
+
   return (
     <>
       <button
@@ -101,6 +114,14 @@ export const MenuButton = () => {
         <button className={menuItemWrapper}>
           <MenuIcon />
           <p className={textBox}>{name ?? "Nocta"}</p>
+          {/* <div className={nameWrapper}>
+            {currentWorkspaceName && currentRole && (
+              <div className={workspaceInfo}>
+                <span className={currentWorkspaceNameBox}>{currentWorkspaceName}</span>
+                <span className={workspaceRole}>{currentRole}</span>
+              </div>
+            )}
+          </div> */}
         </button>
         <WorkspaceSelectModal isOpen={isOpen} userName={name} onInviteClick={handleInviteModal} />
         <InviteModal

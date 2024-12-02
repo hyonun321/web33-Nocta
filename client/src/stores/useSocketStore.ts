@@ -160,6 +160,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       const currentWorkspace = availableWorkspaces.find((ws) => ws.id === workspace!.id);
       if (currentWorkspace) {
         useWorkspaceStore.getState().setCurrentRole(currentWorkspace.role);
+        useWorkspaceStore.getState().setCurrentWorkspaceName(currentWorkspace.name);
+        useWorkspaceStore.getState().setCurrentActiveUsers(currentWorkspace.activeUsers);
+        useWorkspaceStore.getState().setCurrentMemberCount(currentWorkspace.memberCount);
       }
     });
 
