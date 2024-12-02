@@ -53,7 +53,16 @@ export const Modal = ({
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className={container}>
+        <div
+          role="dialog"
+          className={container}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              secondaryButtonOnClick?.();
+            }
+          }}
+        >
           <motion.div
             initial={overlayAnimation.initial}
             animate={overlayAnimation.animate}

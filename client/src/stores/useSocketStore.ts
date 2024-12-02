@@ -15,6 +15,7 @@ import {
 } from "@noctaCrdt/Interfaces";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
+import { useWorkspaceStore } from "./useWorkspaceStore";
 
 class BatchProcessor {
   private batch: any[] = [];
@@ -136,7 +137,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
     socket.on("workspace", (workspace: WorkSpaceSerializedProps) => {
       const { setWorkspace } = get();
-      setWorkspace(workspace); // 수정된 부분
+      setWorkspace(workspace);
     });
 
     socket.on("workspace/connections", (connections: Record<string, number>) => {
@@ -153,10 +154,21 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
     socket.on("workspace/list", (workspaces: WorkspaceListItem[]) => {
       set({ availableWorkspaces: workspaces });
+      const { availableWorkspaces } = get();
+      console.log(availableWorkspaces);
+      const { workspace } = get();
+      const currentWorkspace = availableWorkspaces.find((ws) => ws.id === workspace!.id);
+      if (currentWorkspace) {
+        useWorkspaceStore.getState().setCurrentRole(currentWorkspace.role);
+      }
     });
 
     socket.on("error", (error: Error) => {
       console.error("Socket error:", error);
+    });
+
+    socket.on("workspace/role", (data: { role: "owner" | "editor" }) => {
+      useWorkspaceStore.getState().setCurrentRole(data.role);
     });
 
     socket.connect();
