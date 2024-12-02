@@ -633,6 +633,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         pageId: data.pageId,
       } as RemoteBlockDeleteOperation;
       this.emitOperation(client.id, data.pageId, "delete/block", operation, batch);
+      currentPage.crdt.LinkedList.updateAllOrderedListIndices();
     } catch (error) {
       this.logger.error(
         `Block Delete 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
@@ -657,14 +658,14 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         `Block Update 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-
+      console.log(data);
       const { workspaceId } = client.data;
       const currentPage = await this.workSpaceService.getPage(workspaceId, data.pageId);
       if (!currentPage) {
         throw new Error(`Page with id ${data.pageId} not found`);
       }
       currentPage.crdt.remoteUpdate(data.node, data.pageId);
-
+      currentPage.crdt.LinkedList.updateAllOrderedListIndices();
       const operation = {
         type: "blockUpdate",
         node: data.node,
@@ -711,6 +712,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         pageId: data.pageId,
       } as RemoteBlockReorderOperation;
       this.emitOperation(client.id, data.pageId, "reorder/block", operation, batch);
+      currentPage.crdt.LinkedList.updateAllOrderedListIndices();
     } catch (error) {
       this.logger.error(
         `Block Reorder 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
