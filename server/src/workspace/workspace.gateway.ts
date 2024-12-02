@@ -20,6 +20,7 @@ import {
   RemoteBlockUpdateOperation,
   RemotePageCreateOperation,
   RemoteBlockReorderOperation,
+  RemoteBlockCheckboxOperation,
   RemoteCharUpdateOperation,
   CursorPosition,
 } from "@noctaCrdt/Interfaces";
@@ -666,6 +667,50 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         error.stack,
       );
       throw new WsException(`Update 연산 실패: ${error.message}`);
+    }
+  }
+
+  /**
+   * 블록 Checkbox 연산 처리
+   */
+  @SubscribeMessage("checkbox/block")
+  async handleBlockCheckbox(
+    @MessageBody() data: RemoteBlockCheckboxOperation,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    try {
+      this.logger.debug(
+        `Block checkbox 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
+        JSON.stringify(data),
+      );
+      const { workspaceId } = client.data;
+      const currentBlock = await this.workSpaceService.getBlock(
+        workspaceId,
+        data.pageId,
+        data.blockId,
+      );
+
+      if (!currentBlock) {
+        throw new Error(`Block with id ${data.blockId} not found`);
+      }
+
+      currentBlock.isChecked = data.isChecked;
+
+      const operation = {
+        type: "blockCheckbox",
+        blockId: data.blockId,
+        pageId: data.pageId,
+        isChecked: data.isChecked,
+      };
+
+      client.broadcast.to(data.pageId).emit("checkbox/block", operation);
+    } catch (error) {
+      this.logger.error(
+        `Block Checkbox 연산 처리 중 오류 발생 - Client ID: ${clientInfo?.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Checkbox 연산 실패: ${error.message}`);
     }
   }
 
