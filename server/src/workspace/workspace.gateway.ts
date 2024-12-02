@@ -692,7 +692,6 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       }
       currentBlock.crdt.remoteInsert(data);
 
-      console.log("data", data);
       // server는 EditorCRDT 없습니다. - BlockCRDT 로 사용되고있음.
       const operation = {
         type: "charInsert",

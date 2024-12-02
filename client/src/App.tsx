@@ -14,7 +14,6 @@ const App = () => {
     const socketStore = useSocketStore.getState();
     const savedWorkspace = sessionStorage.getItem("currentWorkspace");
     const workspaceId = savedWorkspace ? JSON.parse(savedWorkspace).id : null;
-    console.log(workspaceId);
     socketStore.init(userId, workspaceId);
 
     return () => {
