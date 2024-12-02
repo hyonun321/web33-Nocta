@@ -42,6 +42,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     sendBlockInsertOperation,
     sendBlockDeleteOperation,
     sendBlockUpdateOperation,
+    sendBlockCheckboxOperation,
   } = useSocketStore();
   const { clientId } = useSocketStore();
   const [displayTitle, setDisplayTitle] = useState(pageTitle);
@@ -86,6 +87,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     handleRemoteBlockReorder,
     handleRemoteCharUpdate,
     handleRemoteCursor,
+    handleRemoteBlockCheckbox,
     addNewBlock,
   } = useEditorOperation({ editorCRDT, pageId, setEditorState, isSameLocalChange });
 
@@ -121,14 +123,16 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     sendCharInsertOperation,
   });
 
-  const { handleBlockClick, handleBlockInput, handleKeyDown } = useBlockOperation({
-    editorCRDT: editorCRDT.current,
-    setEditorState,
-    pageId,
-    onKeyDown,
-    handleHrInput,
-    isLocalChange,
-  });
+  const { handleBlockClick, handleBlockInput, handleKeyDown, handleCheckboxToggle } =
+    useBlockOperation({
+      editorCRDT: editorCRDT.current,
+      setEditorState,
+      pageId,
+      onKeyDown,
+      handleHrInput,
+      isLocalChange,
+      sendBlockCheckboxOperation,
+    });
 
   const { onTextStyleUpdate, onTextColorUpdate, onTextBackgroundColorUpdate } = useTextOptionSelect(
     {
@@ -275,6 +279,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
       onRemoteBlockReorder: handleRemoteBlockReorder,
       onRemoteCharUpdate: handleRemoteCharUpdate,
       onRemoteCursor: handleRemoteCursor,
+      onRemoteBlockCheckbox: handleRemoteBlockCheckbox,
       onBatchOperations: (batch) => {
         for (const item of batch) {
           switch (item.event) {
@@ -377,6 +382,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
                 onTextColorUpdate={onTextColorUpdate}
                 onTextBackgroundColorUpdate={onTextBackgroundColorUpdate}
                 dragBlockList={dragBlockList}
+                onCheckboxToggle={handleCheckboxToggle}
               />
             ))}
           </SortableContext>

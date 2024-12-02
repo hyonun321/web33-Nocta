@@ -6,6 +6,7 @@ import {
   RemoteCharDeleteOperation,
   RemoteBlockUpdateOperation,
   RemoteBlockReorderOperation,
+  RemoteBlockCheckboxOperation,
   RemoteCharUpdateOperation,
   RemotePageDeleteOperation,
   RemotePageUpdateOperation,
@@ -78,6 +79,7 @@ interface SocketStore {
   subscribeToPageOperations: (handlers: PageOperationsHandlers) => (() => void) | undefined;
   setWorkspace: (workspace: WorkSpaceSerializedProps) => void;
   sendOperation: (operation: any) => void;
+  sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => void;
 }
 
 interface RemoteOperationHandlers {
@@ -90,6 +92,7 @@ interface RemoteOperationHandlers {
   onRemoteCharUpdate: (operation: RemoteCharUpdateOperation) => void;
   onRemoteCursor: (position: CursorPosition) => void;
   onBatchOperations: (batch: any[]) => void;
+  onRemoteBlockCheckbox: (operation: RemoteBlockCheckboxOperation) => void;
 }
 
 interface PageOperationsHandlers {
@@ -292,6 +295,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     // sendOperation(operation);
   },
 
+  sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => {
+    const { socket } = get();
+    socket?.emit("checkbox/block", operation);
+  },
+
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => {
     const { socket } = get();
     if (!socket) return;
@@ -305,6 +313,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket.on("update/char", handlers.onRemoteCharUpdate);
     socket.on("cursor", handlers.onRemoteCursor);
     socket.on("batch/operations", handlers.onBatchOperations);
+    socket.on("checkbox/block", handlers.onRemoteBlockCheckbox);
 
     return () => {
       socket.off("update/block", handlers.onRemoteBlockUpdate);
@@ -316,6 +325,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("update/char", handlers.onRemoteCharUpdate);
       socket.off("cursor", handlers.onRemoteCursor);
       socket.off("batch/operations", handlers.onBatchOperations);
+      socket.off("checkbox/block", handlers.onRemoteBlockCheckbox);
     };
   },
 

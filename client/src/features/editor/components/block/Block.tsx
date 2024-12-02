@@ -66,6 +66,7 @@ interface BlockProps {
     blockId: BlockId,
     nodes: Array<Char>,
   ) => void;
+  onCheckboxToggle: (blockId: BlockId, isChecked: boolean) => void;
 }
 export const Block: React.FC<BlockProps> = memo(
   ({
@@ -88,6 +89,7 @@ export const Block: React.FC<BlockProps> = memo(
     onTextStyleUpdate,
     onTextColorUpdate,
     onTextBackgroundColorUpdate,
+    onCheckboxToggle,
   }: BlockProps) => {
     const blockRef = useRef<HTMLDivElement>(null);
     const { isOpen, openModal, closeModal } = useModal();
@@ -267,6 +269,10 @@ export const Block: React.FC<BlockProps> = memo(
       }
     };
 
+    const handleCheckboxClick = () => {
+      onCheckboxToggle(block.id, !block.isChecked);
+    };
+
     const Indicator = () => (
       <div
         className={dropIndicatorStyle({
@@ -306,7 +312,14 @@ export const Block: React.FC<BlockProps> = memo(
               onCopySelect={handleCopySelect}
               onDeleteSelect={handleDeleteSelect}
             />
-            <IconBlock type={block.type} index={block.listIndex} indent={block.indent} />
+
+            <IconBlock
+              type={block.type}
+              index={block.listIndex}
+              indent={block.indent}
+              isChecked={block.isChecked}
+              onCheckboxClick={handleCheckboxClick}
+            />
             <div
               ref={blockRef}
               onKeyDown={(e) => handleKeyDown(e, blockRef.current, block)}
