@@ -20,10 +20,35 @@ export const informBox = css({
   alignItems: "center",
   marginLeft: "14px",
 });
+export const pencilButton = css({
+  display: "flex",
+  position: "relative",
+  top: "-40px",
+  left: "225px",
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: "6px",
+  padding: "1",
+  opacity: "0",
+  backgroundColor: "gray.200",
+  transition: "all",
+  _hover: {
+    backgroundColor: "gray.100",
+  },
+  _groupHover: {
+    opacity: "100",
+  },
+  "& svg": {
+    // SVG 스타일 추가
+    width: "4",
+    height: "4",
+    color: "green",
+  },
+});
 export const itemContent = css({
   display: "flex",
   flex: 1,
-  gap: "10",
+  gap: "4",
   alignItems: "center",
 });
 
