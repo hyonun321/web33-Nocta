@@ -1,4 +1,8 @@
 import { useState, useEffect } from "react";
+import { InviteModal } from "@src/components/modal/InviteModal";
+import { useModal } from "@src/components/modal/useModal";
+import { useSocketStore } from "@src/stores/useSocketStore";
+import { useToastStore } from "@src/stores/useToastStore";
 import { useUserInfo } from "@stores/useUserStore";
 import { menuItemWrapper, textBox, menuButtonContainer } from "./MenuButton.style";
 import { MenuIcon } from "./components/MenuIcon";
@@ -7,12 +11,18 @@ import { WorkspaceSelectModal } from "./components/WorkspaceSelectModal";
 export const MenuButton = () => {
   const { name } = useUserInfo();
   const [isOpen, setIsOpen] = useState(false);
+  const { socket, workspace } = useSocketStore();
+  const { addToast } = useToastStore();
+  const {
+    isOpen: isInviteModalOpen,
+    openModal: openInviteModal,
+    closeModal: closeInviteModal,
+  } = useModal();
 
   const handleMenuClick = () => {
-    setIsOpen((prev) => !prev); // 토글 형태로 변경
+    setIsOpen((prev) => !prev);
   };
 
-  // 모달 외부 클릭시 닫기 처리를 위한 함수
   const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
     if (!target.closest(`.menu_button_container`)) {
@@ -20,7 +30,6 @@ export const MenuButton = () => {
     }
   };
 
-  // 외부 클릭 이벤트 리스너 등록
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -28,7 +37,52 @@ export const MenuButton = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    // 초대 성공 응답 수신
+    socket.on(
+      "invite/workspace/success",
+      (data: { email: string; workspaceId: string; message: string }) => {
+        addToast(data.message);
+        closeInviteModal();
+      },
+    );
+
+    // 초대 실패 응답 수신
+    socket.on(
+      "invite/workspace/fail",
+      (data: { email: string; workspaceId: string; message: string }) => {
+        addToast(data.message);
+        closeInviteModal();
+      },
+    );
+
+    // 초대 받은 경우 수신
+    socket.on(
+      "workspace/invited",
+      (data: { workspaceId: string; invitedBy: string; message: string }) => {
+        addToast(data.message);
+      },
+    );
+
+    return () => {
+      socket.off("invite/workspace/success");
+      socket.off("invite/workspace/fail");
+      socket.off("workspace/invited");
+    };
+  }, [socket]);
+
+  const handleInvite = (email: string) => {
+    if (!socket || !workspace?.id) return;
+
+    socket.emit("invite/workspace", {
+      email,
+      workspaceId: workspace.id,
+    });
+  };
   return (
+    <>
     <button
       className={`${menuButtonContainer} menu_button_container`}
       onClick={handleMenuClick}
@@ -38,7 +92,7 @@ export const MenuButton = () => {
         <MenuIcon />
         <p className={textBox}>{name ?? "Nocta"}</p>
       </button>
-      <WorkspaceSelectModal isOpen={isOpen} userName={name} />
-    </button>
+      <InviteModal isOpen={isInviteModalOpen} onClose={closeInviteModal} onInvite={handleInvite} />
+    </>
   );
 };

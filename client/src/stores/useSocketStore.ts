@@ -52,11 +52,11 @@ class BatchProcessor {
 
 interface SocketStore {
   socket: Socket | null;
-  clientId: number | null;
+  clientId: number | null; // 숫자로 된 클라이언트Id
   workspace: WorkSpaceSerializedProps | null;
-
   availableWorkspaces: WorkspaceListItem[];
   batchProcessor: BatchProcessor;
+  workspaceConnections: Record<string, number>; // 워크스페이스별 접속자 수
   init: (userId: string | null, workspaceId: string | null) => void;
   cleanup: () => void;
   switchWorkspace: (userId: string | null, workspaceId: string | null) => void; // 새로운 함수 추가
@@ -100,9 +100,8 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
   clientId: null,
   workspace: null,
-
   availableWorkspaces: [],
-
+  workspaceConnections: {},
   batchProcessor: new BatchProcessor((batch) => {
     const { socket } = get();
     socket?.emit("batch/operations", batch);
@@ -136,7 +135,12 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     });
 
     socket.on("workspace", (workspace: WorkSpaceSerializedProps) => {
-      set({ workspace });
+      const { setWorkspace } = get();
+      setWorkspace(workspace); // 수정된 부분
+    });
+
+    socket.on("workspace/connections", (connections: Record<string, number>) => {
+      set({ workspaceConnections: connections });
     });
 
     socket.on("connect", () => {
@@ -148,7 +152,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     });
 
     socket.on("workspace/list", (workspaces: WorkspaceListItem[]) => {
-      console.log("Received workspace list:", workspaces);
       set({ availableWorkspaces: workspaces });
     });
 
@@ -164,25 +167,31 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     if (socket) {
       socket.removeAllListeners();
       socket.disconnect();
+      sessionStorage.removeItem("currentWorkspace"); // sessionStorage 삭제
       set({ socket: null, workspace: null, clientId: null });
     }
   },
 
   switchWorkspace: (userId: string | null, workspaceId: string | null) => {
-    const { socket, init } = get();
-    console.log(userId, workspaceId);
+    const { socket, workspace, init } = get();
     // 기존 연결 정리
     if (socket) {
+      if (workspace?.id) {
+        socket.emit("leave/workspace", { workspaceId: workspace.id });
+      }
       socket.disconnect();
     }
-
-    // 새로운 연결 시작 (userId는 유지)
+    sessionStorage.removeItem("currentWorkspace");
+    set({ workspace: null }); // 상태도 초기화
     init(userId, workspaceId);
   },
 
   fetchWorkspaceData: () => get().workspace,
 
-  setWorkspace: (workspace: WorkSpaceSerializedProps) => set({ workspace }),
+  setWorkspace: (workspace: WorkSpaceSerializedProps) => {
+    sessionStorage.setItem("currentWorkspace", JSON.stringify(workspace));
+    set({ workspace });
+  },
 
   sendPageUpdateOperation: (operation: RemotePageUpdateOperation) => {
     const { socket } = get();

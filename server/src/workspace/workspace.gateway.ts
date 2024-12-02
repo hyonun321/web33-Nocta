@@ -27,11 +27,13 @@ import { Logger } from "@nestjs/common";
 import { nanoid } from "nanoid";
 import { Page } from "@noctaCrdt/Page";
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-
+import { AuthService } from "../auth/auth.service";
+import { WorkspaceInviteData } from "./workspace.interface";
 // 클라이언트 맵 타입 정의
 interface ClientInfo {
-  clientId: number;
+  clientId: number; // 서버가 부여한 아이디로, 0,1,2,3, 같은 숫자임.
   connectionTime: Date;
+  email: string;
 }
 
 interface BatchOperation {
@@ -68,7 +70,10 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
   private clientIdCounter: number = 1;
   private clientMap: Map<string, ClientInfo> = new Map();
   private batchMap: Map<string, BatchOperation[]> = new Map();
-  constructor(private readonly workSpaceService: WorkSpaceService) {}
+  constructor(
+    private readonly workSpaceService: WorkSpaceService,
+    private readonly authService: AuthService,
+  ) {}
 
   afterInit(server: Server) {
     this.workSpaceService.setServer(server);
@@ -100,64 +105,71 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
   async handleConnection(client: Socket) {
     try {
       let { userId } = client.handshake.auth;
+      const { workspaceId } = client.handshake.auth;
       if (!userId) {
         userId = "guest";
       }
       client.data.userId = userId;
+      client.join(`user:${userId}`); // 유저 전용 룸에 조인 추후 초대 수신용
 
       const workspaces = await this.workSpaceService.getUserWorkspaces(userId);
-      let workspaceId = "";
+      const userInfo = await this.authService.getProfile(userId);
+      let NewWorkspaceId = "";
+
       if (userId === "guest") {
         client.join("guest");
-        workspaceId = "guest";
+        NewWorkspaceId = "guest";
       } else if (workspaces.length === 0) {
-        const workspace = await this.workSpaceService.createWorkspace(userId, "My Workspace");
+        const workspace = await this.workSpaceService.createWorkspace(
+          userId,
+          `${userInfo.name}의 Workspace`,
+        );
         client.join(workspace.id);
-        workspaceId = workspace.id;
+        NewWorkspaceId = workspace.id;
       } else {
-        const requestedWorkspaceId = client.handshake.query.workspaceId;
-
-        // workspaces가 WorkspaceListItem[]이므로 id 비교로 수정
-        if (
-          requestedWorkspaceId &&
-          workspaces.some((workspace) => workspace.id === requestedWorkspaceId)
-        ) {
-          // 요청한 워크스페이스가 있고 접근 권한이 있으면 해당 워크스페이스 사용
-          workspaceId = requestedWorkspaceId as string;
+        if (workspaceId && workspaces.some((workspace) => workspace.id === workspaceId)) {
+          NewWorkspaceId = workspaceId;
         } else {
           // 없으면 첫 번째 워크스페이스 사용
-          workspaceId = workspaces[0].id; // WorkspaceListItem의 id 속성 접근
+          NewWorkspaceId = workspaces[0].id; // WorkspaceListItem의 id 속성 접근
         }
-        client.join(workspaceId);
+        client.join(NewWorkspaceId);
       }
-
-      client.data.workspaceId = workspaceId;
-      const currentWorkSpace = (await this.workSpaceService.getWorkspace(workspaceId)).serialize();
+      const user = await this.authService.findById(userId);
+      client.data.workspaceId = NewWorkspaceId;
+      const currentWorkSpace = (
+        await this.workSpaceService.getWorkspace(NewWorkspaceId)
+      ).serialize();
       client.emit("workspace", currentWorkSpace);
 
       const assignedId = (this.clientIdCounter += 1);
       const clientInfo: ClientInfo = {
         clientId: assignedId,
         connectionTime: new Date(),
+        email: user?.email || "guest", // email 정보 저장
       };
       this.clientMap.set(client.id, clientInfo);
       client.emit("assign/clientId", assignedId);
 
       setTimeout(async () => {
         const workspaces = await this.workSpaceService.getUserWorkspaces(userId);
-        const workspaceList = workspaces.map((workspace) => ({
-          id: workspace.id,
-          name: workspace.name,
-          role: workspace.role,
-          memberCount: workspace.memberCount,
-        }));
+        const workspaceList = workspaces.map((workspace) => {
+          return {
+            id: workspace.id,
+            name: workspace.name,
+            role: workspace.role,
+            memberCount: workspace.memberCount,
+            activeUsers: workspace.activeUsers,
+          };
+        });
 
         this.logger.log(`Sending workspace list to client ${client.id}`);
         client.emit("workspace/list", workspaceList);
+        this.SocketStoreBroadcastWorkspaceConnections();
       }, 100);
 
       client.broadcast.emit("userJoined", { clientId: assignedId });
-      this.logger.log(`클라이언트 연결 성공 - Socket ID: ${client.id}, Client ID: ${assignedId}`);
+      this.logger.log(`클라이언트 연결 성공 - User ID: ${userId}, Client ID: ${assignedId}`);
       this.logger.debug(`현재 연결된 클라이언트 수: ${this.clientMap.size}`);
     } catch (error) {
       this.logger.error(`클라이언트 연결 중 오류 발생: ${error.message}`, error.stack);
@@ -185,9 +197,101 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       }
 
       this.clientMap.delete(client.id);
+      this.SocketStoreBroadcastWorkspaceConnections();
       this.logger.debug(`남은 연결된 클라이언트 수: ${this.clientMap.size}`);
     } catch (error) {
       this.logger.error(`클라이언트 연결 해제 중 오류 발생: ${error.message}`, error.stack);
+    }
+  }
+
+  Copy; // workspace.gateway.ts
+  @SubscribeMessage("leave/workspace")
+  async handleWorkspaceLeave(
+    @MessageBody() data: { workspaceId: string },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    try {
+      client.leave(data.workspaceId);
+      this.SocketStoreBroadcastWorkspaceConnections();
+    } catch (error) {
+      this.logger.error(`워크스페이스 퇴장 중 오류 발생`, error.stack);
+    }
+  }
+
+  @SubscribeMessage("invite/workspace")
+  async handleWorkspaceInvite(
+    @MessageBody() data: WorkspaceInviteData,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const clientInfo = this.clientMap.get(client.id);
+    if (!clientInfo) {
+      throw new WsException("Client information not found");
+    }
+
+    try {
+      // 1. 초대받을 사용자 확인
+      const targetUser = await this.authService.findByEmail(data.email);
+      const sentUser = await this.authService.findByEmail(clientInfo.email);
+      if (!targetUser) {
+        client.emit("invite/workspace/fail", {
+          email: data.email,
+          workspaceId: data.workspaceId,
+          message: "유저가 존재하지 않습니다.",
+        });
+        throw new WsException("User not found");
+      }
+
+      // 2. 이미 워크스페이스 멤버인지 확인
+      if (targetUser.workspaces.includes(data.workspaceId)) {
+        client.emit("invite/workspace/fail", {
+          email: data.email,
+          workspaceId: data.workspaceId,
+          message: "유저가 이미 워크스페이스에 존재합니다.",
+        });
+        throw new WsException("User is already a member of this workspace");
+      }
+
+      const { userId } = client.handshake.auth;
+      await this.authService.addWorkspace(targetUser.id, data.workspaceId);
+      await this.workSpaceService.inviteUserToWorkspace(userId, data.workspaceId, targetUser.id);
+      const targetSocket = Array.from(this.clientMap.entries()).find(
+        ([_, info]) => info.email === targetUser.email,
+      );
+
+      if (targetSocket) {
+        const [socketId] = targetSocket;
+        const server = this.workSpaceService.getServer();
+
+        server.to(`user:${targetUser.id}`).emit("workspace/invited", {
+          workspaceId: data.workspaceId,
+          invitedUserId: client.data.userId,
+          message: `${sentUser.name}님이 초대하셨습니다.`,
+        });
+
+        const workspaces = await this.workSpaceService.getUserWorkspaces(targetUser.id);
+        const workspaceList = workspaces.map((workspace) => ({
+          id: workspace.id,
+          name: workspace.name,
+          role: workspace.role,
+          memberCount: workspace.memberCount,
+        }));
+
+        this.logger.log(`Sending workspace list to client ${client.id}`);
+        server.to(socketId).emit("workspace/list", workspaceList);
+      }
+
+      // 5. 초대한 사용자에게 성공 메시지
+      client.emit("invite/workspace/success", {
+        email: data.email,
+        workspaceId: data.workspaceId,
+        message: `${targetUser.name}유저를 초대하였습니다.`,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Workspace Invite 처리 중 오류 발생 - Client ID: ${clientInfo.clientId}`,
+        error.stack,
+      );
+      throw new WsException(`Invite 실패: ${error.message}`);
     }
   }
 
@@ -765,6 +869,21 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       this.logger.log(`Batch operation took ${seconds}s ${nanoseconds / 1000000}ms`);
       this.logger.log(`Processed ${batch.length} operations`);
     }
+  }
+
+  private SocketStoreBroadcastWorkspaceConnections() {
+    const server = this.workSpaceService.getServer();
+    const connectionCounts = {} as Record<string, number>;
+
+    // 각 워크스페이스의 room size를 가져옴
+    for (const [roomId, room] of server.sockets.adapter.rooms.entries()) {
+      // user: 로 시작하는 룸은 제외 (초대용 룸)
+      if (!roomId.startsWith("user:")) {
+        connectionCounts[roomId] = room.size;
+      }
+    }
+    // 모든 클라이언트에게 전송
+    server.emit("workspace/connections", connectionCounts);
   }
 
   executeBatch() {

@@ -172,6 +172,7 @@ export class WorkSpaceService implements OnModuleInit {
           name: "Guest Workspace",
           role: "editor",
           memberCount: 0,
+          activeUsers: 0,
         },
       ];
     }
@@ -185,12 +186,18 @@ export class WorkSpaceService implements OnModuleInit {
       id: { $in: user.workspaces },
     });
 
-    return workspaces.map((workspace) => ({
-      id: workspace.id,
-      name: workspace.name,
-      role: workspace.authUser.get(userId) || "editor",
-      memberCount: workspace.authUser.size,
-    }));
+    const workspaceList = workspaces.map((workspace) => {
+      const room = this.getServer().sockets.adapter.rooms.get(workspace.id);
+      return {
+        id: workspace.id,
+        name: workspace.name,
+        role: workspace.authUser.get(userId) || "editor",
+        memberCount: workspace.authUser.size,
+        activeUsers: room ? room.size : 0,
+      };
+    });
+
+    return workspaceList;
   }
 
   // 워크스페이스에 유저 초대

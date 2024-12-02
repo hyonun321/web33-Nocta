@@ -195,5 +195,6 @@ export interface WorkspaceListItem {
   id: string;
   name: string;
   role: string;
-  memberCount?: number;
+  memberCount: number;
+  activeUsers: number;
 }
