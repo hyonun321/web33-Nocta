@@ -2,6 +2,7 @@ import { WorkspaceListItem } from "@noctaCrdt/Interfaces"; // 이전에 만든 �
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { useToastStore } from "@src/stores/useToastStore";
 import { useUserInfo } from "@src/stores/useUserStore";
+import { useWorkspaceStore, WorkspaceRole } from "@src/stores/useWorkspaceStore";
 import {
   itemContainer,
   itemContent,
@@ -28,10 +29,12 @@ export const WorkspaceSelectItem = ({
   const { userId } = useUserInfo();
   const { workspace, switchWorkspace } = useSocketStore();
   const { addToast } = useToastStore();
+  const setCurrentRole = useWorkspaceStore((state) => state.setCurrentRole);
   const isActive = workspace?.id === id; // 현재 워크스페이스 확인
   const handleClick = () => {
     if (!isActive) {
       switchWorkspace(userId, id);
+      setCurrentRole(role as WorkspaceRole);
       addToast(`워크스페이스(${name})에 접속하였습니다.`);
     }
   };
