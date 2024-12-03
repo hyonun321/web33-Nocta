@@ -217,17 +217,35 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
         const character = event.data;
         if (!character) return;
 
-        currentCharNode.value = character;
-        sendCharInsertOperation({
-          type: "charInsert",
-          node: currentCharNode,
-          blockId: block.id,
-          pageId,
+        // 문자열을 개별 문자로 분리
+        const characters = Array.from(character);
+        let currentPosition = currentCaret;
+
+        // 각 문자에 대해 처리
+        characters.forEach((char, index) => {
+          // 현재 위치의 노드 찾기
+          const charNode = block.crdt.LinkedList.findByIndex(currentPosition);
+          if (!charNode) return;
+
+          // 노드 값 설정 및 operation 전송
+          charNode.value = char;
+          sendCharInsertOperation({
+            type: "charInsert",
+            node: charNode,
+            blockId: block.id,
+            pageId,
+          });
+
+          // 다음 문자를 위한 새 노드 생성 (마지막 문자가 아닌 경우에만)
+          if (index < characters.length - 1) {
+            block.crdt.localInsert(currentPosition + 1, "", block.id, pageId);
+          }
+
+          currentPosition++;
         });
 
-        block.crdt.currentCaret = currentCaret;
+        block.crdt.currentCaret = currentCaret + characters.length;
       }
-
       composingCaret.current = null;
       if (isSameLocalChange.current) {
         isSameLocalChange.current = false;
@@ -245,20 +263,17 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
     if (activeElement?.tagName.toLowerCase() === "input") {
       return; // input에 포커스가 있으면 캐럿 위치 변경하지 않음
     }
-    requestAnimationFrame(() => {
-      if (isLocalChange.current || isSameLocalChange.current) {
-        setCaretPosition({
-          blockId: editorCRDT.current.currentBlock!.id,
-          linkedList: editorCRDT.current.LinkedList,
-          position: editorCRDT.current.currentBlock?.crdt.currentCaret,
-          pageId,
-        });
-        isLocalChange.current = false;
-        isSameLocalChange.current = false;
-        return;
-      }
-    });
-    // 서윤님 피드백 반영
+    if (isLocalChange.current || isSameLocalChange.current) {
+      setCaretPosition({
+        blockId: editorCRDT.current.currentBlock!.id,
+        linkedList: editorCRDT.current.LinkedList,
+        position: editorCRDT.current.currentBlock?.crdt.currentCaret,
+        pageId,
+      });
+      isLocalChange.current = false;
+      isSameLocalChange.current = false;
+      return;
+    }
   }, [editorCRDT.current.currentBlock?.id.serialize()]);
 
   useEffect(() => {
