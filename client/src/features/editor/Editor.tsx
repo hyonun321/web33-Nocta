@@ -241,7 +241,7 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
             block.crdt.localInsert(currentPosition + 1, "", block.id, pageId);
           }
 
-          currentPosition++;
+          currentPosition += 1;
         });
 
         block.crdt.currentCaret = currentCaret + characters.length;
