@@ -20,7 +20,12 @@ export const InputField = ({
   isError,
 }: InputFieldProps) => (
   <div className={formGroup}>
-    <div className={`${inputContainer} ${isError ? "bd_1px_solid_red bdr_sm" : ""}`}>
+    <div
+      className={inputContainer}
+      style={{
+        border: isError ? "1px solid #EF4444" : "none", // Using Tailwind's red-500 color
+      }}
+    >
       <input
         type={type}
         name={name}
