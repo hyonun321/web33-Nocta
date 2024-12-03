@@ -31,10 +31,6 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [error, setError] = useState<string>("");
 
   const getErrorMessage = (error: AxiosError<ApiErrorResponse>) => {
-    // 서버에서 보낸 구체적인 에러 메시지가 있다면 사용
-    const serverMessage = error.response?.data?.message;
-    if (serverMessage) return serverMessage;
-    // 상태 코드별 기본 에러 메시지
     switch (error.response?.status) {
       case 400:
         return "입력하신 정보가 올바르지 않습니다.";
