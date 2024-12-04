@@ -117,7 +117,6 @@ export const Block: React.FC<BlockProps> = memo(
     const [slashModalPosition, setSlashModalPosition] = useState({ top: 0, left: 0 });
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
-      const currentElement = e.currentTarget;
       // 텍스트를 삭제하면 <br> 태그가 생김
       // 이를 방지하기 위해 <br> 태그 찾아서 모두 삭제
       const brElements = e.currentTarget.getElementsByTagName("br");
@@ -125,22 +124,6 @@ export const Block: React.FC<BlockProps> = memo(
         e.preventDefault();
         Array.from(brElements).forEach((br) => br.remove());
       }
-
-      // 빈 span 태그 제거
-      const cleanEmptySpans = (element: HTMLElement) => {
-        const spans = element.getElementsByTagName("span");
-        Array.from(spans).forEach((span) => {
-          // 텍스트 컨텐츠가 없거나 공백만 있는 경우
-          // 텍스트 컨텐츠가 없거나 공백만 있는 경우
-          if (!span.textContent || span.textContent.trim() === "") {
-            if (span.parentNode) {
-              span.parentNode.removeChild(span);
-            }
-          }
-        });
-      };
-
-      cleanEmptySpans(currentElement);
 
       const caretPosition = getAbsoluteCaretPosition(e.currentTarget);
       block.crdt.currentCaret = caretPosition;
