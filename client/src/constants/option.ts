@@ -22,7 +22,12 @@ export const OPTION_CATEGORIES = {
     options: [
       { id: "none", label: "없음" },
       { id: "highlight", label: "하이라이트" },
+      { id: "rainbow", label: "레인보우" },
       { id: "gradation", label: "그라데이션" },
+      { id: "fadeIn", label: "페이드 인" },
+      { id: "slideIn", label: "슬라이드 인" },
+      { id: "pulse", label: "펄스" },
+      { id: "bounce", label: "바운스" },
     ] as { id: AnimationType; label: string }[],
   },
   DUPLICATE: {
