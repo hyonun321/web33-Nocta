@@ -4,7 +4,9 @@
 
   <br>
 
-  ![image](https://github.com/user-attachments/assets/dba641b3-417d-4bb6-9c87-4cfc78d8324c)
+ ![ezgif com-crop](https://github.com/user-attachments/assets/df92040b-a3fd-4bef-8b45-b5ad9e813fca)
+
+
   <br>
  
 
@@ -102,7 +104,7 @@ Nocta에서 단순한 기록을 넘어, 새로운 글쓰기 경험을 시작하�
 
 ## 시스템 아키텍처 다이어그램
 
-![image](https://github.com/user-attachments/assets/ab96462b-5f38-4dd9-9c72-984829fa873d)
+![제목 없음-2024-07-18-1129_2](https://github.com/user-attachments/assets/91c6477b-4acd-4dd5-bc93-9e204347bc10)
 
 
 ## 📅 프로젝트 기간

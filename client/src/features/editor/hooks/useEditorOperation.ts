@@ -7,6 +7,7 @@ import {
   RemoteBlockReorderOperation,
   RemoteCharUpdateOperation,
   RemoteBlockInsertOperation,
+  RemoteBlockCheckboxOperation,
 } from "@noctaCrdt/Interfaces";
 import { TextLinkedList } from "@noctaCrdt/LinkedList";
 import { CharId } from "@noctaCrdt/NodeId";
@@ -151,6 +152,21 @@ export const useEditorOperation = ({
     [pageId, editorCRDT],
   );
 
+  const handleRemoteBlockCheckbox = useCallback(
+    (operation: RemoteBlockCheckboxOperation) => {
+      if (operation.pageId !== pageId) return;
+      const targetBlock = editorCRDT.current.LinkedList.nodeMap[JSON.stringify(operation.blockId)];
+      if (targetBlock) {
+        targetBlock.isChecked = operation.isChecked;
+        setEditorState({
+          clock: editorCRDT.current.clock,
+          linkedList: editorCRDT.current.LinkedList,
+        });
+      }
+    },
+    [pageId, editorCRDT],
+  );
+
   const handleRemoteCharUpdate = useCallback(
     (operation: RemoteCharUpdateOperation) => {
       if (!editorCRDT) return;
@@ -190,6 +206,7 @@ export const useEditorOperation = ({
     handleRemoteBlockReorder,
     handleRemoteCharUpdate,
     handleRemoteCursor,
+    handleRemoteBlockCheckbox,
     addNewBlock,
   };
 };

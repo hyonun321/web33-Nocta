@@ -1,5 +1,5 @@
 import { EditorCRDT } from "@noctaCrdt/Crdt";
-import { RemoteCharInsertOperation } from "@noctaCrdt/Interfaces";
+import { RemoteBlockCheckboxOperation, RemoteCharInsertOperation } from "@noctaCrdt/Interfaces";
 import { Block } from "@noctaCrdt/Node";
 import { BlockId } from "@noctaCrdt/NodeId";
 import { useCallback } from "react";
@@ -15,6 +15,7 @@ interface UseBlockOperationProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   handleHrInput: (block: Block, content: string) => boolean;
   isLocalChange: React.MutableRefObject<boolean>;
+  sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => void;
 }
 
 export const useBlockOperation = ({
@@ -24,6 +25,7 @@ export const useBlockOperation = ({
   onKeyDown,
   handleHrInput,
   isLocalChange,
+  sendBlockCheckboxOperation,
 }: UseBlockOperationProps) => {
   const { sendCharInsertOperation, sendCharDeleteOperation } = useSocketStore();
 
@@ -90,14 +92,14 @@ export const useBlockOperation = ({
             addedChar,
             block.id,
             pageId,
-            prevChar ? prevChar.style : [],
-            prevChar ? prevChar.color : undefined,
-            prevChar ? prevChar.backgroundColor : undefined,
+            prevChar?.style,
+            prevChar?.color,
+            prevChar?.backgroundColor,
           );
         } else {
           // 중간에 삽입
           const prevChar = editorCRDT.currentBlock?.crdt.LinkedList.findByIndex(
-            validCaretPosition - 1,
+            validCaretPosition === 1 ? 0 : validCaretPosition - 2,
           );
           const addedChar = newContent[validCaretPosition - 1];
           charNode = block.crdt.localInsert(
@@ -257,9 +259,32 @@ export const useBlockOperation = ({
     [editorCRDT.LinkedList, sendCharDeleteOperation, pageId, onKeyDown],
   );
 
+  const handleCheckboxToggle = useCallback(
+    (blockId: BlockId, isChecked: boolean) => {
+      const operation = {
+        type: "blockCheckbox",
+        blockId,
+        pageId,
+        isChecked,
+      } as RemoteBlockCheckboxOperation;
+
+      sendBlockCheckboxOperation(operation);
+      const targetBlock = editorCRDT.LinkedList.nodeMap[JSON.stringify(blockId)];
+      if (targetBlock) {
+        targetBlock.isChecked = isChecked;
+        setEditorState({
+          clock: editorCRDT.clock,
+          linkedList: editorCRDT.LinkedList,
+        });
+      }
+    },
+    [editorCRDT, pageId, sendBlockCheckboxOperation],
+  );
+
   return {
     handleBlockClick,
     handleBlockInput,
     handleKeyDown,
+    handleCheckboxToggle,
   };
 };

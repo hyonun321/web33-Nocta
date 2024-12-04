@@ -128,7 +128,59 @@ export class WorkSpaceService implements OnModuleInit {
     }
     return page.crdt.LinkedList.nodeMap[JSON.stringify(blockId)];
   }
+  async getUserRole(userId: string, workspaceId: string): Promise<string> {
+    const workspaces = await this.getUserWorkspaces(userId);
+    const workspace = workspaces.find((ws) => ws.id === workspaceId);
+    if (!workspace) {
+      throw new Error("Workspace not found or user not a member");
+    }
+    return workspace.role;
+  }
+  async updateWorkspaceName(workspaceId: string, newName: string): Promise<void> {
+    try {
+      // 메모리에서 워크스페이스 찾기
+      const workspace = await this.getWorkspace(workspaceId);
+      if (!workspace) {
+        throw new Error(`Workspace with id ${workspaceId} not found`);
+      }
 
+      // 메모리상의 워크스페이스 이름 업데이트
+      workspace.name = newName;
+
+      // MongoDB 업데이트
+      const result = await this.workspaceModel.findOneAndUpdate(
+        { id: workspaceId },
+        { $set: { name: newName } },
+        { new: true },
+      );
+
+      if (!result) {
+        throw new Error(`Failed to update workspace name in database`);
+      }
+
+      this.logger.log(`Workspace ${workspaceId} name updated to: ${newName}`);
+    } catch (error) {
+      this.logger.error(`Failed to update workspace name: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getWorkspaceMembers(workspaceId: string): Promise<string[]> {
+    try {
+      // 워크스페이스 데이터를 DB에서 조회
+      const workspaceData = await this.workspaceModel.findOne({ id: workspaceId });
+      if (!workspaceData) {
+        throw new Error(`Workspace with id ${workspaceId} not found`);
+      }
+
+      // authUser Map에서 모든 유저 ID를 배열로 변환하여 반환
+      // authUser는 Map<string, string> 형태로 userId와 role을 저장하고 있음
+      return Array.from(workspaceData.authUser.keys());
+    } catch (error) {
+      this.logger.error(`Failed to get workspace members: ${error.message}`);
+      throw error;
+    }
+  }
   // 워크스페이스 생성
   async createWorkspace(userId: string, name: string): Promise<Workspace> {
     const newWorkspace = await this.workspaceModel.create({

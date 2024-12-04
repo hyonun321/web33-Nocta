@@ -6,6 +6,7 @@ import {
   RemoteCharDeleteOperation,
   RemoteBlockUpdateOperation,
   RemoteBlockReorderOperation,
+  RemoteBlockCheckboxOperation,
   RemoteCharUpdateOperation,
   RemotePageDeleteOperation,
   RemotePageUpdateOperation,
@@ -15,6 +16,7 @@ import {
 } from "@noctaCrdt/Interfaces";
 import { io, Socket } from "socket.io-client";
 import { create } from "zustand";
+import { useToastStore } from "./useToastStore";
 import { useWorkspaceStore } from "./useWorkspaceStore";
 
 class BatchProcessor {
@@ -77,6 +79,7 @@ interface SocketStore {
   subscribeToPageOperations: (handlers: PageOperationsHandlers) => (() => void) | undefined;
   setWorkspace: (workspace: WorkSpaceSerializedProps) => void;
   sendOperation: (operation: any) => void;
+  sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => void;
 }
 
 interface RemoteOperationHandlers {
@@ -89,6 +92,7 @@ interface RemoteOperationHandlers {
   onRemoteCharUpdate: (operation: RemoteCharUpdateOperation) => void;
   onRemoteCursor: (position: CursorPosition) => void;
   onBatchOperations: (batch: any[]) => void;
+  onRemoteBlockCheckbox: (operation: RemoteBlockCheckboxOperation) => void;
 }
 
 interface PageOperationsHandlers {
@@ -140,6 +144,20 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       setWorkspace(workspace);
     });
 
+    socket.on(
+      "workspace/user/left",
+      (data: { workspaceId: string; userName: string; message: string }) => {
+        useToastStore.getState().addToast(data.message);
+      },
+    );
+
+    socket.on(
+      "workspace/user/join",
+      (data: { workspaceId: string; userName: string; message: string }) => {
+        useToastStore.getState().addToast(data.message);
+      },
+    );
+
     socket.on("workspace/connections", (connections: Record<string, number>) => {
       set({ workspaceConnections: connections });
     });
@@ -160,6 +178,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       const currentWorkspace = availableWorkspaces.find((ws) => ws.id === workspace!.id);
       if (currentWorkspace) {
         useWorkspaceStore.getState().setCurrentRole(currentWorkspace.role);
+        useWorkspaceStore.getState().setCurrentWorkspaceName(currentWorkspace.name);
+        useWorkspaceStore.getState().setCurrentActiveUsers(currentWorkspace.activeUsers);
+        useWorkspaceStore.getState().setCurrentMemberCount(currentWorkspace.memberCount);
       }
     });
 
@@ -189,7 +210,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     // 기존 연결 정리
     if (socket) {
       if (workspace?.id) {
-        socket.emit("leave/workspace", { workspaceId: workspace.id });
+        socket.emit("leave/workspace", { workspaceId: workspace.id, userId });
       }
       socket.disconnect();
     }
@@ -221,45 +242,45 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   sendBlockInsertOperation: (operation: RemoteBlockInsertOperation) => {
-    const { socket } = get();
-    socket?.emit("insert/block", operation);
-    // const { sendOperation } = get();
-    // sendOperation(operation);
+    // const { socket } = get();
+    // socket?.emit("insert/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharInsertOperation: (operation: RemoteCharInsertOperation) => {
-    const { socket } = get();
-    socket?.emit("insert/char", operation);
-    // const { sendOperation } = get();
-    // sendOperation(operation);
+    // const { socket } = get();
+    // socket?.emit("insert/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendBlockUpdateOperation: (operation: RemoteBlockUpdateOperation) => {
-    const { socket } = get();
-    socket?.emit("update/block", operation);
-    // const { sendOperation } = get();
-    // sendOperation(operation);
+    // const { socket } = get();
+    // socket?.emit("update/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendBlockDeleteOperation: (operation: RemoteBlockDeleteOperation) => {
-    const { socket } = get();
-    socket?.emit("delete/block", operation);
-    // const { sendOperation } = get();
-    // sendOperation(operation);
+    // const { socket } = get();
+    // socket?.emit("delete/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharDeleteOperation: (operation: RemoteCharDeleteOperation) => {
-    const { socket } = get();
-    socket?.emit("delete/char", operation);
-    // const { sendOperation } = get();
-    // sendOperation(operation);
+    // const { socket } = get();
+    // socket?.emit("delete/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCharUpdateOperation: (operation: RemoteCharUpdateOperation) => {
-    const { socket } = get();
-    socket?.emit("update/char", operation);
-    // const { sendOperation } = get();
-    // sendOperation(operation);
+    // const { socket } = get();
+    // socket?.emit("update/char", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
   },
 
   sendCursorPosition: (position: CursorPosition) => {
@@ -268,10 +289,15 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   },
 
   sendBlockReorderOperation: (operation: RemoteBlockReorderOperation) => {
+    // const { socket } = get();
+    // socket?.emit("reorder/block", operation);
+    const { sendOperation } = get();
+    sendOperation(operation);
+  },
+
+  sendBlockCheckboxOperation: (operation: RemoteBlockCheckboxOperation) => {
     const { socket } = get();
-    socket?.emit("reorder/block", operation);
-    // const { sendOperation } = get();
-    // sendOperation(operation);
+    socket?.emit("checkbox/block", operation);
   },
 
   subscribeToRemoteOperations: (handlers: RemoteOperationHandlers) => {
@@ -287,6 +313,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     socket.on("update/char", handlers.onRemoteCharUpdate);
     socket.on("cursor", handlers.onRemoteCursor);
     socket.on("batch/operations", handlers.onBatchOperations);
+    socket.on("checkbox/block", handlers.onRemoteBlockCheckbox);
 
     return () => {
       socket.off("update/block", handlers.onRemoteBlockUpdate);
@@ -298,6 +325,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       socket.off("update/char", handlers.onRemoteCharUpdate);
       socket.off("cursor", handlers.onRemoteCursor);
       socket.off("batch/operations", handlers.onBatchOperations);
+      socket.off("checkbox/block", handlers.onRemoteBlockCheckbox);
     };
   },
 

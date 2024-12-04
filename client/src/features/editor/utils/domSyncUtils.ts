@@ -106,7 +106,7 @@ export const setInnerHTML = ({ element, block }: SetInnerHTMLProps): void => {
     // 새로운 스타일 조합으로 span 태그 열기
     if (styleChanged) {
       const className = getClassNames(targetState);
-      html += `<span class="${className}">`;
+      html += `<span class="${className}" style="white-space: pre;">`;
       spanOpen = true;
     }
 

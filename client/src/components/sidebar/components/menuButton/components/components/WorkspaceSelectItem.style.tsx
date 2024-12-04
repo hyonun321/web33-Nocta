@@ -3,6 +3,7 @@ import { css } from "@styled-system/css";
 
 export const itemContainer = css({
   display: "flex",
+  position: "relative", // 부모 요소에 relative 추가
   justifyContent: "space-between",
   alignItems: "center",
   borderLeft: "3px solid transparent", // 활성화되지 않았을 때 border 공간 확보
@@ -20,10 +21,36 @@ export const informBox = css({
   alignItems: "center",
   marginLeft: "14px",
 });
+export const pencilButton = css({
+  display: "flex",
+  position: "absolute", // relative 대신 absolute 사용
+  top: "50%", // 중앙 정렬을 위해
+  right: "5%", // left 대신 right 사용
+  transform: "translateY(-50%)", // 정확한 세로 중앙 정렬
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: "6px",
+  padding: "1",
+  opacity: "0",
+  backgroundColor: "gray.200",
+  transition: "all",
+  _hover: {
+    backgroundColor: "gray.100",
+  },
+  _groupHover: {
+    opacity: "100",
+  },
+  "& svg": {
+    // SVG 스타일 추가
+    width: "4",
+    height: "4",
+    color: "green",
+  },
+});
 export const itemContent = css({
   display: "flex",
   flex: 1,
-  gap: "10",
+  gap: "4",
   alignItems: "center",
 });
 

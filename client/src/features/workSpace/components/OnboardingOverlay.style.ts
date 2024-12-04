@@ -37,7 +37,25 @@ export const tooltipDescription = css({
   marginBottom: "4",
   color: "gray.600",
 });
-
+export const closeButton = css({
+  position: "absolute",
+  top: "2",
+  right: "2",
+  borderRadius: "8px",
+  padding: "1",
+  color: "gray.500",
+  transition: "all",
+  _hover: {
+    color: "gray.700",
+    backgroundColor: "gray.100",
+  },
+  "& svg": {
+    // SVG 스타일 추가
+    width: "4",
+    height: "4",
+    color: "black",
+  },
+});
 export const IndicatorContainer = css({ display: "flex", gap: "2px" });
 export const stepIndicator = cva({
   base: {
