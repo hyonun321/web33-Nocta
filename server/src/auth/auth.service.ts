@@ -71,7 +71,6 @@ export class AuthService {
     return this.jwtService.sign({
       sub: user.id,
       email: user.email,
-      tokenVersion: await this.increaseTokenVersion(user),
     });
   }
 
@@ -85,12 +84,6 @@ export class AuthService {
     );
     await this.userModel.updateOne({ id }, { refreshToken });
     return refreshToken;
-  }
-
-  async increaseTokenVersion(user: User): Promise<number> {
-    const tokenVersion = user.tokenVersion + 1;
-    await this.userModel.updateOne({ id: user.id }, { tokenVersion });
-    return tokenVersion;
   }
 
   async login(user: User, res: Response): Promise<UserDto> {
