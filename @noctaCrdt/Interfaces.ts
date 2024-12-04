@@ -15,7 +15,15 @@ export type ElementType =
   | "blockquote"
   | "hr";
 
-export type AnimationType = "none" | "highlight" | "gradation";
+export type AnimationType =
+  | "none"
+  | "highlight"
+  | "rainbow"
+  | "fadeIn"
+  | "slideIn"
+  | "pulse"
+  | "gradation"
+  | "bounce";
 
 export type TextStyleType = "bold" | "italic" | "underline" | "strikethrough";
 
