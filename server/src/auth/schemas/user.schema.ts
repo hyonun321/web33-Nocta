@@ -18,9 +18,6 @@ export class User {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true, default: () => 0 })
-  tokenVersion: number;
-
   @Prop()
   refreshToken: string;
 

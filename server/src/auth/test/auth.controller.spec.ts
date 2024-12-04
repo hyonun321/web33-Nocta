@@ -25,7 +25,6 @@ describe("AuthController", () => {
     validateUser: jest.fn(),
     getProfile: jest.fn(),
     refresh: jest.fn(),
-    increaseTokenVersion: jest.fn(),
     isValidEmail: jest.fn(),
   };
 

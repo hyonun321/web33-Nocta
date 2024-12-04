@@ -38,8 +38,9 @@ export const contentWrapperStyle = cva({
     position: "relative",
     flex: 1,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     width: "100%",
+    height: "100%",
   },
 });
 

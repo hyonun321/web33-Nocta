@@ -57,23 +57,28 @@ export class WorkSpaceService implements OnModuleInit {
         // room의 연결된 클라이언트 수 확인
         const room = this.server.sockets.adapter.rooms.get(roomId);
         const clientCount = room ? room.size : 0;
-
         // 연결된 클라이언트가 없으면 DB에 저장하고 메모리에서 제거
         if (clientCount === 0) {
-          const serializedWorkspace = workspace.serialize();
+          const serializedData = workspace.serialize();
+          // 스키마에 맞게 데이터 변환
+          const workspaceData = {
+            id: roomId,
+            name: workspace.name,
+            pageList: serializedData.pageList,
+            authUser: serializedData.authUser,
+            updatedAt: new Date(),
+          };
           bulkOps.push({
             updateOne: {
               filter: { id: roomId },
-              update: { $set: { ...serializedWorkspace } },
+              update: { $set: workspaceData },
               upsert: true,
             },
           });
-
           this.workspaces.delete(roomId);
           this.logger.log(`Workspace ${roomId} will be saved to DB and removed from memory`);
         }
       }
-
       // DB에 저장할 작업이 있으면 한 번에 실행
       if (bulkOps.length > 0) {
         await this.workspaceModel.bulkWrite(bulkOps, { ordered: false });
@@ -97,6 +102,9 @@ export class WorkSpaceService implements OnModuleInit {
     // DB에서 찾기
     const workspaceJSON = await this.workspaceModel.findOne({ id: workspaceId });
 
+    if (!workspaceJSON) {
+      throw new Error(`workspaceJson ${workspaceId} not found`);
+    }
     const workspace = new CRDTWorkSpace();
 
     if (workspaceJSON) {
@@ -172,10 +180,11 @@ export class WorkSpaceService implements OnModuleInit {
       if (!workspaceData) {
         throw new Error(`Workspace with id ${workspaceId} not found`);
       }
-
       // authUser Map에서 모든 유저 ID를 배열로 변환하여 반환
       // authUser는 Map<string, string> 형태로 userId와 role을 저장하고 있음
-      return Array.from(workspaceData.authUser.keys());
+      // return Array.from(workspaceData.authUser.keys());
+      const members = await this.userModel.find({ workspaces: workspaceId }).select("id");
+      return members.map((member) => member.id);
     } catch (error) {
       this.logger.error(`Failed to get workspace members: ${error.message}`);
       throw error;
@@ -185,9 +194,9 @@ export class WorkSpaceService implements OnModuleInit {
   async createWorkspace(userId: string, name: string): Promise<Workspace> {
     const newWorkspace = await this.workspaceModel.create({
       name,
-      authUser: new Map([[userId, "owner"]]), // 올바른 형태
+      authUser: { [userId]: "owner" },
     });
-
+    //    newWorkspace.authUser[userId]
     // 유저 정보 업데이트
     await this.userModel.updateOne({ id: userId }, { $push: { workspaces: newWorkspace.id } });
 
@@ -237,22 +246,28 @@ export class WorkSpaceService implements OnModuleInit {
     const workspaces = await this.workspaceModel.find({
       id: { $in: user.workspaces },
     });
+    const workspaceList = await Promise.all(
+      workspaces.map(async (workspace) => {
+        const room = this.getServer().sockets.adapter.rooms.get(workspace.id);
+        const role = workspace.authUser[userId] || "editor";
 
-    const workspaceList = workspaces.map((workspace) => {
-      const room = this.getServer().sockets.adapter.rooms.get(workspace.id);
-      return {
-        id: workspace.id,
-        name: workspace.name,
-        role: workspace.authUser.get(userId) || "editor",
-        memberCount: workspace.authUser.size,
-        activeUsers: room ? room.size : 0,
-      };
-    });
+        // users 컬렉션에서 멤버 수 조회
+        const memberCount = await this.userModel.countDocuments({
+          workspaces: workspace.id,
+        });
 
+        return {
+          id: workspace.id,
+          name: workspace.name,
+          role,
+          memberCount,
+          activeUsers: room?.size || 0,
+        };
+      }),
+    );
     return workspaceList;
   }
 
-  // 워크스페이스에 유저 초대
   async inviteUserToWorkspace(
     ownerId: string,
     workspaceId: string,
@@ -264,18 +279,22 @@ export class WorkSpaceService implements OnModuleInit {
       throw new Error(`Workspace with id ${workspaceId} not found`);
     }
 
-    // 권한 확인
-    if (!workspace.authUser.has(ownerId) || workspace.authUser.get(ownerId) !== "owner") {
+    // 권한 확인 - 객체의 속성 접근 방식으로 변경
+    if (!(ownerId in workspace.authUser) || workspace.authUser[ownerId] !== "owner") {
       throw new Error(`User ${ownerId} does not have permission to invite users to this workspace`);
     }
 
-    // 워크스페이스에 유저 추가
-    if (!workspace.authUser.has(invitedUserId)) {
-      workspace.authUser.set(invitedUserId, "editor");
+    // 워크스페이스에 유저 추가 - 객체 속성 할당 방식으로 변경
+    if (!(invitedUserId in workspace.authUser)) {
+      // 일반 객체 업데이트
+      workspace.authUser[invitedUserId] = "editor";
       await workspace.save();
 
       // 유저 정보 업데이트
-      await this.userModel.updateOne({ id: invitedUserId }, { $push: { workspaces: workspaceId } });
+      await this.userModel.updateOne(
+        { id: invitedUserId },
+        { $addToSet: { workspaces: workspaceId } },
+      );
     }
   }
 }

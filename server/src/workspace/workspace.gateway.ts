@@ -116,14 +116,13 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
       const workspaces = await this.workSpaceService.getUserWorkspaces(userId);
       const userInfo = await this.authService.getProfile(userId);
       let NewWorkspaceId = "";
-
       if (userId === "guest") {
         client.join("guest");
         NewWorkspaceId = "guest";
       } else if (workspaces.length === 0) {
         const workspace = await this.workSpaceService.createWorkspace(
           userId,
-          `${userInfo.name}의 Workspace`,
+          `${userInfo === null ? "guest" : userInfo.name}의 Workspace`,
         );
         client.join(workspace.id);
         NewWorkspaceId = workspace.id;
@@ -176,7 +175,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
           };
         });
 
-        this.logger.log(`Sending workspace list to client ${client.id}`);
+        this.logger.log(`Sending workspace list to client(user.id): ${client.data.userId}`);
         client.emit("workspace/list", workspaceList);
         this.SocketStoreBroadcastWorkspaceConnections();
       }, 100);
@@ -454,6 +453,7 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         page: newPage.serialize(),
       } as RemotePageCreateOperation;
       client.emit("create/page", operation);
+
       this.emitOperation(client.id, workspaceId, "create/page", operation, batch);
     } catch (error) {
       this.logger.error(
@@ -658,7 +658,6 @@ export class WorkspaceGateway implements OnGatewayInit, OnGatewayConnection, OnG
         `Block Update 연산 수신 - Client ID: ${clientInfo?.clientId}, Data:`,
         JSON.stringify(data),
       );
-      console.log(data);
       const { workspaceId } = client.data;
       const currentPage = await this.workSpaceService.getPage(workspaceId, data.pageId);
       if (!currentPage) {

@@ -214,7 +214,7 @@ export class Workspace {
   @Prop({ type: [Page], default: [] })
   pageList: Page[];
 
-  @Prop({ type: Map, default: new Map() })
+  @Prop({ type: Object, default: {} })
   authUser: Map<string, string>;
 
   @Prop({ default: Date.now })

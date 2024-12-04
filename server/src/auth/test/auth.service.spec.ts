@@ -25,7 +25,6 @@ describe("AuthService", () => {
     email: "test@example.com",
     password: "hashedPassword",
     name: "Test User",
-    tokenVersion: 0,
   };
 
   const mockUserModel = {
@@ -139,7 +138,6 @@ describe("AuthService", () => {
         id: "mockNanoId123",
         email: "test@example.com",
         name: "Test User",
-        tokenVersion: 0,
       };
 
       const mockResponse = {
@@ -152,7 +150,6 @@ describe("AuthService", () => {
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: user.id,
         email: user.email,
-        tokenVersion: user.tokenVersion + 1,
       });
       expect(mockResponse.cookie).toHaveBeenCalledWith("refreshToken", expect.any(String), {
         httpOnly: true,
@@ -234,7 +231,6 @@ describe("AuthService", () => {
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: mockUser.id,
         email: mockUser.email,
-        tokenVersion: 1,
       });
       expect(mockResponse.header).toHaveBeenCalledWith("Authorization", `Bearer test-token`);
       expect(result).toEqual({
