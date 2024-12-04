@@ -246,10 +246,8 @@ export const Editor = ({ onTitleChange, pageId, pageTitle, serializedEditorData 
 
         block.crdt.currentCaret = currentCaret + characters.length;
       }
-      composingCaret.current = null;
-      if (isSameLocalChange.current) {
-        isSameLocalChange.current = false;
-      }
+      isLocalChange.current = false;
+      isSameLocalChange.current = false;
     },
     [editorCRDT, pageId, sendCharInsertOperation],
   );
