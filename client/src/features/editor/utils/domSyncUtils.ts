@@ -106,7 +106,7 @@ export const setInnerHTML = ({ element, block }: SetInnerHTMLProps): void => {
     // 새로운 스타일 조합으로 span 태그 열기
     if (styleChanged) {
       const className = getClassNames(targetState);
-      html += `<span class="${className}">`;
+      html += `<span class="${className}" style="white-space: pre;">`;
       spanOpen = true;
     }
 
@@ -139,13 +139,14 @@ const setsEqual = (a: Set<string>, b: Set<string>): boolean => {
 };
 
 const sanitizeText = (text: string): string => {
-  return text.replace(/<br>/g, "\u00A0").replace(/[<>&"']/g, (match) => {
+  return text.replace(/<br>/g, "\u00A0").replace(/[<>&"'\s]/g, (match) => {
     const escapeMap: Record<string, string> = {
       "<": "&lt;",
       ">": "&gt;",
       "&": "&amp;",
       '"': "&quot;",
       "'": "&#x27;",
+      " ": "&nbsp;",
     };
     return escapeMap[match] || match;
   });
