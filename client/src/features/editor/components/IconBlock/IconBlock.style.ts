@@ -4,8 +4,8 @@ import { css, cva } from "@styled-system/css";
 export const iconContainerStyle = css({
   display: "flex",
   justifyContent: "center",
-  alignItems: "center",
-  minWidth: "24px",
+  width: "24px",
+  height: "24px",
   marginRight: "8px",
 });
 
