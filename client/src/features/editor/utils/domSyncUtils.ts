@@ -139,14 +139,13 @@ const setsEqual = (a: Set<string>, b: Set<string>): boolean => {
 };
 
 const sanitizeText = (text: string): string => {
-  return text.replace(/<br>/g, "\u00A0").replace(/[<>&"'\s]/g, (match) => {
+  return text.replace(/<br>/g, "\u00A0").replace(/[<>&"']/g, (match) => {
     const escapeMap: Record<string, string> = {
       "<": "&lt;",
       ">": "&gt;",
       "&": "&amp;",
       '"': "&quot;",
       "'": "&#x27;",
-      " ": "&nbsp;",
     };
     return escapeMap[match] || match;
   });
