@@ -182,7 +182,7 @@ export class WorkSpaceService implements OnModuleInit {
       }
       // authUser Map에서 모든 유저 ID를 배열로 변환하여 반환
       // authUser는 Map<string, string> 형태로 userId와 role을 저장하고 있음
-      //return Array.from(workspaceData.authUser.keys());
+      // return Array.from(workspaceData.authUser.keys());
       const members = await this.userModel.find({ workspaces: workspaceId }).select("id");
       return members.map((member) => member.id);
     } catch (error) {
@@ -259,7 +259,7 @@ export class WorkSpaceService implements OnModuleInit {
         return {
           id: workspace.id,
           name: workspace.name,
-          role: role,
+          role,
           memberCount,
           activeUsers: room?.size || 0,
         };
