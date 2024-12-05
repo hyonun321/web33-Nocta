@@ -38,7 +38,7 @@ Nocta에서 단순한 기록을 넘어, 새로운 글쓰기 경험을 시작하�
 
 
 <details>
-<summary><h2>서비스 전체보기</h2>
+<summary><h2>${\textsf{\color{blue}서비스 전체보기}}$</h2>
 </summary>
 
    <details>
@@ -185,17 +185,19 @@ Nocta에서 단순한 기록을 넘어, 새로운 글쓰기 경험을 시작하�
 > 기술적 도전을 위해 RGA(Replicated Growable Array)알고리즘을 적용했어요
 LinkedList 기반으로 논리적 시계를 활용하여 각 문자들의 인덱스와 순서를 관리해요
 > 
-- [CRDT(Conflict-free Replicated Data Type)](https://www.notion.so/CRDT-Conflict-free-Replicated-Data-Type-64d21c54fb054a92aaca558dce3148ce?pvs=21)
-- [CRDT를 구현해보자 (1): CRDT를 알아볼까..?](https://www.notion.so/CRDT-1-CRDT-1f0bd7853592435f8e0bb0098a6440d1?pvs=21)
-- [CRDT를 구현해보자 (5): DB 데이터 구조 정하기](https://www.notion.so/CRDT-5-DB-d2bd99a60e914816a7a1568ecf038445?pvs=21)
-- [CRDT를 구현해보자 (6): CRDT라이브러리 개선 + dev에 붙이기](https://www.notion.so/CRDT-6-CRDT-dev-e16766117ac64a588019b4e12314416d?pvs=21)
-- [CRDT 동시성 처리](https://www.notion.so/CRDT-a8872af52203493e9f1fcf7b43149f0d?pvs=21)
+- [CRDT(Conflict-free Replicated Data Type)](https://abrupt-feta-9a9.notion.site/CRDT-Conflict-free-Replicated-Data-Type-64d21c54fb054a92aaca558dce3148ce?pvs=4)
+- [CRDT를 구현해보자 (1): CRDT를 알아볼까..?](https://abrupt-feta-9a9.notion.site/CRDT-1-CRDT-1f0bd7853592435f8e0bb0098a6440d1?pvs=4)
+- [CRDT를 구현해보자 (5): DB 데이터 구조 정하기](https://abrupt-feta-9a9.notion.site/CRDT-5-DB-d2bd99a60e914816a7a1568ecf038445?pvs=4)
+- [CRDT를 구현해보자 (6): CRDT라이브러리 개선 + dev에 붙이기](https://abrupt-feta-9a9.notion.site/CRDT-6-CRDT-dev-e16766117ac64a588019b4e12314416d?pvs=4)
+- [CRDT 동시성 처리](https://abrupt-feta-9a9.notion.site/CRDT-a8872af52203493e9f1fcf7b43149f0d?pvs=4)
+- [CRDT 최적화하기](https://abrupt-feta-9a9.notion.site/CRDT-d96629bf4f3045209508e5f3f55d8f36?pvs=4)
+
 
 ### 캐럿 이동 문제
 
 > CRDT 연산이 일어나고 상태가 업데이트되며, 캐럿의 위치가 초기화되거나 다른 페이지로 이동했어요
 수동으로 캐럿위치를 설정하고, 페이지별로 CRDT를 생성해 관리했어요
-- [캐럿 관리 트러블슈팅](https://www.notion.so/ab1b87f31ec5459eb72f4241293fe8fa?pvs=21)
+- [캐럿 관리 트러블슈팅](https://abrupt-feta-9a9.notion.site/ab1b87f31ec5459eb72f4241293fe8fa?pvs=4)
 
 # 📝 실시간 협업 마크다운 에디터
 
@@ -204,24 +206,24 @@ LinkedList 기반으로 논리적 시계를 활용하여 각 문자들의 인덱
 > CRDT를 활용해 실시간 동시 편집 시의 충돌 문제를 해결했어요
 마크다운 프리뷰와 에디터를 동기화하여 작성하면서 바로 결과물을 확인할 수 있어요
 > 
-- [마크다운은 어떻게 구현해야 할까(1): 문법 변환](https://www.notion.so/1-5b7f6fcf9c0643dc80ba72c11cc37bf7?pvs=21)
-- [마크다운은 어떻게 구현해야 할까(3): 연결리스트](https://www.notion.so/3-cea9f37a05cb4900a51cf8d3f0fc8f6d?pvs=21)
+- [마크다운은 어떻게 구현해야 할까(1): 문법 변환](https://abrupt-feta-9a9.notion.site/1-5b7f6fcf9c0643dc80ba72c11cc37bf7?pvs=4)
+- [마크다운은 어떻게 구현해야 할까(3): 연결리스트](https://abrupt-feta-9a9.notion.site/3-cea9f37a05cb4900a51cf8d3f0fc8f6d?pvs=4)
 
 ### 복잡한 중첩 구조 개선
 
 > 기존의 중첩 구조는 복잡한 DOM 순회 로직이 필요하고 에러 발생 가능성이 높았어요
 모든 요소의 depth를 1로 통일하고 prev/next 관계만 유지하도록 개선했어요
 > 
-- [마크다운은 어떻게 구현해야 할까(4): CRDT 적용을 위한 구조 변경](https://www.notion.so/4-CRDT-6449b3e7d33442279812a589cf672b73?pvs=21)
-- [마크다운은 어떻게 구현해야 할까(6): 리치 텍스트](https://www.notion.so/6-45718cbb81d2432abf68c76c15dfa586?pvs=21)
+- [마크다운은 어떻게 구현해야 할까(4): CRDT 적용을 위한 구조 변경](https://abrupt-feta-9a9.notion.site/4-CRDT-6449b3e7d33442279812a589cf672b73?pvs=4)
+- [마크다운은 어떻게 구현해야 할까(6): 리치 텍스트](https://abrupt-feta-9a9.notion.site/6-45718cbb81d2432abf68c76c15dfa586?pvs=74)
 
 ### 한글 입력 컴포징 이슈 해결
 
 > macOS와 Windows에서 한글 입력 시 컴포징 이벤트 처리 방식이 달라 문제가 발생했어요
 OS를 확인하여 각 OS에 맞게 처리했어요
 > 
-- [마크다운 디버깅 - 윈도우에서 연산이 제대로 안되는 버그](https://www.notion.so/1519ff1b21c380e1bd03e999ceb65282?pvs=21)
-- [마크다운 한글입력의 경우 블록이 2번 생기는 오류](https://www.notion.so/2-13d9ff1b21c3805badd8f78032035ef8?pvs=21)
+- [마크다운 디버깅 - 윈도우에서 연산이 제대로 안되는 버그](https://abrupt-feta-9a9.notion.site/1519ff1b21c380e1bd03e999ceb65282?pvs=4)
+- [마크다운 한글입력의 경우 블록이 2번 생기는 오류](https://abrupt-feta-9a9.notion.site/2-13d9ff1b21c3805badd8f78032035ef8?pvs=4)
 
 # 🖥️ 탭 브라우징
 
@@ -230,8 +232,8 @@ OS를 확인하여 각 OS에 맞게 처리했어요
 > 페이지들이 화면을 벗어나지 않도록 위치를 조절할 수 있고, 8방향으로 크기를 조절할 수 있어요.
 GPU를 활용한 렌더링 최적화를 진행했어요
 > 
-- [페이지 리사이징](https://www.notion.so/1479ff1b21c380038bd1fd6ba430fef2?pvs=21)
-- [탭 브라우징 구현하기](https://www.notion.so/13c9ff1b21c38089ac18cfe2c39e6c15?pvs=21)
+- [페이지 리사이징](https://abrupt-feta-9a9.notion.site/1479ff1b21c380038bd1fd6ba430fef2?pvs=4)
+- [탭 브라우징 구현하기](https://abrupt-feta-9a9.notion.site/13c9ff1b21c38089ac18cfe2c39e6c15?pvs=4)
 
 
 
