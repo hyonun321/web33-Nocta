@@ -50,6 +50,10 @@ export const useBlockOptionSelect = ({
       block.crdt = new BlockCRDT(editorCRDT.client);
     }
 
+    if (block.type === "ol") {
+      editorCRDT.LinkedList.updateAllOrderedListIndices();
+    }
+
     sendBlockUpdateOperation({
       type: "blockUpdate",
       node: block,
