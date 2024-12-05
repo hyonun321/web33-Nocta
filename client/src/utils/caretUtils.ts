@@ -142,7 +142,19 @@ export const setCaretPosition = ({
     }
 
     const range = document.createRange();
-    range.setStart(targetNode, targetOffset);
+    try {
+      range.setStart(targetNode, targetOffset);
+    } catch (rangeError) {
+      // setStart에 실패한 경우, 첫 번째 텍스트 노드를 찾아서 position 위치에 캐럿 설정
+      const firstTextNode = walker.firstChild();
+      if (firstTextNode) {
+        const textLength = firstTextNode.textContent?.length || 0;
+        range.setStart(firstTextNode, Math.min(position, textLength));
+      } else {
+        // 텍스트 노드가 없는 경우 편집 가능한 div의 시작점에 설정
+        range.setStart(editableDiv, 0);
+      }
+    }
     range.collapse(true);
 
     selection.removeAllRanges();
