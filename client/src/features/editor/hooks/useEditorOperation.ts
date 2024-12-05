@@ -181,7 +181,7 @@ export const useEditorOperation = ({
     [pageId, editorCRDT],
   );
 
-  const handleRemoteCursor = useCallback((position: any) => {}, []);
+  const handleRemoteCursor = useCallback(() => {}, []);
 
   const addNewBlock = () => {
     if (!editorCRDT) return;
