@@ -7,10 +7,10 @@ import {
 import { Page as CRDTPage } from "@noctaCrdt/Page";
 import { WorkSpace } from "@noctaCrdt/WorkSpace";
 import { useEffect, useState, useRef, useCallback } from "react";
+import { PAGE, SIDE_BAR } from "@src/constants/size";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { useToastStore } from "@src/stores/useToastStore";
 import { Page } from "@src/types/page";
-import { PAGE, SIDE_BAR } from "@src/constants/size";
 
 const PAGE_OFFSET = 60;
 
@@ -242,6 +242,11 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
         page.id === pageId ? { ...page, isVisible: false, isLoaded: false } : page,
       ),
     );
+    // Socket.IO를 통해 서버에 페이지 퇴장 알림
+    const socketStore = useSocketStore.getState();
+    if (socketStore.socket) {
+      socketStore.socket.emit("leave/page", { pageId });
+    }
   };
   const updatePage = (
     pageId: string,
