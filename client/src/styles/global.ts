@@ -9,17 +9,6 @@ export const globalStyles = defineGlobalStyles({
   },
 
   "html, body": {
-    // 기본 이미지
-    backgroundImage: 'url("./assets/images/background.jpg")',
-    // WebP 지원
-    "@supports (background-image: url('./assets/images/background.webp'))": {
-      backgroundImage: 'url("./assets/images/background.webp")',
-    },
-    // AVIF 지원
-    "@supports (background-image: url('./assets/images/background.avif'))": {
-      backgroundImage: 'url("./assets/images/background.avif")',
-    },
-    backgroundSize: "cover",
     fontFamily: "Pretendard, sans-serif",
     boxSizing: "border-box",
   },
