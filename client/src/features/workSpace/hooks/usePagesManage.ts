@@ -10,6 +10,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useSocketStore } from "@src/stores/useSocketStore";
 import { useToastStore } from "@src/stores/useToastStore";
 import { Page } from "@src/types/page";
+import { PAGE, SIDE_BAR } from "@src/constants/size";
 
 const PAGE_OFFSET = 60;
 
@@ -84,6 +85,42 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
 
   const getZIndex = () => {
     return Math.max(0, ...pages.map((page) => page.zIndex)) + 1;
+  };
+
+  const adjustPagePosition = (page: Page) => {
+    const PADDING = 20;
+    const maxWidth = window.innerWidth - SIDE_BAR.WIDTH - PADDING * 2;
+    const maxHeight = window.innerHeight - PADDING * 2;
+
+    // 페이지가 최소 크기보다 작아지지 않도록 보장
+    const width = PAGE.WIDTH;
+    const height = PAGE.HEIGHT;
+
+    // 새로운 위치 계산
+    let newX = page.x;
+    let newY = page.y;
+
+    // 오른쪽 경계를 벗어나는 경우
+    if (newX + width > maxWidth) {
+      newX = Math.max(0, maxWidth - width);
+    }
+
+    // 왼쪽 경계를 벗어나는 경우
+    if (newX < 0) {
+      newX = 0;
+    }
+
+    // 아래쪽 경계를 벗어나는 경우
+    if (newY + height > maxHeight) {
+      newY = Math.max(0, maxHeight - height);
+    }
+
+    // 위쪽 경계를 벗어나는 경우
+    if (newY < 0) {
+      newY = 0;
+    }
+
+    return { x: newX, y: newY };
   };
 
   const fetchPage = () => {
@@ -170,11 +207,25 @@ export const usePagesManage = (workspace: WorkSpace | null, clientId: number | n
 
       // 페이지를 활성화하고 표시
       setPages((prevPages) =>
-        prevPages.map((p) =>
-          p.id === pageId
-            ? { ...p, isActive: true, isVisible: true, zIndex: getZIndex() }
-            : { ...p, isActive: false },
-        ),
+        prevPages.map((p) => {
+          if (p.id === pageId) {
+            // isLoaded가 false일 때만 위치 재조정
+            if (!p.isLoaded) {
+              const adjustedPosition = adjustPagePosition(p);
+              return {
+                ...p,
+                isActive: true,
+                isVisible: true,
+                zIndex: getZIndex(),
+                x: adjustedPosition.x,
+                y: adjustedPosition.y,
+              };
+            }
+            // 이미 로드된 페이지는 위치 유지
+            return { ...p, isActive: true, isVisible: true, zIndex: getZIndex() };
+          }
+          return { ...p, isActive: false };
+        }),
       );
 
       setTimeout(() => {
