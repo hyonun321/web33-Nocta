@@ -111,7 +111,7 @@ export const MenuButton = () => {
         onClick={handleMenuClick}
         data-onboarding="menu-button"
       >
-        <button className={menuItemWrapper}>
+        <div className={menuItemWrapper} role="button">
           <MenuIcon />
           <p className={textBox}>{name ?? "Nocta"}</p>
           {/* <div className={nameWrapper}>
@@ -122,7 +122,7 @@ export const MenuButton = () => {
               </div>
             )}
           </div> */}
-        </button>
+        </div>
         <WorkspaceSelectModal isOpen={isOpen} userName={name} onInviteClick={handleInviteModal} />
         <InviteModal
           isOpen={isInviteModalOpen}
