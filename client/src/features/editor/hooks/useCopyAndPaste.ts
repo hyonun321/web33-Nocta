@@ -128,7 +128,7 @@ export const useCopyAndPaste = ({
 
         editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + metadata.length;
       } else {
-        const text = e.clipboardData.getData("text/plain");
+        let text = e.clipboardData.getData("text/plain");
         if (!block || text.length === 0) return;
 
         const caretPosition = block.crdt.currentCaret;
@@ -138,52 +138,58 @@ export const useCopyAndPaste = ({
             (b) => b.id === block.id,
           );
           const textList = text.split("\n");
+          let prevQuote = false;
           textList.forEach((line, index) => {
-            if (index === 0) {
-              line.split("").forEach((char, index) => {
-                const charNode = block.crdt.localInsert(index, char, block.id, pageId);
-                sendCharInsertOperation({
-                  type: "charInsert",
-                  node: charNode.node,
-                  blockId: block.id,
-                  pageId,
-                });
-              });
-              const isMarkdownGrammer = checkMarkdownPattern(line);
-              if (isMarkdownGrammer && block.type === "p") {
-                block.type = isMarkdownGrammer.type;
-                sendBlockUpdateOperation(editorCRDT.localUpdate(block, pageId));
-                for (let i = 0; i < isMarkdownGrammer.length; i++) {
-                  sendCharDeleteOperation(block.crdt.localDelete(0, block.id, pageId));
-                }
+            let currentLine = line;
+            if (currentLine.startsWith("- [ ]")) {
+              currentLine = currentLine.slice(2);
+            }
+            const newBlock = editorCRDT.localInsert(currentBlockIndex, "");
+            sendBlockInsertOperation({
+              type: "blockInsert",
+              node: newBlock.node,
+              pageId,
+            });
+            line.split("").forEach((char, index) => {
+              sendCharInsertOperation(
+                newBlock.node.crdt.localInsert(index, char, newBlock.node.id, pageId),
+              );
+            });
+            const isMarkdownGrammer = checkMarkdownPattern(currentLine);
+            if (isMarkdownGrammer && newBlock.node.type === "p") {
+              let markdownText = isMarkdownGrammer.length;
+              if (isMarkdownGrammer.type === "blockquote" && prevQuote === false) {
+                prevQuote = true;
               }
-            } else {
-              const newBlock = editorCRDT.localInsert(currentBlockIndex, "");
-              sendBlockInsertOperation({
-                type: "blockInsert",
-                node: newBlock.node,
-                pageId,
-              });
-              line.split("").forEach((char, index) => {
-                sendCharInsertOperation(
-                  newBlock.node.crdt.localInsert(index, char, newBlock.node.id, pageId),
+              if (
+                isMarkdownGrammer.type === "blockquote" &&
+                prevQuote === true &&
+                currentLine === ">"
+              ) {
+                prevQuote = false;
+                return;
+              }
+              if (isMarkdownGrammer.type === "checkbox" && currentLine.startsWith("[ ]")) {
+                markdownText += 1;
+              }
+              newBlock.node.type = isMarkdownGrammer.type;
+              sendBlockUpdateOperation(editorCRDT.localUpdate(newBlock.node, pageId));
+              for (let i = 0; i <= markdownText; i++) {
+                sendCharDeleteOperation(
+                  newBlock.node.crdt.localDelete(0, newBlock.node.id, pageId),
                 );
-              });
-              const isMarkdownGrammer = checkMarkdownPattern(line);
-              if (isMarkdownGrammer && newBlock.node.type === "p") {
-                newBlock.node.type = isMarkdownGrammer.type;
-                sendBlockUpdateOperation(editorCRDT.localUpdate(newBlock.node, pageId));
-                for (let i = 0; i < isMarkdownGrammer.length; i++) {
-                  sendCharDeleteOperation(
-                    newBlock.node.crdt.localDelete(0, newBlock.node.id, pageId),
-                  );
-                }
               }
             }
             currentBlockIndex += 1;
           });
           editorCRDT.LinkedList.updateAllOrderedListIndices();
         } else {
+          let grammarCount = 0;
+          if (text.startsWith("- [ ]")) {
+            console.log("checkbox");
+            text = text.slice(2);
+          }
+          console.log(text);
           // 텍스트를 한 글자씩 순차적으로 삽입
           text.split("").forEach((char, index) => {
             const insertPosition = caretPosition + index;
@@ -195,8 +201,21 @@ export const useCopyAndPaste = ({
               pageId,
             });
           });
+          const isMarkdownGrammer = checkMarkdownPattern(text);
+          if (isMarkdownGrammer && block.type === "p") {
+            block.type = isMarkdownGrammer.type;
+            let markdownText = isMarkdownGrammer.length;
+            sendBlockUpdateOperation(editorCRDT.localUpdate(block, pageId));
+            if (isMarkdownGrammer.type === "checkbox" && text.startsWith("[ ]")) {
+              markdownText += 1;
+            }
+            for (let i = 0; i < markdownText; i++) {
+              sendCharDeleteOperation(block.crdt.localDelete(0, block.id, pageId));
+              grammarCount += 1;
+            }
+          }
           // 캐럿 위치 업데이트
-          editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + text.length;
+          editorCRDT.currentBlock!.crdt.currentCaret = caretPosition + text.length - grammarCount;
         }
       }
 
