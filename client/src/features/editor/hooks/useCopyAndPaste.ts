@@ -73,6 +73,14 @@ export const useCopyAndPaste = ({
     [],
   );
 
+  const indentChecker = (text: string) => {
+    const indent = text.match(/^(?:( {3})|( {6})|( {9}))/);
+    if (indent) {
+      return indent[0].length / 3;
+    }
+    return 0;
+  };
+
   const handlePaste = useCallback(
     (e: React.ClipboardEvent<HTMLDivElement>, blockRef: HTMLDivElement | null, block: Block) => {
       e.preventDefault();
@@ -138,19 +146,23 @@ export const useCopyAndPaste = ({
             (b) => b.id === block.id,
           );
           const textList = text.split("\n");
-          let prevQuote = false;
-          textList.forEach((line, index) => {
+          textList.forEach((line) => {
+            if (line.length === 0) return;
             let currentLine = line;
+            const newBlock = editorCRDT.localInsert(currentBlockIndex, "");
             if (currentLine.startsWith("- [ ]")) {
               currentLine = currentLine.slice(2);
             }
-            const newBlock = editorCRDT.localInsert(currentBlockIndex, "");
+            if (indentChecker(currentLine) > 0) {
+              newBlock.node.indent = indentChecker(currentLine);
+              currentLine = currentLine.slice(indentChecker(currentLine) * 3 + 1);
+            }
             sendBlockInsertOperation({
               type: "blockInsert",
               node: newBlock.node,
               pageId,
             });
-            line.split("").forEach((char, index) => {
+            currentLine.split("").forEach((char, index) => {
               sendCharInsertOperation(
                 newBlock.node.crdt.localInsert(index, char, newBlock.node.id, pageId),
               );
@@ -158,17 +170,6 @@ export const useCopyAndPaste = ({
             const isMarkdownGrammer = checkMarkdownPattern(currentLine);
             if (isMarkdownGrammer && newBlock.node.type === "p") {
               let markdownText = isMarkdownGrammer.length;
-              if (isMarkdownGrammer.type === "blockquote" && prevQuote === false) {
-                prevQuote = true;
-              }
-              if (
-                isMarkdownGrammer.type === "blockquote" &&
-                prevQuote === true &&
-                currentLine === ">"
-              ) {
-                prevQuote = false;
-                return;
-              }
               if (isMarkdownGrammer.type === "checkbox" && currentLine.startsWith("[ ]")) {
                 markdownText += 1;
               }
@@ -186,10 +187,8 @@ export const useCopyAndPaste = ({
         } else {
           let grammarCount = 0;
           if (text.startsWith("- [ ]")) {
-            console.log("checkbox");
             text = text.slice(2);
           }
-          console.log(text);
           // 텍스트를 한 글자씩 순차적으로 삽입
           text.split("").forEach((char, index) => {
             const insertPosition = caretPosition + index;
