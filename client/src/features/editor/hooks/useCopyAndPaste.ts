@@ -32,7 +32,6 @@ export const useCopyAndPaste = ({
     sendCharDeleteOperation,
     sendBlockInsertOperation,
     sendBlockUpdateOperation,
-    sendBlockReorderOperation,
   } = useSocketStore();
 
   const handleCopy = useCallback(
