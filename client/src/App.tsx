@@ -4,6 +4,7 @@ import { WorkSpace } from "@features/workSpace/WorkSpace";
 import { useErrorStore } from "@stores/useErrorStore";
 import { useUserInfo } from "@stores/useUserStore";
 import { useSocketStore } from "./stores/useSocketStore";
+import { BackgroundImage } from "./components/backgroundImage/BackgroundImage";
 
 const App = () => {
   // TODO 라우터, react query 설정
@@ -25,6 +26,7 @@ const App = () => {
 
   return (
     <>
+      <BackgroundImage />
       {isErrorModalOpen && <ErrorModal errorMessage={errorMessage} />}
       <WorkSpace />
     </>
