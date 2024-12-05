@@ -139,7 +139,6 @@ export const useCopyAndPaste = ({
           );
           const textList = text.split("\n");
           textList.forEach((line, index) => {
-            console.log(line);
             if (index === 0) {
               line.split("").forEach((char, index) => {
                 const charNode = block.crdt.localInsert(index, char, block.id, pageId);

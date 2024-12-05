@@ -181,9 +181,7 @@ export const useEditorOperation = ({
     [pageId, editorCRDT],
   );
 
-  const handleRemoteCursor = useCallback((position: any) => {
-    console.log(position, "커서위치 수신");
-  }, []);
+  const handleRemoteCursor = useCallback((position: any) => {}, []);
 
   const addNewBlock = () => {
     if (!editorCRDT) return;
