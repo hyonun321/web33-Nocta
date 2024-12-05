@@ -32,6 +32,7 @@ export const useCopyAndPaste = ({
     sendCharDeleteOperation,
     sendBlockInsertOperation,
     sendBlockUpdateOperation,
+    sendBlockReorderOperation,
   } = useSocketStore();
 
   const handleCopy = useCallback(
@@ -183,6 +184,7 @@ export const useCopyAndPaste = ({
             }
             currentBlockIndex += 1;
           });
+          editorCRDT.LinkedList.updateAllOrderedListIndices();
         } else {
           // 텍스트를 한 글자씩 순차적으로 삽입
           text.split("").forEach((char, index) => {
