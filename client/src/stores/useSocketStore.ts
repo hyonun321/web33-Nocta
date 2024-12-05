@@ -166,14 +166,11 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       set({ socket });
     });
 
-    socket.on("disconnect", () => {
-      console.log("Disconnected from server");
-    });
+    socket.on("disconnect", () => {});
 
     socket.on("workspace/list", (workspaces: WorkspaceListItem[]) => {
       set({ availableWorkspaces: workspaces });
       const { availableWorkspaces } = get();
-      console.log(availableWorkspaces);
       const { workspace } = get();
       const currentWorkspace = availableWorkspaces.find((ws) => ws.id === workspace!.id);
       if (currentWorkspace) {
