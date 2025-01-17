@@ -186,9 +186,10 @@ Nocta에서 단순한 기록을 넘어, 새로운 글쓰기 경험을 시작하�
 LinkedList 기반으로 논리적 시계를 활용하여 각 문자들의 인덱스와 순서를 관리해요
 > 
 - [CRDT(Conflict-free Replicated Data Type)](https://abrupt-feta-9a9.notion.site/CRDT-Conflict-free-Replicated-Data-Type-64d21c54fb054a92aaca558dce3148ce?pvs=4)
-- [CRDT를 구현해보자 (1): CRDT를 알아볼까..?](https://abrupt-feta-9a9.notion.site/CRDT-1-CRDT-1f0bd7853592435f8e0bb0098a6440d1?pvs=4)
-- [CRDT를 구현해보자 (5): DB 데이터 구조 정하기](https://abrupt-feta-9a9.notion.site/CRDT-5-DB-d2bd99a60e914816a7a1568ecf038445?pvs=4)
-- [CRDT를 구현해보자 (6): CRDT라이브러리 개선 + dev에 붙이기](https://abrupt-feta-9a9.notion.site/CRDT-6-CRDT-dev-e16766117ac64a588019b4e12314416d?pvs=4)
+- [CRDT를 구현해보자 (1): CRDT를 만들어 볼까..?](https://abrupt-feta-9a9.notion.site/CRDT-1-CRDT-1f0bd7853592435f8e0bb0098a6440d1?pvs=4)
+- [CRDT를 구현해보자 (2): NestJS + MongoDB 연동하기](https://abrupt-feta-9a9.notion.site/CRDT-2-NestJS-MongoDB-d49eb9f56f1044e6aca39f74fb9d338f?pvs=4)
+- [CRDT를 구현해보자 (3): FE, BE에 CRDT 적용하기](https://abrupt-feta-9a9.notion.site/CRDT-3-FE-BE-CRDT-8da3ae01ddf349829ea4dc9639ba2f94?pvs=4)
+- [CRDT를 구현해보자 (4): DB 데이터 구조 정하기](https://abrupt-feta-9a9.notion.site/CRDT-4-DB-d2bd99a60e914816a7a1568ecf038445)
 - [CRDT 동시성 처리](https://abrupt-feta-9a9.notion.site/CRDT-a8872af52203493e9f1fcf7b43149f0d?pvs=4)
 - [CRDT 최적화하기](https://abrupt-feta-9a9.notion.site/CRDT-d96629bf4f3045209508e5f3f55d8f36?pvs=4)
 
